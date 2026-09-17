@@ -1,0 +1,234 @@
+/* Shared Styles & Variables */
+:root {
+  --primary-color: #6a67a9;
+  --text-color: #333333;
+  --placeholder-color: #a3a3a3;
+  --border-color: #e0e0e0;
+  --link-color: #4a86e8;
+  --shadow: 8px 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.app-container {
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f8f9fa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 60px;
+  padding: 50px 20px;
+  min-height: 100vh;
+}
+
+.card {
+  background-color: #ffffff;
+  border: 2px solid var(--primary-color);
+  border-radius: 12px;
+  padding: 40px 50px;
+  box-shadow: var(--shadow);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Specific card width constraints */
+.signup-card { max-width: 600px; }
+.signin-card { max-width: 450px; }
+
+/* Container to narrow the inputs for the sign-in form */
+.signin-inner {
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.card h2 {
+  color: var(--primary-color);
+  text-align: center;
+  font-size: 28px;
+  margin-top: 0;
+  margin-bottom: 30px;
+  font-weight: bold;
+}
+
+.form-row {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 15px;
+}
+
+.form-group {
+  flex: 1;
+  margin-bottom: 20px;
+}
+
+.form-row .form-group {
+  margin-bottom: 0;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  padding: 8px 0;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 14px;
+  color: var(--text-color);
+  outline: none;
+  background: transparent;
+  transition: border-bottom-color 0.2s;
+}
+
+input::placeholder {
+  color: var(--placeholder-color);
+}
+
+input:focus {
+  border-bottom-color: var(--primary-color);
+}
+
+/* Radio Buttons */
+.radio-label {
+  display: block;
+  font-size: 14px;
+  color: var(--placeholder-color);
+  margin-bottom: 10px;
+  margin-top: 15px;
+}
+
+.radio-group {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 25px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--placeholder-color);
+  cursor: pointer;
+}
+
+.radio-option input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--placeholder-color);
+  border-radius: 50%;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+}
+
+.radio-option input[type="radio"]:checked {
+  border-color: var(--primary-color);
+}
+
+.radio-option input[type="radio"]:checked::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+}
+
+/* Buttons */
+.btn {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--primary-color);
+  color: #ffffff;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn:hover { opacity: 0.9; }
+
+.btn-signup {
+  width: 250px;
+  display: block;
+  margin: 30px auto 10px;
+}
+
+/* Footer & Links */
+.footer-text {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-color);
+  margin-top: 15px;
+  font-weight: 500;
+}
+
+.footer-text a {
+  color: var(--link-color);
+  text-decoration: none;
+  font-weight: normal;
+}
+
+.footer-text a:hover, .forgot-password:hover { text-decoration: underline; }
+
+.forgot-password {
+  display: block;
+  font-size: 12px;
+  color: var(--link-color);
+  text-decoration: none;
+  margin-top: 12px;
+  text-align: left;
+}
+
+/* OR Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 25px 0;
+  color: #000;
+  font-size: 14px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #333;
+}
+
+.divider::before { margin-right: 15px; }
+.divider::after { margin-left: 15px; }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .form-row { flex-direction: column; gap: 15px; }
+  .radio-group { flex-direction: column; gap: 10px; }
+  .card { padding: 30px; }
+}
+
+
+.form-group { min-width: 0; }
+.btn-signup { max-width: 100%; }
+.radio-option { color: #666666; }
+.radio-label { color: #666666; }
+.card { scroll-margin-top: 24px; }
+
+button:focus-visible,
+a:focus-visible,
+.radio-option input[type="radio"]:focus-visible {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 4px;
+}
+
+@media (max-width: 360px) {
+  .app-container { padding: 24px 12px; }
+  .card { padding: 24px 18px; }
+  .card h2 { font-size: 24px; }
+}
+
