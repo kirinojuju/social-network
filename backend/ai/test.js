@@ -18,3 +18,6 @@ const { summarizeText } = require("./summarize");
 //how to test 
 //type |  node ai/test.js | in terminal (you need to cd backend before run this command)
 // it should be summarize you message
+
+// try replacing the message in `longText` below with a longer paragraph
+// to see the AI actually condense it into a shorter summary
