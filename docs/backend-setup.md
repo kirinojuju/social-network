@@ -48,5 +48,6 @@ Do not start a second backend on the same port.
 
 CORS_ORIGIN is a comma-separated list of frontend origins (without paths),
 not the backend API URL. CORS does not authenticate requests.
-No credentialed cookie flow, authentication, application routes, or public
-internet hosting is implemented in this step.
+Firebase bearer-token authentication and profile routes are documented in
+[Phase 1 schema and authentication](core-schema-auth.md), including migrations.
+No credentialed cookie flow or public internet hosting is implemented.

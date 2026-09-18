@@ -5,3 +5,8 @@ dist/
 .env
 .env.*
 !.env.example
+**/secrets/
+*service-account*.json
+*serviceAccount*.json
+*service_account*.json
+*firebase-adminsdk*.json

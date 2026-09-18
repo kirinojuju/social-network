@@ -32,22 +32,13 @@ git clone https://github.com/kirinojuju/social-network.git
 cd social-network
 ```
 
-The database setup files are currently on the
-`feature/jr-database-setup` branch.
-
-Before this work is merged into the shared branch, use:
-
-```powershell
-git fetch origin
-git switch feature/jr-database-setup
-```
-
 If you already have the repository, open a terminal in its directory.
 Do not clone it again. Run `git status` and save any pending work
 before switching branches.
 
-After the setup work is merged, use the shared branch agreed upon
-by the team and update this section accordingly.
+`develop` is the integration branch. Create feature branches from its latest
+remote state after preserving pending work. The Phase 1 schema/auth work is on
+`feature/jr-core-social-schema` until reviewed and merged.
 
 Run all Docker Compose commands in this guide from the repository
 root, where `compose.yaml` is located.
@@ -137,8 +128,8 @@ The script:
 If the role already exists, the script does not recreate it
 or change its existing password or role attributes.
 
-Table read and write permissions are not configured yet.
-They will be added alongside the application's database tables.
+Application table permissions are configured by the
+[Phase 1 migrations](core-schema-auth.md#migrations).
 
 ## 6. Set the Application Password
 
@@ -305,13 +296,13 @@ Do not resolve this by making the application account a superuser.
 ## 12. Current Scope
 
 This setup provides PostgreSQL and a database account for the backend.
+Follow [Phase 1 schema and authentication](core-schema-auth.md) for application
+tables, reproducible migrations, and Firebase-backed profile endpoints.
 
 It does not yet include:
 
-- Application tables and feature migrations
 - Sample data or seed scripts
-- Backend database connection code
-- Website registration and login
+- Frontend registration and login UI
 - Image and video file storage
 
 `social_app` is the backend's database login account.
