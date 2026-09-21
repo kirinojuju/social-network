@@ -56,7 +56,8 @@ BEGIN
   BEGIN
     DELETE FROM public.faculties WHERE id = faculty;
     RAISE EXCEPTION 'Referenced faculty deletion allowed';
-  EXCEPTION WHEN foreign_key_violation THEN NULL;
+  -- PostgreSQL can report RESTRICT separately from a foreign key violation.
+  EXCEPTION WHEN restrict_violation OR foreign_key_violation THEN NULL;
   END;
   UPDATE public.users SET updated_at = '2000-01-01T00:00:00Z' WHERE id = member;
   SELECT updated_at INTO before_update FROM public.users WHERE id = member;
