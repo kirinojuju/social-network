@@ -1,0 +1,7 @@
+.idea/
+node_modules/
+dist/
+.npm-cache/
+.env
+.env.*
+!.env.example

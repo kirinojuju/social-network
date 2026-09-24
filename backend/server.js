@@ -1,37 +1,41 @@
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const { Pool } = require('pg');
+const path = require('node:path');
+require('dotenv').config({ path: path.join(__dirname, '.env'), quiet: true });
+const { createPool } = require('./config/db');
+const { createApp } = require('./app');
 
-dotenv.config();
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// PostgreSQL connection pool
-const pool = new Pool({
-  connectionString: process.env.DB_URL,
+const port = Number(process.env.PORT || 3000);
+if (!Number.isInteger(port) || port < 1 || port > 65535) {
+  throw new Error('PORT must be an integer between 1 and 65535');
+}
+const host = process.env.HOST || '127.0.0.1';
+const origins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+  .split(',').map(value => value.trim()).filter(Boolean);
+const pool = createPool();
+const server = createApp(pool, origins).listen(port, host, () => {
+  console.log(`Backend listening on http://${host}:${port}`);
 });
 
-// Test route to confirm the server is running
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Backend is running' });
+server.on('error', async () => {
+  console.error('HTTP server failed to start');
+  await pool.end();
+  process.exitCode = 1;
 });
 
-// Test route to confirm the database connection works
-app.get('/api/db-test', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT NOW()');
-    res.json({ status: 'ok', dbTime: result.rows[0].now });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ status: 'error', message: 'Database connection failed' });
-  }
-});
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
-
+let stopping = false;
+function shutdown() {
+  if (stopping) return;
+  stopping = true;
+  const deadline = setTimeout(() => process.exit(1), 10000);
+  deadline.unref();
+  server.close(async () => {
+    try {
+      await pool.end();
+    } catch {
+      process.exitCode = 1;
+    } finally {
+      clearTimeout(deadline);
+    }
+  });
+}
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
