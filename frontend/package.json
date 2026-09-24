@@ -7,9 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
+    "test": "node --test test/*.test.js",
     "preview": "vite preview"
   },
   "dependencies": {
+    "firebase": "^12.19.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
