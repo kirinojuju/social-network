@@ -1,4 +1,4 @@
-import LeftSidebar from "./components/LeftSidebar";
+import LeftSidebar from "./component/LeftSidebar";
 import "./App.css";
 
 function App() {
