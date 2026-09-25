@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node --test"
+    "test": "node --test test/*.test.js",
+    "migrate": "node scripts/migrate.js"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +17,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "firebase-admin": "^14.4.0",
     "pg": "^8.23.0"
   }
 }

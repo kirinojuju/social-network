@@ -1,122 +1,78 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { useEffect, useState } from 'react'
+import AuthFormLogin from './component/AuthFormsLogin'
+import AuthFormSignUp from './component/AuthFormsSignUp'
 import './App.css'
+import { getClientAuth, logout, refreshUser, resendVerification, watchUser } from './auth/firebase'
+import { authError } from './auth/validation'
+import Homepage from './pages/Homepage'
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [page, setPage] = useState('login')
+  const [auth] = useState(() => {
+    try { return getClientAuth() } catch { return null }
+  })
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(Boolean(auth))
+  const [signingUp, setSigningUp] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!auth) return
+    return watchUser(auth, user => {
+      setUser(user ? { email: user.email, displayName: user.displayName, emailVerified: user.emailVerified } : null)
+      setLoading(false)
+    })
+  }, [auth])
+
+  async function accountAction(action) {
+    if (busy) return
+    setBusy(true)
+    setError('')
+    setMessage('')
+    try {
+      if (action === 'logout') {
+        await logout()
+        setPage('login')
+      } else if (action === 'resend') {
+        await resendVerification()
+        setMessage('Verification email sent. Check your inbox.')
+      } else {
+        const updated = await refreshUser()
+        setUser({ email: updated.email, displayName: updated.displayName, emailVerified: updated.emailVerified })
+        if (!updated.emailVerified) setMessage('Your email is not verified yet. Open the link in your inbox, then try again.')
+      }
+    } catch (error) {
+      setError(authError(error))
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    <main className="app-container auth-page">
+      {loading ? <p role="status">Loading…</p> : user && !signingUp ? (
+        <section className="card signin-card" aria-busy={busy}>
+          {user.emailVerified ? <Homepage user={user} /> : <>
+            <h2>Verify your email</h2>
+            <p>Open the verification link sent to {user.email} to finish signing up.</p>
+            <button className="btn" disabled={busy} onClick={() => accountAction('refresh')}>I’ve verified my email</button>
+            <button className="auth-link account-action" disabled={busy} onClick={() => accountAction('resend')}>Resend verification email</button>
+          </>}
+          {message && <p className="auth-message" role="status">{message}</p>}
+          {error && <p className="auth-error" role="alert">{error}</p>}
+          <button className="auth-link account-action" disabled={busy} onClick={() => accountAction('logout')}>Sign Out</button>
+        </section>
+      ) : page === 'login' ? (
+        <AuthFormLogin onSignUp={() => setPage('signup')} />
+      ) : (
+        <AuthFormSignUp onSignIn={() => setPage('login')} onSignupStart={() => setSigningUp(true)} onSignupComplete={(message, createdUser) => {
+          setMessage(message)
+          if (createdUser) setUser({ email: createdUser.email, displayName: createdUser.displayName, emailVerified: createdUser.emailVerified })
+          setSigningUp(false)
+        }} />
+      )}
+    </main>
   )
 }
-
-export default App

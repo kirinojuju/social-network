@@ -29,6 +29,9 @@ A group project social network app. Runs entirely on `localhost` — no cloud ho
 
 ## Prerequisites
 
+On Windows PowerShell, use `npm.cmd` in place of `npm` if script execution is
+disabled. This runs npm without changing your PowerShell execution policy.
+
 - Node.js (see `.nvmrc` for exact version — run `nvm use`)
 - npm
 - A local database installed (MongoDB / MySQL / PostgreSQL — match whatever JR sets up)
@@ -60,6 +63,9 @@ A group project social network app. Runs entirely on `localhost` — no cloud ho
    ```
 
 5. Start your local database (make sure it's running before starting the backend)
+
+   For login and signup, also follow the Firebase web configuration steps in
+   [frontend/README.md](frontend/README.md).
 
 6. (Optional) Seed sample data so your local DB has test users/posts
    ```bash
