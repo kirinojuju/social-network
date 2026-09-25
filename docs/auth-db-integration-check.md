@@ -39,6 +39,7 @@ npm.cmd ci
 npm.cmd run migrate
 npm.cmd run migrate
 npm.cmd test
+npm.cmd run test:integration-db
 Set-Location ..
 docker compose cp database/tests/core-schema.sql db:/tmp/core-schema-check.sql
 docker compose exec -T db psql -U postgres -d social_network -v ON_ERROR_STOP=1 -f /tmp/core-schema-check.sql
@@ -46,7 +47,12 @@ docker compose exec -T db psql -U postgres -d social_network -v ON_ERROR_STOP=1 
 
 The first migration run applies files 001–004 if they have not already been
 applied; the second should report zero. The schema check rolls its fixture data
-back. Do not reset the database volume or edit applied migration files.
+back. The live database check exercises the frontend profile client through
+Express with an injected test verifier, closes and reopens Express and PostgreSQL
+connections, confirms the same profile ID, then removes its uniquely named test
+profile. It uses the local database and requires the migration owner for cleanup.
+It does not prove Firebase token verification. Do not reset the database volume
+or edit applied migration files.
 
 ## Check the full browser flow
 
