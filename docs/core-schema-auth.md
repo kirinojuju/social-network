@@ -129,12 +129,16 @@ same internal UUID. Username/email conflicts return 409 without database details
 Invalid profile input returns 400; missing/invalid/expired/revoked tokens return
 401; unexpected database failures return a generic 500. No raw exceptions are logged.
 
-## Frontend and Storage follow-up
+## Frontend integration and Storage follow-up
 
-No frontend code changes are included. The frontend will need the Firebase client
-SDK, sign-in/email-verification UI, token refresh, a profile form that calls sync,
-and authenticated `/me` loading. Send the token in the header on every API request.
-Do not use the Firebase UID supplied in a request body as proof of identity.
+The frontend uses the existing Firebase sign-in and verification UI. A verified
+user without a PostgreSQL profile chooses a username and display name; the app
+calls `/sync`, then `/me`. A returning user is loaded with `/me`, synced to refresh
+the verified Firebase email, and read again with `/me`. Each request obtains a
+current Firebase ID token and sends it in the Authorization header. The UI shows
+the PostgreSQL profile ID for the restart/persistence check. Do not use a UID
+supplied in a request body as proof of identity. See the frontend README for the
+manual live check. Faculty/major editing is not yet in the UI.
 
 Future Firebase Storage holds object bytes while PostgreSQL holds metadata. Upload
 authorization and Storage rules must enforce owner UID, file size, and content type;
