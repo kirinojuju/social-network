@@ -51,7 +51,10 @@ async function main() {
     let originalId;
     await withApi(verifyToken, async api => {
       assert.equal(await api.load(user), null);
+      const provisioned = await api.ensure(user);
+      assert.ok(provisioned.id);
       const saved = await api.syncAndRead(user, profile);
+      assert.equal(saved.id, provisioned.id);
       assert.equal(saved.username, profile.username);
       originalId = saved.id;
       created = true;

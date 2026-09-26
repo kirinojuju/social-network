@@ -11,21 +11,19 @@ function setup(overrides = {}) {
   const client = {
     create: async (...args) => { calls.push(['create', ...args]); return user },
     updateName: async (...args) => { calls.push(['updateName', ...args]) },
-    sendVerification: async (...args) => { calls.push(['sendVerification', ...args]) },
     resetPassword: async (...args) => { calls.push(['resetPassword', ...args]) },
     ...overrides,
   }
   return { actions: createAuthActions(client), calls, user }
 }
 
-test('signup trims names and email, preserves the password, and sends verification', async () => {
+test('signup trims names and email, preserves the password, and signs in without verification', async () => {
   const { actions, calls, user } = setup()
   const result = await actions.signup(values)
   assert.equal(result.user, user)
   assert.deepEqual(calls, [
     ['create', 'test@example.com', ' password '],
     ['updateName', user, 'Test User'],
-    ['sendVerification', user],
   ])
   assert.match(result.message, /Account created/)
 })
@@ -43,26 +41,19 @@ test('invalid signup inputs never create an account', async () => {
   assert.equal(validateSignup(values), null)
 })
 
-test('account creation failure does not send verification or update a profile', async () => {
+test('account creation failure does not update a profile', async () => {
   const failure = { code: 'auth/email-already-in-use' }
   const { actions, calls } = setup({ create: async () => { throw failure } })
   await assert.rejects(actions.signup(values), error => error === failure)
   assert.deepEqual(calls, [])
 })
 
-test('verification delivery failure preserves the created account and explains retry', async () => {
-  const { actions, user } = setup({ sendVerification: async () => { throw new Error('offline') } })
-  const result = await actions.signup(values)
-  assert.equal(result.user, user)
-  assert.match(result.message, /Resend verification email/)
-})
-
-test('name update failure still sends verification and reports the partial result', async () => {
+test('name update failure preserves the created account and reports the partial result', async () => {
   const { actions, calls, user } = setup({ updateName: async () => { throw new Error('offline') } })
   const result = await actions.signup(values)
   assert.equal(result.user, user)
   assert.match(result.message, /name could not be saved/)
-  assert.deepEqual(calls.at(-1), ['sendVerification', user])
+  assert.deepEqual(calls, [['create', 'test@example.com', ' password ']])
 })
 
 test('password reset uses the same confirmation for known and unknown emails', async () => {

@@ -1,4 +1,5 @@
 const { Router } = require('express');
+const { createHash } = require('node:crypto');
 const { createAuthMiddleware } = require('../middleware/auth');
 
 const fields = ['username', 'display_name', 'bio', 'avatar_url', 'faculty_id', 'major_id'];
@@ -37,11 +38,42 @@ function createUsersRouter(pool, verifyToken) {
     if (!result.rows.length) return res.status(404).json({ error: 'Profile not found' });
     res.json({ user: result.rows[0] });
   });
+  router.post('/ensure', async (req, res, next) => {
+    const email = req.auth.email;
+    if (typeof email !== 'string' || email.length > 254 ||
+        !/^[^\s@\x00]+@[^\s@\x00]+\.[^\s@\x00]+$/.test(email)) {
+      return res.status(403).json({ error: 'A Firebase email is required' });
+    }
+    const requestedName = req.body?.display_name;
+    if (req.body && (typeof req.body !== 'object' || Array.isArray(req.body) ||
+        Object.keys(req.body).some(key => key !== 'display_name'))) {
+      return res.status(400).json({ error: 'Invalid profile fields' });
+    }
+    if (requestedName != null && (typeof requestedName !== 'string' ||
+        !requestedName.trim() || [...requestedName.trim()].length > 100 || requestedName.includes('\0'))) {
+      return res.status(400).json({ error: 'Invalid profile fields' });
+    }
+    const stem = email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').slice(0, 15) || 'user';
+    const username = `${stem}_${createHash('sha256').update(req.auth.uid).digest('hex').slice(0, 8)}`;
+    const displayName = requestedName?.trim() || email.split('@')[0].slice(0, 100);
+    try {
+      const result = await pool.query(`
+        INSERT INTO public.users (firebase_uid, email, username, display_name)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (firebase_uid) DO UPDATE SET email = EXCLUDED.email
+        RETURNING ${columns}`,
+      [req.auth.uid, email.toLowerCase(), username, displayName]);
+      res.json({ user: result.rows[0] });
+    } catch (error) {
+      if (error.code === '23505') return res.status(409).json({ error: 'Email or username already in use' });
+      next(error);
+    }
+  });
   router.post('/sync', async (req, res, next) => {
     const email = req.auth.email;
-    if (req.auth.email_verified !== true || typeof email !== 'string' ||
+    if (typeof email !== 'string' ||
         email.length > 254 || !/^[^\s@\x00]+@[^\s@\x00]+\.[^\s@\x00]+$/.test(email)) {
-      return res.status(403).json({ error: 'A verified Firebase email is required' });
+      return res.status(403).json({ error: 'A Firebase email is required' });
     }
     const profile = validateProfile(req.body);
     if (!profile) return res.status(400).json({ error: 'Invalid profile fields' });

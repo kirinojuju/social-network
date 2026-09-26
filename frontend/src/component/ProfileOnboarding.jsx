@@ -12,7 +12,7 @@ export default function ProfileOnboarding({ user, busy, error, onSave }) {
   return (
     <>
       <h2>Set up your profile</h2>
-      <p>Choose a username to finish connecting your verified account.</p>
+      <p>Choose a username to finish setting up your account.</p>
       <form className="signin-inner" onSubmit={submit} aria-busy={busy}>
         <fieldset className="auth-fields" disabled={busy}>
           <div className="form-group">

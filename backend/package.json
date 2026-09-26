@@ -8,6 +8,8 @@
     "dev": "node --watch server.js",
     "test": "node --test test/*.test.js",
     "test:integration-db": "node scripts/check-profile-persistence.js",
+    "test:posts-db": "node scripts/check-post-persistence.js",
+    "test:firebase-live": "node scripts/check-firebase-login.js",
     "migrate": "node scripts/migrate.js"
   },
   "keywords": [],

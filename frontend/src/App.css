@@ -7,3 +7,12 @@
 .auth-page code {
   overflow-wrap: anywhere;
 }
+
+.home-content { width: min(100%, 640px); }
+.feed-card { max-width: 740px; }
+.post-form { display: grid; gap: 10px; margin: 24px 0; }
+.post-form textarea { width: 100%; box-sizing: border-box; font: inherit; padding: 10px; }
+.post-card { border-top: 1px solid #ddd; padding: 16px 0; overflow-wrap: anywhere; }
+.post-card p { white-space: pre-wrap; }
+.post-image { max-width: 100%; max-height: 480px; object-fit: contain; display: block; margin-bottom: 12px; }
+.post-card small { color: #666; }

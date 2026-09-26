@@ -42,10 +42,12 @@ test('sync validates all fields and rejects identity spoofing', async () => {
   }, () => assert.fail('invalid input reached database'));
 });
 
-test('sync requires verified email from Firebase', async () => {
-  for (const identity of [{ ...claims, email_verified: false }, { uid: 'anonymous' }, { ...claims, email: 'bad' }]) {
+test('sync accepts unverified Firebase email but requires a valid email', async () => {
+  await withServer(async request => assert.equal((await request('/sync', valid)).status, 200),
+    async () => ({ rows: [{ id: 'new-profile' }] }), async () => ({ ...claims, email_verified: false }));
+  for (const identity of [{ uid: 'anonymous' }, { ...claims, email: 'bad' }]) {
     await withServer(async request => assert.equal((await request('/sync', valid)).status, 403),
-      () => assert.fail('unverified email reached database'), async () => identity);
+      () => assert.fail('invalid email reached database'), async () => identity);
   }
 });
 
@@ -83,6 +85,21 @@ test('me queries only the verified UID and returns profile or 404', async () => 
   }
 });
 
+test('ensure creates an initial profile for an unverified account and preserves the UID', async () => {
+  await withServer(async request => {
+    const response = await request('/ensure', { display_name: 'New User' });
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { user: { id: 'auto-profile' } });
+  }, async (sql, values) => {
+    assert.match(sql, /ON CONFLICT \(firebase_uid\) DO UPDATE SET email/);
+    assert.equal(values[0], claims.uid);
+    assert.equal(values[1], 'person@example.com');
+    assert.match(values[2], /^person_[a-f0-9]{8}$/);
+    assert.equal(values[3], 'New User');
+    return { rows: [{ id: 'auto-profile' }] };
+  }, async () => ({ ...claims, email_verified: false }));
+});
+
 test('database failures return safe conflict, validation, or internal errors', async () => {
   for (const [code, status, message] of [
     ['23505', 409, 'Email or username already in use'],
@@ -104,7 +121,7 @@ test('database failures return safe conflict, validation, or internal errors', a
 
 test('malformed JSON and oversized bodies return safe errors', async () => {
   await withServer(async (request, root) => {
-    for (const [body, status] of [['{', 400], [JSON.stringify({ bio: 'x'.repeat(110000) }), 413]]) {
+    for (const [body, status] of [['{', 400], [JSON.stringify({ bio: 'x'.repeat(4 * 1024 * 1024) }), 413]]) {
       const res = await fetch(root + '/sync', { method: 'POST',
         headers: { Authorization: 'Bearer test-token', 'Content-Type': 'application/json' }, body });
       assert.equal(res.status, status);

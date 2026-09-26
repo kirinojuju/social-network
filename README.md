@@ -2,6 +2,14 @@
 
 A group project social network app. Runs entirely on `localhost` — no cloud hosting.
 
+Firebase Authentication handles email/password signup and login without email
+verification. Cloud Firestore stores private post documents and a copy of each
+profile. PostgreSQL retains existing profiles and image bytes up to 2 MB; images
+are referenced from Firestore posts. The setup steps in
+[backend setup](docs/backend-setup.md) and [frontend setup](frontend/README.md)
+describe the Firebase web configuration and local database. Run
+`npm.cmd run migrate` in `backend` before using posts.
+
 ## Team Roles
 
 | Name | Role |
@@ -34,56 +42,24 @@ disabled. This runs npm without changing your PowerShell execution policy.
 
 - Node.js (see `.nvmrc` for exact version — run `nvm use`)
 - npm
-- A local database installed (MongoDB / MySQL / PostgreSQL — match whatever JR sets up)
+- Docker Desktop for the local PostgreSQL database
+- A Firebase project with Email/Password sign-in enabled
 
 ## Setup
 
-1. Clone the repo
-   ```bash
-   git clone <repo-url>
-   cd project
-   ```
+1. Fill in the ignored root `.env`, `backend/.env`, and `frontend/.env` files from
+   their `.env.example` files. Use the same Firebase project ID on both sides.
+   Admin credentials are optional for local token signature verification; configure
+   them only if you enable `FIREBASE_CHECK_REVOKED=true`.
+2. Start PostgreSQL with `docker compose up -d`. Follow
+   [database setup](docs/database-setup.md) to provision the `social_app` role.
+3. In `backend`, run `npm.cmd ci`, then `npm.cmd run migrate`, then `npm.cmd run dev`.
+   `http://127.0.0.1:3000/api/ready` should report `ready`.
+4. In `frontend`, run `npm.cmd ci` and `npm.cmd run dev`. Open the Vite URL shown.
 
-2. Install backend dependencies
-   ```bash
-   cd backend
-   npm install
-   ```
-
-3. Install frontend dependencies
-   ```bash
-   cd ../frontend
-   npm install
-   ```
-
-4. Copy the environment example file and fill in your local values
-   ```bash
-   cd ../backend
-   cp .env.example .env
-   ```
-
-5. Start your local database (make sure it's running before starting the backend)
-
-   For login and signup, also follow the Firebase web configuration steps in
-   [frontend/README.md](frontend/README.md).
-
-6. (Optional) Seed sample data so your local DB has test users/posts
-   ```bash
-   npm run seed
-   ```
-
-7. Run the backend
-   ```bash
-   npm run dev
-   ```
-
-8. In a separate terminal, run the frontend
-   ```bash
-   cd frontend
-   npm run dev
-   ```
-
-9. Open the app in your browser at the URL shown by the frontend dev server (e.g. `http://localhost:5173`)
+Use `npm.cmd run test:integration-db` and `npm.cmd run test:posts-db` in `backend`
+to check local persistence, and `npm.cmd run test:firestore-live` in `frontend`
+to test Firestore owner rules with disposable accounts.
 
 ## Git Workflow
 

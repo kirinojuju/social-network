@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createProfileClient, ProfileApiError } from '../src/auth/profile.js'
 
-test('verified session creates a profile, rereads it, and preserves it on the next session', async () => {
+test('session creates a profile, rereads it, and preserves it on the next session', async () => {
   let stored = null
   let tokenNumber = 0
   const requests = []
@@ -56,4 +56,15 @@ test('profile errors expose safe messages and distinguish missing profiles', asy
   const offline = createProfileClient({ fetchImpl: async () => { throw new Error('private connection detail') } })
   await assert.rejects(offline.get(user), error =>
     error instanceof ProfileApiError && !error.message.includes('private connection detail'))
+})
+
+test('ensure sends a display name and current Firebase token for first login', async () => {
+  const client = createProfileClient({ fetchImpl: async (url, options) => {
+    assert.equal(new URL(url).pathname, '/api/users/ensure')
+    assert.equal(options.headers.Authorization, 'Bearer first-login-token')
+    assert.deepEqual(JSON.parse(options.body), { display_name: 'New User' })
+    return Response.json({ user: { id: 'created-profile' } })
+  } })
+  assert.deepEqual(await client.ensure({ displayName: 'New User', getIdToken: async () => 'first-login-token' }),
+    { id: 'created-profile' })
 })

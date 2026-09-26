@@ -11,7 +11,9 @@ async function verifyFirebaseToken(token) {
     credential: applicationDefault(),
     ...(process.env.FIREBASE_PROJECT_ID ? { projectId: process.env.FIREBASE_PROJECT_ID } : {}),
   }, name);
-  return getAuth(app).verifyIdToken(token, true);
+  // Signature, issuer, audience and expiry are verified without an Admin API call.
+  // Revocation checks require Admin credentials and can be enabled explicitly.
+  return getAuth(app).verifyIdToken(token, process.env.FIREBASE_CHECK_REVOKED === 'true');
 }
 
 module.exports = { verifyFirebaseToken };

@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "oxlint",
     "test": "node --test test/*.test.js",
+    "test:firestore-live": "node scripts/check-firestore-live.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

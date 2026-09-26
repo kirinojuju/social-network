@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import AuthFormLogin from './component/AuthFormsLogin'
 import AuthFormSignUp from './component/AuthFormsSignUp'
-import ProfileOnboarding from './component/ProfileOnboarding'
-import { getClientAuth, logout, refreshUser, resendVerification, watchUser } from './auth/firebase'
+import { getClientAuth, logout, watchUser } from './auth/firebase'
 import { profileClient } from './auth/profile'
+import { saveFirestoreProfile } from './auth/firestore-profile'
 import { authError } from './auth/validation'
 import Homepage from './pages/Homepage'
 import './App.css'
@@ -29,19 +29,20 @@ export default function App() {
     return watchUser(auth, nextUser => {
       setUser(nextUser)
       setProfile(null)
-      setProfileState(nextUser?.emailVerified ? 'loading' : 'idle')
+      setProfileState(nextUser ? 'loading' : 'idle')
       setProfileError('')
       setLoading(false)
     })
   }, [auth])
 
   useEffect(() => {
-    if (!user?.emailVerified || signingUp) return
+    if (!user || signingUp) return
     let active = true
-    profileClient.load(user).then(result => {
+    profileClient.load(user).then(result => result || profileClient.ensure(user))
+      .then(async result => { await saveFirestoreProfile(user, result); return result }).then(result => {
       if (!active) return
       setProfile(result)
-      setProfileState(result ? 'ready' : 'onboarding')
+      setProfileState('ready')
     }).catch(profileFailure => {
       if (!active) return
       setProfileError(profileFailure.message)
@@ -49,23 +50,6 @@ export default function App() {
     })
     return () => { active = false }
   }, [user, signingUp, sessionVersion])
-
-  async function saveProfile(values) {
-    if (busy || !user) return
-    setBusy(true)
-    setProfileError('')
-    try {
-      const saved = await profileClient.syncAndRead(user, values)
-      if (auth.currentUser?.uid === user.uid) {
-        setProfile(saved)
-        setProfileState('ready')
-      }
-    } catch (profileFailure) {
-      setProfileError(profileFailure.message)
-    } finally {
-      setBusy(false)
-    }
-  }
 
   async function accountAction(action) {
     if (busy) return
@@ -76,18 +60,6 @@ export default function App() {
       if (action === 'logout') {
         await logout()
         setPage('login')
-      } else if (action === 'resend') {
-        await resendVerification()
-        setMessage('Verification email sent. Check your inbox.')
-      } else {
-        const updated = await refreshUser()
-        setUser(updated)
-        if (updated.emailVerified) {
-          setProfileState('loading')
-          setProfileError('')
-        }
-        setSessionVersion(version => version + 1)
-        if (!updated.emailVerified) setMessage('Your email is not verified yet. Open the link in your inbox, then try again.')
       }
     } catch (authFailure) {
       setError(authError(authFailure))
@@ -97,14 +69,7 @@ export default function App() {
   }
 
   function signedInContent() {
-    if (!user.emailVerified) return <>
-      <h2>Verify your email</h2>
-      <p>Open the verification link sent to {user.email} to finish signing up.</p>
-      <button className="btn" disabled={busy} onClick={() => accountAction('refresh')}>I've verified my email</button>
-      <button className="auth-link account-action" disabled={busy} onClick={() => accountAction('resend')}>Resend verification email</button>
-    </>
     if (profileState === 'loading' || profileState === 'idle') return <p role="status">Loading your profile…</p>
-    if (profileState === 'onboarding') return <ProfileOnboarding user={user} busy={busy} error={profileError} onSave={saveProfile} />
     if (profileState === 'error') return <>
       <h2>Profile unavailable</h2>
       <p className="auth-error" role="alert">{profileError}</p>
@@ -114,13 +79,13 @@ export default function App() {
         setSessionVersion(version => version + 1)
       }}>Try again</button>
     </>
-    return <Homepage profile={profile} />
+    return <Homepage profile={profile} user={user} />
   }
 
   return (
     <main className="app-container auth-page">
       {loading ? <p role="status">Loading…</p> : user && !signingUp ? (
-        <section className="card signin-card" aria-busy={busy}>
+        <section className={`card ${profileState === 'ready' ? 'feed-card' : 'signin-card'}`} aria-busy={busy}>
           {signedInContent()}
           {message && <p className="auth-message" role="status">{message}</p>}
           {error && <p className="auth-error" role="alert">{error}</p>}
@@ -133,7 +98,7 @@ export default function App() {
           setMessage(signupMessage)
           if (createdUser) {
             setUser(createdUser)
-            setProfileState(createdUser.emailVerified ? 'loading' : 'idle')
+            setProfileState('loading')
             setProfileError('')
           }
           setSigningUp(false)

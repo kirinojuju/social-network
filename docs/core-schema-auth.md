@@ -2,10 +2,12 @@
 
 React signs users in with the Firebase client SDK. It sends a Firebase ID token
 in `Authorization: Bearer <token>` to Express. The Admin SDK verifies the token,
-including revocation/disabled-user checks, and middleware exposes the verified
+including signature, issuer, audience and expiry checks, and middleware exposes the verified
 claims as `req.auth`. Express uses `req.auth.uid` to locate the PostgreSQL profile.
-Firebase owns passwords, providers, email verification, and token refresh.
-PostgreSQL stores application profiles and social data; it has no password columns.
+Firebase owns passwords, providers, and token refresh. This app does not require
+email verification for signup or profile creation.
+PostgreSQL retains application profiles and image bytes; Firestore stores private
+post documents and a copy of each profile. PostgreSQL has no password columns.
 There is no additional Express login/password system.
 
 Firebase setup follows the official [Admin SDK setup](https://firebase.google.com/docs/admin/setup)
@@ -14,15 +16,20 @@ and [session verification](https://firebase.google.com/docs/auth/admin/manage-se
 ## Local Firebase configuration
 
 Enable your instructor-required sign-in provider in the Firebase project console.
-Set `FIREBASE_PROJECT_ID` in `backend/.env`. Provide standard Application Default
-Credentials: locally, set `GOOGLE_APPLICATION_CREDENTIALS` to an absolute path to
-your service-account JSON **outside the repository**. On a managed host, use its
-service identity and omit the file variable. Never put Admin credentials in Vite
+Set `FIREBASE_PROJECT_ID` in `backend/.env`. The default token check verifies
+signatures against Firebase public keys. To also reject revoked or disabled-user
+tokens immediately, set `FIREBASE_CHECK_REVOKED=true` and provide standard
+Application Default Credentials: locally, set `GOOGLE_APPLICATION_CREDENTIALS`
+to an absolute path to your service-account JSON **outside the repository**.
+On a managed host, use its service identity. Never put Admin credentials in Vite
 variables, frontend bundles, tracked files, logs, or API responses. Use only the
 Firebase permissions needed for token verification and user lookup.
 
 The Admin SDK is initialized on the first protected request, so health/readiness
-and unit tests require no Firebase credentials. Verification failures return a
+and unit tests require no Firebase credentials. Revocation checks are disabled by
+default and can be enabled with `FIREBASE_CHECK_REVOKED=true` when Admin credentials
+are configured. Normal ID tokens remain valid until expiry after a user is disabled
+or signed out server-side. Verification failures return a
 generic 401, including configuration/network failures; diagnose configuration
 separately without logging credentials or bearer tokens. This server refuses the
 Auth emulator environment variable to avoid accidentally accepting unsigned tokens.
@@ -51,7 +58,7 @@ npm.cmd run migrate
 npm.cmd run migrate
 ```
 
-The first run applies `database/migrations/001` through `004` in filename order.
+The first run applies `database/migrations/001` through `005` in filename order.
 The second reports zero applied. The runner uses one transaction for the pending
 batch, an advisory lock, and `public.schema_migrations` with SHA-256 checksums.
 Failure rolls back pending DDL and history. Changed/removed/out-of-order applied
@@ -87,23 +94,22 @@ docker compose exec -T db psql -U postgres -d social_network -v ON_ERROR_STOP=1 
 - Posts default to `private`; only `public` and `private` are accepted. Content
   can be empty for future media-only posts. Feed and author indexes support later
   endpoints. Deleting a user cascades through posts and media metadata.
-- Media belongs to its post's author through a composite foreign key. It stores
-  a Firebase object path in `storage_path`, type, allowed MIME type, positive byte
-  size (maximum 5 GiB), and timestamp. No image/video bytes are stored in PostgreSQL.
-  The size ceiling is a metadata integrity constraint, not an implemented upload policy.
+- Media belongs to its post's author through a composite foreign key. The first
+  four migrations defined a storage path and metadata. Migration 005 adds a
+  `bytea` column for local image uploads up to 2 MB. Video uploads are not enabled.
 - `social_app` gets reference-table SELECT, profile SELECT, and only the INSERT/
-  UPDATE columns needed by sync. It cannot delete profiles, write internal IDs or
-  timestamps, modify migration history, or access posts/media yet. Later endpoints
-  must add appropriate grants and ownership checks. This shared backend role is
-  not a per-user database identity; endpoint authorization isolates users.
+  UPDATE columns needed by sync. Migration 005 grants post and image reads/inserts;
+  the API binds them to the verified UID. The role cannot delete profiles, write
+  migration history, or delete posts. This shared backend role is not a per-user
+  database identity; endpoint authorization isolates users.
 
 ## API contract
 
 Both endpoints require a valid Firebase ID token and return `Cache-Control: no-store`.
 
-`POST /api/users/sync` creates or updates **only** the verified UID's profile. It
-requires a verified Firebase email claim; missing/unverified email returns 403.
-Refresh the ID token after email verification or email changes. Request example:
+`POST /api/users/sync` creates or updates **only** the authenticated UID's profile.
+It requires a valid Firebase email claim; a missing or malformed email returns 403.
+Refresh the ID token after email changes. Request example:
 
 ```json
 {
@@ -125,27 +131,33 @@ from the verified token. A different UID cannot claim a profile by matching emai
 Both creation and update return 200 with `{ "user": { ...profile } }` and keep the
 same internal UUID. Username/email conflicts return 409 without database details.
 
-`GET /api/users/me` returns 200 with the same user envelope, or 404 before sync.
-Invalid profile input returns 400; missing/invalid/expired/revoked tokens return
+`POST /api/users/ensure` creates an initial profile on first sign-in and keeps an
+existing profile unchanged except for its Firebase email. It accepts an optional
+`display_name` and derives a stable username from the email and UID.
+`GET /api/users/me` returns 200 with the same user envelope, or 404 before sync or ensure.
+Invalid profile input returns 400; missing/invalid/expired tokens return
 401; unexpected database failures return a generic 500. No raw exceptions are logged.
 
-## Frontend integration and Storage follow-up
+## Frontend integration and posts
 
-The frontend uses the existing Firebase sign-in and verification UI. A verified
-user without a PostgreSQL profile chooses a username and display name; the app
-calls `/sync`, then `/me`. A returning user is loaded with `/me`, synced to refresh
-the verified Firebase email, and read again with `/me`. Each request obtains a
+The frontend uses Firebase email/password sign-in. A new user without a
+PostgreSQL profile is provisioned automatically through `/ensure` using a stable
+username derived from their email and UID. A returning user is loaded with `/me`, synced to refresh
+the Firebase email, and read again with `/me`. Each request obtains a
 current Firebase ID token and sends it in the Authorization header. The UI shows
 the PostgreSQL profile ID for the restart/persistence check. Do not use a UID
 supplied in a request body as proof of identity. See the frontend README for the
 manual live check. Faculty/major editing is not yet in the UI.
 
-Future Firebase Storage holds object bytes while PostgreSQL holds metadata. Upload
-authorization and Storage rules must enforce owner UID, file size, and content type;
-client-supplied metadata alone is not trustworthy. Prefer private object paths to
-public download URLs for restricted posts. PostgreSQL cascades do not delete Storage
-objects; a future cleanup workflow must coordinate object/metadata deletion. Storage
-upload/download endpoints, rules, and post APIs are outside Phase 1.
+New private text posts are written directly to Cloud Firestore `posts/{id}`.
+On sign-in the frontend copies up to 50 existing PostgreSQL posts to Firestore,
+without overwriting documents that already exist. Profiles are copied to
+`users/{uid}`. Image posts use `POST /api/posts` to store image bytes in PostgreSQL,
+then create a Firestore post referencing the image ID. `GET /api/posts/:id/image`
+returns an image only to its owner. Images up to 2 MB are stored in
+`media.image_data`; the API checks content type and file signature. Public feeds
+are not part of this flow. Firebase Storage is unavailable on the project's
+current Spark plan, so image bytes remain in PostgreSQL.
 
 ## Tests
 

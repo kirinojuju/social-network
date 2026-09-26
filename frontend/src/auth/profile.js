@@ -45,8 +45,8 @@ export function createProfileClient({ baseUrl = defaultBaseUrl, fetchImpl = fetc
     }
     if (!response.ok) {
       const messages = {
-        401: 'Your session could not be verified. Sign out and sign in again.',
-        403: 'Verify your email, then refresh your session.',
+        401: 'The backend could not verify your sign-in. Check its Firebase setup, then try again.',
+        403: 'Your account needs a valid email address.',
         409: 'That username or email is already in use. Choose another username.',
       }
       throw new ProfileApiError(messages[response.status] || 'The profile request failed. Please try again.', response.status)
@@ -62,10 +62,12 @@ export function createProfileClient({ baseUrl = defaultBaseUrl, fetchImpl = fetc
 
   const get = user => request(user, 'me', 'GET')
   const sync = (user, profile) => request(user, 'sync', 'POST', profile)
+  const ensure = user => request(user, 'ensure', 'POST', { display_name: user.displayName || undefined })
 
   return {
     get,
     sync,
+    ensure,
     async load(user) {
       let existing
       try {
