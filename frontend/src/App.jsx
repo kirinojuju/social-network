@@ -1,14 +1,14 @@
-<<<<<<< HEAD
+
 import LeftSidebar from "./components/LeftSidebar";
 import AuthForm from "./component/AuthFormsLogin"; 
 import AuthFormSign from "./component/AuthFormsLogin";
-=======
+
 import { useState } from "react";
 
 import LeftSidebar from "./component/LeftSideBar";
 import AISummary from "./component/AI_summary";
 
->>>>>>> a92fcb610f9029722336e4912d1e691c1335f4c3
+
 import "./App.css";
 
 function App() {
