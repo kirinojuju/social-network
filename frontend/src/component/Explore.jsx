@@ -19,36 +19,6 @@ function Explore() {
     "#CMUEvents",
   ];
 
-  const suggestedPeople = [
-    {
-      name: "User_Name",
-      major: "Engineering",
-    },
-    {
-      name: "User_Name",
-      major: "Engineering",
-    },
-    {
-      name: "User_Name",
-      major: "Engineering",
-    },
-  ];
-
-  const recommendedGroups = [
-    {
-      name: "Group_Name",
-      members: "2.3k members",
-    },
-    {
-      name: "Group_Name",
-      members: "2.3k members",
-    },
-    {
-      name: "Group_Name",
-      members: "2.3k members",
-    },
-  ];
-
   return (
     <div className="explore-page">
 
