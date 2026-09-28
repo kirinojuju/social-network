@@ -21,8 +21,8 @@
 
 .search-box {
   flex: 1;
-  max-width: 750px; /* ลดความกว้าง */
-  margin: 0 auto;   /* ดันให้อยู่กลาง */
+  max-width: 750px; /* decrease width */
+  margin: 0 auto;   /* push to center */
   height: 52px;
   display: flex;
   align-items: center;

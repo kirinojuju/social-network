@@ -14,7 +14,7 @@ function MiddlePage() {
     const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   return (
     <main className="middle-page">
-      {/* แถบด้านบน */}
+      {/* Top bar */}
       <header className="topbar">
         <div className="search-box">
           <span className="search-icon">⌕</span>
@@ -32,7 +32,7 @@ function MiddlePage() {
       </header>
 
       <section className="feed-content">
-        {/* กล่องสร้างโพสต์ */}
+        {/* Post Box */}
         <section className="create-post-card">
           <div className="create-post-top">
             <div className="avatar">👤</div>
@@ -77,7 +77,7 @@ function MiddlePage() {
             </div>
             </div>
 
-        {/* โพสต์ตัวอย่าง */}
+        {/* Sample Post */}
         <article className="sample-post">
           <div className="post-header">
             <div className="avatar">👤</div>
