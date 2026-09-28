@@ -6,6 +6,7 @@
 /* Main content starts AFTER sidebar */
 .main-content {
   margin-left: 235px;
+  margin-right: 260px;
   min-height: 100vh;
   padding: 40px;
 }
