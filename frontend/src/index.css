@@ -17,3 +17,23 @@ body {
 #root {
   min-height: 100svh;
 }
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+
+  width: 100%;
+  min-height: 100vh;
+}
+
+
+body {
+  font-family: "Inter", Arial, sans-serif;
+
+  background-color: #eeeeee;
+}

@@ -1,0 +1,103 @@
+.right-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  padding: 20px 16px;
+  background: #fff;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.rs-section {
+  margin-bottom: 28px;
+}
+
+.rs-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 14px;
+  color: #1a1a1a;
+}
+
+.rs-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.rs-avatar {
+  font-size: 32px !important;
+  color: #1a1a1a;
+  flex-shrink: 0;
+}
+
+.rs-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.rs-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rs-sub {
+  font-size: 11px;
+  color: #6b6b6b;
+}
+
+.rs-btn {
+  font-size: 11px;
+  padding: 3px 12px;
+  border: 1px solid #6b62b3;
+  border-radius: 999px;
+  background: transparent;
+  color: #6b62b3;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.rs-btn:hover,
+.rs-btn.active {
+  background: #6b62b3;
+  color: #fff;
+}
+
+.rs-btn:focus-visible,
+.rs-more:focus-visible {
+  outline: 2px solid #6b62b3;
+  outline-offset: 2px;
+}
+
+.rs-more {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 11px;
+  color: #6b6b6b;
+  cursor: pointer;
+}
+
+.rs-more:hover {
+  text-decoration: underline;
+}
+.right-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 260px;
+  height: 100vh;
+  padding: 20px 16px;
+  background: #fff;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
