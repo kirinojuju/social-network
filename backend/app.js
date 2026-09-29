@@ -8,6 +8,7 @@ function createApp(pool, origins = [], { verifyToken = verifyFirebaseToken } = {
   const app = express();
   app.disable('x-powered-by');
   app.use(cors({ origin: origins }));
+  app.use('/api/posts', express.json({ limit: '7mb' }));
   app.use(express.json({ limit: '3mb' }));
 
   app.get('/api/health', (req, res) => {

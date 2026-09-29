@@ -64,7 +64,14 @@ const moreMenu = [
   },
 ];
 
-function LeftSidebar() {
+function LeftSidebar({ activeView, onNavigate, onCreatePost, onOpenAI }) {
+  const actions = {
+    Home: () => onNavigate('home'),
+    Explore: () => onNavigate('explore'),
+    UniAI: onOpenAI,
+    'Create Post': onCreatePost,
+  };
+
   return (
     <aside className="left-sidebar">
 
@@ -79,10 +86,12 @@ function LeftSidebar() {
           const Icon = item.icon;
 
           return (
-            <div className="sidebar-item" key={item.name}>
+            <button type="button" className="sidebar-item" key={item.name}
+              disabled={!actions[item.name]} onClick={actions[item.name]}
+              aria-current={item.name.toLowerCase() === activeView ? 'page' : undefined}>
               <Icon className="sidebar-icon" />
               <span>{item.name}</span>
-            </div>
+            </button>
           );
         })}
       </nav>
@@ -101,10 +110,10 @@ function LeftSidebar() {
           const Icon = item.icon;
 
           return (
-            <div className="sidebar-item" key={item.name}>
+            <button type="button" className="sidebar-item" key={item.name} disabled>
               <Icon className="sidebar-icon" />
               <span>{item.name}</span>
-            </div>
+            </button>
           );
         })}
 
@@ -126,8 +135,8 @@ function LeftSidebar() {
               <SentimentSatisfiedOutlinedIcon />
             </div>
 
-        <button className="ai-chat-button">
-            Start Chat
+        <button type="button" className="ai-chat-button" onClick={onOpenAI}>
+            AI Summary Preview
         </button>
         </div>
 

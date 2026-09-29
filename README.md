@@ -4,7 +4,7 @@ A group project social network app. Runs entirely on `localhost` — no cloud ho
 
 Firebase Authentication handles email/password signup and login without email
 verification. Cloud Firestore stores private post documents and a copy of each
-profile. PostgreSQL retains existing profiles and image bytes up to 2 MB; images
+profile. PostgreSQL retains existing profiles and image bytes up to 5 MB; images
 are referenced from Firestore posts. The setup steps in
 [backend setup](docs/backend-setup.md) and [frontend setup](frontend/README.md)
 describe the Firebase web configuration and local database. Run
@@ -60,6 +60,14 @@ disabled. This runs npm without changing your PowerShell execution policy.
 Use `npm.cmd run test:integration-db` and `npm.cmd run test:posts-db` in `backend`
 to check local persistence, and `npm.cmd run test:firestore-live` in `frontend`
 to test Firestore owner rules with disposable accounts.
+
+## Integration preview
+
+`codex/jr-team-integration` brings together the AI summary, Explore, left sidebar,
+middle page, and right sidebar UI with Firebase sign-in and the private post flow.
+After signing in, Home displays your saved posts and supports text and image posts.
+Explore and the sidebar recommendations still use sample content. The AI Summary
+panel is a UI preview; AI generation is not yet connected to the backend.
 
 ## Git Workflow
 
