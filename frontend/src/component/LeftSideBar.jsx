@@ -2,7 +2,6 @@ import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
 import VideocamOutlinedIcon from "@mui/icons-material/VideocamOutlined";
-import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import MailOutlinedIcon from "@mui/icons-material/MailOutlined";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -10,7 +9,6 @@ import SentimentSatisfiedOutlinedIcon from "@mui/icons-material/SentimentSatisfi
 
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlined";
-import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 
 import "./LeftSideBar.css";
 
@@ -32,12 +30,8 @@ const mainMenu = [
     icon: VideocamOutlinedIcon,
   },
   {
-    name: "Campus Market",
-    icon: ShoppingCartOutlinedIcon,
-  },
-  {
-  name: "Messages",
-  icon: MailOutlinedIcon,
+    name: "Messages",
+    icon: MailOutlinedIcon,
   },
   {
     name: "UniAI",
@@ -57,10 +51,6 @@ const moreMenu = [
   {
     name: "Saved",
     icon: BookmarkBorderOutlinedIcon,
-  },
-  {
-    name: "Setting",
-    icon: SettingsOutlinedIcon,
   },
 ];
 
@@ -122,13 +112,13 @@ function LeftSidebar() {
         </div>
 
         <div className="ai-card-bottom">
-            <div className="ai-smile">
-              <SentimentSatisfiedOutlinedIcon />
-            </div>
+          <div className="ai-smile">
+            <SentimentSatisfiedOutlinedIcon />
+          </div>
 
-        <button className="ai-chat-button">
+          <button className="ai-chat-button">
             Start Chat
-        </button>
+          </button>
         </div>
 
       </div>

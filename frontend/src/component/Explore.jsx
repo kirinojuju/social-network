@@ -19,7 +19,6 @@ function Explore() {
     "#CMUEvents",
   ];
 
-
   return (
     <div className="explore-page">
 
@@ -98,7 +97,6 @@ function Explore() {
         </div>
 
       </section>
-
 
     </div>
   );
