@@ -11,10 +11,14 @@ Only the API connects to Neon.
    database named `social_network`. This team's project is
    [social-network-team-test](https://console.neon.tech/app/projects/mute-bread-92866964)
    in Singapore. The default database owner is `social_network_owner`.
-2. Create a separate Neon role named `social_app`. Keep its generated password
-   private. In the Neon SQL Editor, select `social_network` and the owner role,
-   then run `database/setup-role.sql` to grant the application role database
-   and schema access. The script does not change an existing role's password.
+2. Create a separate, limited Neon role named `social_app` **with SQL**, not
+   the Neon Console's Add role button. A role created by Add role can inherit
+   `neon_superuser` and bypass row security. Give the SQL-created role a strong
+   password and no `CREATEDB`, `CREATEROLE`, `REPLICATION`, or `BYPASSRLS`
+   attributes. Keep its password private. In the Neon SQL Editor, select
+   `social_network` and the owner role, then run `database/setup-role.sql` to
+   grant database and schema access. The script does not change an existing
+   role's password.
 3. On the owner's computer, obtain the **direct** owner connection string from
    Neon. Put it only in the ignored `backend/.env` as
    `MIGRATION_DATABASE_URL`, and run `npm.cmd run migrate` from `backend`.
@@ -28,6 +32,7 @@ Only the API connects to Neon.
    password. Do not enter the owner password. Render supplies an HTTPS URL when
    deployment succeeds. The database hostname is the host part only, without a
    scheme, username, password, or path.
+   The hosted backend checks the role at startup and refuses elevated roles.
 5. Open `https://<your-render-host>/api/ready`. A `ready` response confirms the
    API can query Neon. Open the site URL, sign in with a test Firebase account,
    and check that a profile and image post survive a page reload. If Firebase

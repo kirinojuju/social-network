@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { createPool } = require('../config/db');
+const { createPool, assertLimitedRole } = require('../config/db');
 
 const legacy = {
   DB_HOST: '127.0.0.1', DB_PORT: '5432', DB_NAME: 'social_network',
@@ -54,4 +54,20 @@ test('requires certificate-verified TLS for a remote database when configured', 
   for (const timeout of ['0', 'abc', '60001']) {
     assert.throws(() => createPool({ ...legacy, PGCONNECT_TIMEOUT_MS: timeout }), /PGCONNECT_TIMEOUT_MS/);
   }
+});
+
+test('hosted runtime rejects elevated PostgreSQL roles', async () => {
+  const role = {
+    rolsuper: false, rolcreatedb: false, rolcreaterole: false,
+    rolreplication: false, rolbypassrls: false, neon_superuser_member: false,
+  };
+  await assert.doesNotReject(assertLimitedRole({ query: async () => ({ rows: [role] }) }));
+  for (const flag of Object.keys(role)) {
+    await assert.rejects(
+      assertLimitedRole({ query: async () => ({ rows: [{ ...role, [flag]: true }] }) }),
+      /elevated privileges/,
+    );
+  }
+  await assert.rejects(assertLimitedRole({ query: async () => ({ rows: [] }) }),
+    /elevated privileges/);
 });

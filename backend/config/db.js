@@ -39,4 +39,19 @@ function createPool(env = process.env) {
   return pool;
 }
 
-module.exports = { createPool };
+async function assertLimitedRole(pool) {
+  const { rows } = await pool.query(`
+    SELECT r.rolsuper, r.rolcreatedb, r.rolcreaterole, r.rolreplication,
+           r.rolbypassrls,
+           COALESCE((SELECT pg_has_role(current_user, n.oid, 'MEMBER')
+                     FROM pg_roles n WHERE n.rolname = 'neon_superuser'), false)
+             AS neon_superuser_member
+    FROM pg_roles r WHERE r.rolname = current_user
+  `);
+  const role = rows[0];
+  if (!role || Object.values(role).some(Boolean)) {
+    throw new Error('Database runtime role has elevated privileges');
+  }
+}
+
+module.exports = { createPool, assertLimitedRole };
