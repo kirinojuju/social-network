@@ -7,7 +7,7 @@ import "./Chatbox.css";
 
 // TODO: replace with a real fetch of the conversation history once the
 // backend endpoint exists, e.g. GET /api/conversations/:userId
-function Chatbox({ userName = "User_Name", conversationId, onClose }) {
+function Chatbox({ userName = "User_Name", onClose }) {
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
 
@@ -44,12 +44,13 @@ function Chatbox({ userName = "User_Name", conversationId, onClose }) {
       <div className="chatbox-header">
         <AccountCircleOutlinedIcon className="chatbox-avatar" />
         <span className="chatbox-name">{userName}</span>
-        <button type="button" className="chatbox-close" onClick={onClose}>
+        <button type="button" className="chatbox-close" aria-label="Close chat preview" onClick={onClose}>
           <CloseOutlinedIcon fontSize="small" />
         </button>
       </div>
 
       <div className="chatbox-messages">
+        <p className="chatbox-preview">Preview only — messages are not saved yet.</p>
         {messages.length === 0 ? (
           <p className="chatbox-empty">Say hello to start the conversation.</p>
         ) : (
@@ -65,7 +66,7 @@ function Chatbox({ userName = "User_Name", conversationId, onClose }) {
       </div>
 
       <div className="chatbox-input">
-        <button type="button" className="chatbox-icon-btn">
+        <button type="button" className="chatbox-icon-btn" aria-label="Attach file (coming soon)" disabled>
           <AttachFileOutlinedIcon fontSize="small" />
         </button>
         <input
@@ -75,7 +76,7 @@ function Chatbox({ userName = "User_Name", conversationId, onClose }) {
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKeyDown}
         />
-        <button type="button" className="chatbox-icon-btn" onClick={sendMessage}>
+        <button type="button" className="chatbox-icon-btn" aria-label="Send preview message" onClick={sendMessage}>
           <SendOutlinedIcon fontSize="small" />
         </button>
       </div>

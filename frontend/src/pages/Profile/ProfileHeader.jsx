@@ -6,7 +6,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
 import "./ProfileHeader.css";
 
-function ProfileHeader({ profileType = "personal" }) {
+function ProfileHeader({ profileType = "personal", profile }) {
 
   const isPersonal = profileType === "personal";
   const isFollower = profileType === "follower";
@@ -62,29 +62,15 @@ function ProfileHeader({ profileType = "personal" }) {
 
           <div className="profile-name-row">
 
-            <h1>User_Name</h1>
+            <h1>{profile?.display_name || profile?.username || "Profile"}</h1>
 
             <span className="profile-status">
-              Student · Joined Oct 2025
+              {profile?.username ? `@${profile.username}` : ""}
             </span>
 
           </div>
 
-          <p className="profile-major">
-            ISNE · Faculty of Engineering · Chiang Mai University
-          </p>
-
-          <div className="profile-followers">
-
-            <span>
-              <strong>104</strong> Followers
-            </span>
-
-            <span>
-              <strong>320</strong> Following
-            </span>
-
-          </div>
+          {profile?.bio && <p className="profile-major">{profile.bio}</p>}
 
         </div>
 

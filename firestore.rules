@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // users/{uid}: uid, email, username, displayName (strings), updatedAt (timestamp).
+    // posts/{postId}: authorUid, content, visibility (strings), createdAt
+    // (timestamp), originalCreatedAt and imageId (string or null).
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function uidUnchanged(data) {
+      return data.uid == request.auth.uid;
+    }
+
+    function uidNotModified() {
+      return request.resource.data.uid == resource.data.uid;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'username', 'displayName', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'email', 'username', 'displayName', 'updatedAt'])
+        && data.uid is string && data.uid.size() > 0 && data.uid.size() <= 128
+        && data.email is string && data.email.size() <= 254
+        && data.email == request.auth.token.email
+        && data.username is string && data.username.matches('^[a-z0-9_]{3,30}$')
+        && data.displayName is string && data.displayName.size() > 0
+        && data.displayName.size() <= 100
+        && data.updatedAt is timestamp && data.updatedAt == request.time;
+    }
+
+    function isValidPost(data) {
+      return data.keys().hasAll(['authorUid', 'content', 'visibility', 'createdAt', 'originalCreatedAt', 'imageId'])
+        && data.keys().hasOnly(['authorUid', 'content', 'visibility', 'createdAt', 'originalCreatedAt', 'imageId'])
+        && data.authorUid is string && data.authorUid.size() > 0 && data.authorUid.size() <= 128
+        && data.content is string && data.content.size() <= 10000
+        && data.visibility == 'private'
+        && data.createdAt is timestamp && data.createdAt == request.time
+        && (data.originalCreatedAt == null ||
+            (data.originalCreatedAt is string && data.originalCreatedAt.size() <= 35))
+        && (data.imageId == null ||
+            (data.imageId is string && data.imageId.matches('^[0-9a-fA-F-]{36}$')))
+        && (data.content.size() > 0 || data.imageId != null);
+    }
+
+    match /users/{uid} {
+      allow get: if isOwner(uid);
+      allow list: if false;
+      allow create: if isOwner(uid) && uidUnchanged(request.resource.data)
+        && isValidUser(request.resource.data);
+      allow update: if isOwner(uid) && uidNotModified()
+        && isValidUser(request.resource.data);
+      allow delete: if false;
+    }
+
+    match /posts/{postId} {
+      allow get, list: if isAuthenticated() && resource.data.authorUid == request.auth.uid;
+      allow create: if isAuthenticated() && postId.matches('^[A-Za-z0-9_-]{1,64}$')
+        && request.resource.data.authorUid == request.auth.uid
+        && isValidPost(request.resource.data);
+      allow update, delete: if false;
+    }
+  }
+}

@@ -4,12 +4,14 @@ import ProfilePhotos from "./ProfilePhoto";
 
 import "./Profile.css";
 
-function Profile() {
+function Profile({ profile }) {
   return (
     <div className="profile-page">
 
+      <p className="profile-preview-note">Friends and photos are layout previews; live data is not connected yet.</p>
+
       {/* TOP PROFILE */}
-      <ProfileHeader />
+      <ProfileHeader profile={profile} />
 
       {/* PROFILE CONTENT */}
       <div className="profile-content">

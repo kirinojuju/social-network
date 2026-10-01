@@ -1,40 +1,66 @@
+.auth-page {
+  justify-content: center;
+  min-height: 100svh;
+  box-sizing: border-box;
+}
+
+.auth-page code {
+  overflow-wrap: anywhere;
+}
+
 .app {
   min-height: 100vh;
   background-color: #eeeeee;
 }
 
-.main-content {
+.app-main {
   margin-left: 235px;
-  margin-right: 260px;
   min-height: 100vh;
-  padding: 0;
 }
 
-.test-ai-button {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-
-  padding: 12px 20px;
-
-  background-color: #6c6bb2;
-  color: white;
-
-  border: none;
-  border-radius: 8px;
-
-  font-size: 14px;
-
-  cursor: pointer;
+.app-main.with-right-sidebar {
+  margin-right: 260px;
 }
 
-.test-ai-button:hover {
-  opacity: 0.9;
+.app-status {
+  width: min(100%, 600px);
 }
 
-.test-chat-button {
-  position: fixed;
-  bottom: 20px;
-  right: 280px;
-  z-index: 200;
+.account-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 24px;
+  background: #fff;
+  border-bottom: 1px solid #e4e1ee;
+}
+
+.account-bar .account-action {
+  margin: 0;
+}
+
+.account-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.app:not(.has-right-sidebar) .chatbox { right: 20px; }
+
+@media (max-width: 900px) {
+  .app-main.with-right-sidebar { margin-right: 0; }
+  .right-sidebar { display: none; }
+  .chatbox { right: 20px; }
+}
+
+@media (max-width: 700px) {
+  .left-sidebar { position: relative; width: 100%; height: auto; }
+  .sidebar-menu, .more-section { display: flex; flex-wrap: wrap; gap: 4px; }
+  .sidebar-item { width: auto; }
+  .ai-study-card { display: none; }
+  .app-main, .app-main.with-right-sidebar { margin: 0; }
+  .explore-main { width: 100%; }
+  .explore-right-sidebar { display: none; }
+  .account-bar { flex-wrap: wrap; }
 }

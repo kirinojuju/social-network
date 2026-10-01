@@ -1,16 +1,65 @@
-# React + Vite
+﻿# CMU Connect frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+## Run locally
 
-Currently, two official plugins are available:
+1. Run `npm.cmd install` in `frontend`.
+2. Copy `.env.example` to `.env`. The shared Firebase **web app** configuration
+   is already filled in for team testing. It matches `FIREBASE_PROJECT_ID` in
+   `backend/.env.example`. Do not use Admin service-account credentials here.
+3. Enable **Email/Password** in Firebase Authentication > Sign-in method.
+4. Set `VITE_API_BASE_URL` to the Express API origin if it differs from
+   `http://127.0.0.1:3000`. Run the backend and its migrations, then run
+   `npm.cmd run dev`. Restart Vite after changing environment variables.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The signup and login forms use the Firebase client SDK. Signup creates an
+email/password account without sending a verification email. The app creates a
+PostgreSQL profile automatically on first sign-in. On later
+sign-ins, the app loads the saved profile through Express. Firebase restores the
+session on page reload. Forgot password still sends a password reset email.
+Users can create private text posts in Cloud Firestore. The app imports existing
+PostgreSQL posts into Firestore on sign-in and stores a copy of the profile there.
+JPEG, PNG, WebP, and GIF images up to 5 MB remain in PostgreSQL and are linked
+from Firestore post documents. Firebase Storage requires the Blaze plan; this
+project currently uses Spark.
 
-## React Compiler
+If web configuration is missing, the app still renders and shows an error when
+an authentication action is attempted. Live account creation and email delivery
+require a configured Firebase project and an internet connection.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Scope
 
-## Expanding the Oxlint configuration
+The old student ID, account type, faculty, and major inputs have been removed from
+signup because the existing authentication flow cannot save them. The placeholder
+CMU SSO link has also been removed; no CMU OAuth provider is configured. Signup
+currently accepts email/password accounts and does not enforce a CMU email domain.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+Profile names and usernames can be updated through the existing API. Faculty and major choice,
+student IDs, account types, and a public social feed still need separate product work.
+See [the API contract](../docs/core-schema-auth.md).
+
+## Checks
+
+```powershell
+npm.cmd test
+npm.cmd run lint
+npm.cmd run build
+npm.cmd run test:firestore-live
+```
+
+Automated tests cover signup validation, partial account-creation failures,
+password-reset errors, and safe user-facing messages using
+an injected client. Profile tests check the token/header, sync/read order, and
+preserved profile ID with an injected HTTP response stub. They do not create real accounts,
+send email, or run PostgreSQL.
+
+Manual live check with a test account: create an account and then create a text
+and photo post. Restart the backend, sign out, sign back in,
+and confirm the same profile and post appear. Also check incorrect passwords,
+mismatched signup passwords, and a password reset. The browser requires Firebase
+web app settings; Express requires the same Firebase project ID and a working
+PostgreSQL connection. Admin credentials are needed only when revoked-token
+checking is enabled. Keep all credentials in ignored
+local files or environment variables.
+
+Firebase reference: [password authentication](https://firebase.google.com/docs/auth/web/password-auth)
+and [user management](https://firebase.google.com/docs/auth/web/manage-users).

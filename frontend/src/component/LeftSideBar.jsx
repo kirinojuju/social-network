@@ -2,6 +2,7 @@ import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
 import VideocamOutlinedIcon from "@mui/icons-material/VideocamOutlined";
+import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import MailOutlinedIcon from "@mui/icons-material/MailOutlined";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -9,6 +10,7 @@ import SentimentSatisfiedOutlinedIcon from "@mui/icons-material/SentimentSatisfi
 
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlined";
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 
 import "./LeftSideBar.css";
 
@@ -30,8 +32,12 @@ const mainMenu = [
     icon: VideocamOutlinedIcon,
   },
   {
-    name: "Messages",
-    icon: MailOutlinedIcon,
+    name: "Campus Market",
+    icon: ShoppingCartOutlinedIcon,
+  },
+  {
+  name: "Messages",
+  icon: MailOutlinedIcon,
   },
   {
     name: "UniAI",
@@ -52,9 +58,21 @@ const moreMenu = [
     name: "Saved",
     icon: BookmarkBorderOutlinedIcon,
   },
+  {
+    name: "Setting",
+    icon: SettingsOutlinedIcon,
+  },
 ];
 
-function LeftSidebar() {
+function LeftSidebar({ activeView, onNavigate, onCreatePost, onOpenAI, onOpenMessages }) {
+  const actions = {
+    Home: () => onNavigate('home'),
+    Explore: () => onNavigate('explore'),
+    Messages: onOpenMessages,
+    UniAI: onOpenAI,
+    'Create Post': onCreatePost,
+  };
+
   return (
     <aside className="left-sidebar">
 
@@ -69,10 +87,12 @@ function LeftSidebar() {
           const Icon = item.icon;
 
           return (
-            <div className="sidebar-item" key={item.name}>
+            <button type="button" className="sidebar-item" key={item.name}
+              disabled={!actions[item.name]} onClick={actions[item.name]}
+              aria-current={item.name.toLowerCase() === activeView ? 'page' : undefined}>
               <Icon className="sidebar-icon" />
               <span>{item.name}</span>
-            </div>
+            </button>
           );
         })}
       </nav>
@@ -91,10 +111,10 @@ function LeftSidebar() {
           const Icon = item.icon;
 
           return (
-            <div className="sidebar-item" key={item.name}>
+            <button type="button" className="sidebar-item" key={item.name} disabled>
               <Icon className="sidebar-icon" />
               <span>{item.name}</span>
-            </div>
+            </button>
           );
         })}
 
@@ -112,12 +132,12 @@ function LeftSidebar() {
         </div>
 
         <div className="ai-card-bottom">
-          <div className="ai-smile">
-            <SentimentSatisfiedOutlinedIcon />
-          </div>
+            <div className="ai-smile">
+              <SentimentSatisfiedOutlinedIcon />
+            </div>
 
-          <button className="ai-chat-button">
-            Start Chat
+          <button type="button" className="ai-chat-button" onClick={onOpenAI}>
+            AI Summary Preview
           </button>
         </div>
 
