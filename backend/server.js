@@ -1,4 +1,5 @@
 const path = require('node:path');
+const fs = require('node:fs');
 require('dotenv').config({ path: path.join(__dirname, '.env'), quiet: true });
 const { createPool } = require('./config/db');
 const { createApp } = require('./app');
@@ -10,8 +11,13 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
 const host = process.env.HOST || '127.0.0.1';
 const origins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
   .split(',').map(value => value.trim()).filter(Boolean);
+const staticDir = process.env.SERVE_FRONTEND === 'true'
+  ? path.join(__dirname, '../frontend/dist') : undefined;
+if (staticDir && !fs.existsSync(path.join(staticDir, 'index.html'))) {
+  throw new Error('Frontend build missing: run npm run build in frontend');
+}
 const pool = createPool();
-const server = createApp(pool, origins).listen(port, host, () => {
+const server = createApp(pool, origins, { staticDir }).listen(port, host, () => {
   console.log(`Backend listening on http://${host}:${port}`);
 });
 

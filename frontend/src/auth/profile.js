@@ -87,5 +87,5 @@ export function createProfileClient({ baseUrl = defaultBaseUrl, fetchImpl = fetc
 }
 
 export const profileClient = createProfileClient({
-  baseUrl: import.meta.env?.VITE_API_BASE_URL || defaultBaseUrl,
+  baseUrl: import.meta.env?.VITE_API_BASE_URL || (import.meta.env?.DEV ? defaultBaseUrl : ''),
 })

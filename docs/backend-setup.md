@@ -50,4 +50,9 @@ CORS_ORIGIN is a comma-separated list of frontend origins (without paths),
 not the backend API URL. CORS does not authenticate requests.
 Firebase bearer-token authentication and profile routes are documented in
 [Phase 1 schema and authentication](core-schema-auth.md), including migrations.
-No credentialed cookie flow or public internet hosting is implemented.
+There is no deployed public site yet.
+For a shared hosted test site backed by Neon, see
+[shared Neon testing](shared-neon-testing.md). Set `PGSSLMODE=require` and
+`PGCONNECT_TIMEOUT_MS=10000` for the remote database. Set
+`SERVE_FRONTEND=true` only after building `frontend/dist` to serve the web app
+from the same origin as the API.

@@ -23,8 +23,10 @@ they are not administrator credentials. The matching project ID is already in
    `ready` before testing the page.
 
 The team shares one Firebase Authentication and Firestore project. Each
-developer runs a separate local PostgreSQL database. Current post rules are
-private, so teammates do not see one another's posts yet.
+developer may continue using a separate local PostgreSQL database. For a
+single website and shared PostgreSQL database owned by the project owner, see
+[shared Neon testing](shared-neon-testing.md). Current post rules are private,
+so teammates do not see one another's posts yet.
 
 ## What belongs in Git
 
@@ -35,5 +37,5 @@ APIs in Google Cloud Console. See [Firebase's API key guidance](https://firebase
 
 Do not commit your `.env` files, PostgreSQL passwords, migration owner URL,
 Firebase Admin service-account JSON, or AI provider keys. If a future test
-needs a shared server credential, distribute it through a private channel and
-give each teammate only the access required for that test.
+needs a shared server credential, keep it in the hosted backend's secret
+settings. Teammates using the website should receive only the site URL.

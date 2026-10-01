@@ -17,10 +17,20 @@ function createPool(env = process.env) {
   if (!Number.isInteger(config.port) || config.port < 1 || config.port > 65535) {
     throw new Error('PGPORT (or DB_PORT) must be an integer between 1 and 65535');
   }
+  const sslMode = env.PGSSLMODE || 'disable';
+  if (sslMode === 'require') config.ssl = { rejectUnauthorized: true };
+  else if (sslMode !== 'disable') {
+    throw new Error('PGSSLMODE must be disable or require');
+  }
+  const connectionTimeoutMillis = Number(env.PGCONNECT_TIMEOUT_MS || 3000);
+  if (!Number.isInteger(connectionTimeoutMillis) || connectionTimeoutMillis < 1000 ||
+      connectionTimeoutMillis > 60000) {
+    throw new Error('PGCONNECT_TIMEOUT_MS must be between 1000 and 60000');
+  }
   const pool = new Pool({
     ...config,
     max: 10,
-    connectionTimeoutMillis: 3000,
+    connectionTimeoutMillis,
     idleTimeoutMillis: 30000,
     query_timeout: 3000,
     statement_timeout: 3000,

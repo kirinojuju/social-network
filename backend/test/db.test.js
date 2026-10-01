@@ -39,3 +39,19 @@ test('rejects missing settings and invalid ports before connecting', () => {
     assert.throws(() => createPool({ ...legacy, DB_PORT: port }), /must be an integer/);
   }
 });
+
+test('requires certificate-verified TLS for a remote database when configured', async () => {
+  const pool = createPool({ ...legacy, PGSSLMODE: 'require', PGCONNECT_TIMEOUT_MS: '10000' });
+  try {
+    assert.deepEqual(pool.options.ssl, { rejectUnauthorized: true });
+    assert.equal(pool.options.connectionTimeoutMillis, 10000);
+  } finally {
+    await pool.end();
+  }
+  for (const mode of ['prefer', 'allow', 'verify-none']) {
+    assert.throws(() => createPool({ ...legacy, PGSSLMODE: mode }), /PGSSLMODE/);
+  }
+  for (const timeout of ['0', 'abc', '60001']) {
+    assert.throws(() => createPool({ ...legacy, PGCONNECT_TIMEOUT_MS: timeout }), /PGCONNECT_TIMEOUT_MS/);
+  }
+});

@@ -1,6 +1,7 @@
 # Social Network Project (Local Setup)
 
-A group project social network app. Runs entirely on `localhost` — no cloud hosting.
+A group project social network app. Local development runs on `localhost`.
+For the owner-managed shared test site, see [shared Neon testing](docs/shared-neon-testing.md).
 
 Firebase Authentication handles email/password signup and login without email
 verification. Cloud Firestore stores private post documents and a copy of each

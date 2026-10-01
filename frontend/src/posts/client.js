@@ -4,7 +4,8 @@ import {
 } from 'firebase/firestore'
 import { getClientApp } from '../auth/firebase'
 
-const root = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:3000').replace(/\/$/, '')
+const defaultBaseUrl = import.meta.env?.DEV ? 'http://127.0.0.1:3000' : ''
+const root = (import.meta.env?.VITE_API_BASE_URL || defaultBaseUrl).replace(/\/$/, '')
 
 async function backendRequest(user, path, options = {}) {
   const token = await user.getIdToken()
