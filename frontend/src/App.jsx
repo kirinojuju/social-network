@@ -6,6 +6,8 @@ import RightSideBar from './component/RightSideBar'
 import Explore from './component/Explore'
 import MiddlePage from './component/MiddlePage'
 import AISummary from './component/AI_summary'
+import Chatbox from './component/Chatbox'
+import Profile from './pages/Profile/Profile'
 import { getClientAuth, logout, watchUser } from './auth/firebase'
 import { profileClient } from './auth/profile'
 import { saveFirestoreProfile } from './auth/firestore-profile'
@@ -16,6 +18,7 @@ export default function App() {
   const [page, setPage] = useState('login')
   const [activeView, setActiveView] = useState('home')
   const [summaryPost, setSummaryPost] = useState(null)
+  const [showChat, setShowChat] = useState(false)
   const [auth] = useState(() => {
     try { return getClientAuth() } catch { return null }
   })
@@ -40,6 +43,7 @@ export default function App() {
       if (!nextUser) {
         setActiveView('home')
         setSummaryPost(null)
+        setShowChat(false)
       }
     })
   }, [auth])
@@ -102,20 +106,25 @@ export default function App() {
     )
 
     return (
-      <div className="app">
+      <div className={`app ${activeView === 'home' ? 'has-right-sidebar' : ''}`}>
         <LeftSidebar activeView={activeView} onNavigate={setActiveView}
-          onCreatePost={focusComposer} onOpenAI={() => setSummaryPost('')} />
+          onCreatePost={focusComposer} onOpenAI={() => setSummaryPost('')}
+          onOpenMessages={() => setShowChat(true)} />
         <div className={`app-main ${activeView === 'home' ? 'with-right-sidebar' : ''}`}>
           <div className="account-bar">
             <span>Signed in as {profile.display_name} (@{profile.username})</span>
-            <button className="auth-link account-action" disabled={busy} onClick={signOut}>Sign Out</button>
+            <div className="account-actions">
+              <button className="auth-link account-action" onClick={() => setActiveView('profile')}>My Profile</button>
+              <button className="auth-link account-action" disabled={busy} onClick={signOut}>Sign Out</button>
+            </div>
           </div>
           {error && <p className="auth-error" role="alert">{error}</p>}
-          {activeView === 'explore'
-            ? <Explore />
-            : <MiddlePage profile={profile} user={user} onSummarize={setSummaryPost} />}
+          {activeView === 'explore' ? <Explore />
+            : activeView === 'profile' ? <Profile profile={profile} />
+              : <MiddlePage profile={profile} user={user} onSummarize={setSummaryPost} />}
         </div>
         {activeView === 'home' && <RightSideBar />}
+        {showChat && <Chatbox userName="Message preview" onClose={() => setShowChat(false)} />}
         {summaryPost !== null && <AISummary postText={summaryPost} onClose={() => setSummaryPost(null)} />}
       </div>
     )

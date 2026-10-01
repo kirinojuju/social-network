@@ -1,0 +1,69 @@
+/* ========================================
+   PHOTOS CARD
+======================================== */
+
+.profile-photos {
+  width: 100%;
+
+  background: #ffffff;
+
+  border-radius: 8px;
+
+  padding: 20px 12px;
+
+  box-sizing: border-box;
+}
+
+.profile-photos h2 {
+  margin: 0 0 18px 4px;
+
+  font-size: 17px;
+
+  font-weight: 600;
+
+  color: #1a1a1a;
+}
+
+
+/* ========================================
+   PHOTO GRID
+======================================== */
+
+.photos-grid {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 4px;
+}
+
+
+/* ========================================
+   PHOTO
+======================================== */
+
+.photo-placeholder {
+  width: 100%;
+
+  aspect-ratio: 1 / 1;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  background: #eeeeee;
+
+  border: 1px solid #aaaaaa;
+
+  box-sizing: border-box;
+}
+
+.photo-placeholder span {
+  color: #aaaaaa;
+
+  font-size: 22px;
+}

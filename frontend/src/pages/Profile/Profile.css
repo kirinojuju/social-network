@@ -1,0 +1,108 @@
+/* ========================================
+   PROFILE PAGE
+======================================== */
+
+.profile-page {
+  min-height: 100vh;
+
+  background-color: #eeeeee;
+
+  padding: 20px;
+
+  box-sizing: border-box;
+}
+
+
+/* ========================================
+   PROFILE CONTENT
+======================================== */
+
+.profile-content {
+  width: 100%;
+
+  margin: 20px 0 0;
+
+  display: grid;
+
+  /*
+    Left = flexible
+    Right = 260px
+  */
+  grid-template-columns: minmax(0, 1fr) 260px;
+
+  gap: 20px;
+
+  box-sizing: border-box;
+}
+
+
+/* ========================================
+   LEFT SIDE
+======================================== */
+
+.profile-feed {
+  min-width: 0;
+
+  width: 100%;
+}
+
+
+/* ========================================
+   RIGHT SIDE
+======================================== */
+
+.profile-right {
+  width: 100%;
+
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 20px;
+}
+
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media (max-width: 900px) {
+
+  .profile-content {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-right {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 20px;
+  }
+
+}
+
+
+@media (max-width: 650px) {
+
+  .profile-page {
+    padding: 12px;
+  }
+
+  .profile-content {
+    margin-top: 12px;
+  }
+
+  .profile-right {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+.profile-preview-note {
+  margin: 0 0 12px;
+  color: #555;
+  font-size: 13px;
+}

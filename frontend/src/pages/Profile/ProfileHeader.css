@@ -1,0 +1,414 @@
+/* ========================================
+   PROFILE HEADER
+======================================== */
+
+.profile-header {
+  width: 100%;
+  margin: 0;
+  background: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+
+/* ========================================
+   COVER
+======================================== */
+
+.profile-cover {
+  height: 140px;
+  position: relative;
+  background: #eeeeee;
+  border: 1px solid #cfcfcf;
+  box-sizing: border-box;
+}
+
+.cover-placeholder {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #aaaaaa;
+  font-size: 42px;
+}
+
+.change-cover-button {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  border: none;
+  border-radius: 8px;
+
+  padding: 6px 12px;
+
+  background: #aaaaaa;
+  color: white;
+
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.change-cover-button svg {
+  width: 17px;
+  height: 17px;
+}
+
+
+/* ========================================
+   PROFILE INFORMATION
+======================================== */
+
+.profile-info {
+  min-height: 110px;
+
+  display: flex;
+  align-items: center;
+
+  position: relative;
+
+  padding: 20px 28px 16px;
+
+  box-sizing: border-box;
+}
+
+
+/* ========================================
+   PROFILE PICTURE
+======================================== */
+
+.profile-picture-wrapper {
+  width: 100px;
+  height: 100px;
+
+  position: relative;
+
+  margin-top: -65px;
+
+  flex-shrink: 0;
+}
+
+.profile-picture {
+  width: 100px !important;
+  height: 100px !important;
+
+  color: #ffffff;
+  background: #ffffff;
+
+  border: 1px solid #222;
+  border-radius: 50%;
+}
+
+
+/* ========================================
+   CAMERA BUTTON
+======================================== */
+
+.profile-camera-button {
+  position: absolute;
+
+  right: -2px;
+  bottom: 2px;
+
+  width: 27px;
+  height: 27px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #222;
+  border-radius: 50%;
+
+  background: #ffffff;
+
+  cursor: pointer;
+}
+
+.profile-camera-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+
+/* ========================================
+   USER INFORMATION
+======================================== */
+
+.profile-user-info {
+  margin-left: 28px;
+
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name-row {
+  display: flex;
+  align-items: center;
+
+  gap: 18px;
+}
+
+.profile-name-row h1 {
+  margin: 0;
+
+  font-size: 23px;
+  font-weight: 700;
+
+  color: #111111;
+}
+
+.profile-status {
+  font-size: 12px;
+  color: #222222;
+}
+
+.profile-major {
+  margin: 10px 0 12px;
+
+  font-size: 13px;
+  color: #222222;
+}
+
+.profile-followers {
+  display: flex;
+
+  gap: 25px;
+
+  font-size: 12px;
+  color: #222222;
+}
+
+.profile-followers strong {
+  font-weight: 700;
+}
+
+
+/* ========================================
+   PROFILE ACTIONS
+======================================== */
+
+.profile-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  margin-left: auto;
+}
+
+
+/* ========================================
+   EDIT PROFILE
+======================================== */
+
+.edit-profile-button {
+  display: flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+  padding: 9px 15px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #6c6bb2;
+  color: white;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.edit-profile-button:hover {
+  background: #5d5ca5;
+}
+
+.edit-profile-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+
+/* ========================================
+   FOLLOWING BUTTON
+======================================== */
+
+.following-button {
+  display: flex;
+
+  align-items: center;
+
+  gap: 3px;
+
+  padding: 8px 12px;
+
+  border: 1px solid #6c6bb2;
+  border-radius: 8px;
+
+  background: white;
+  color: #6c6bb2;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.following-button:hover {
+  background: #f3f2fc;
+}
+
+.following-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+
+/* ========================================
+   MESSAGE BUTTON
+======================================== */
+
+.message-button {
+  display: flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+  padding: 9px 15px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #6c6bb2;
+  color: white;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.message-button:hover {
+  background: #5d5ca5;
+}
+
+.message-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+
+/* ========================================
+   FOLLOW BUTTON
+======================================== */
+
+.follow-button {
+  padding: 9px 20px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #6c6bb2;
+  color: white;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.follow-button:hover {
+  background: #5d5ca5;
+}
+
+
+/* ========================================
+   TABS
+======================================== */
+
+.profile-tabs {
+  height: 56px;
+
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+
+  border-top: 1px solid #cccccc;
+}
+
+.profile-tab {
+  position: relative;
+
+  min-width: 100px;
+
+  border: none;
+  background: transparent;
+
+  font-size: 14px;
+  color: #222222;
+
+  cursor: pointer;
+}
+
+.profile-tab.active {
+  font-weight: 600;
+}
+
+.profile-tab.active::after {
+  content: "";
+
+  position: absolute;
+
+  left: 20%;
+  right: 20%;
+
+  bottom: 0;
+
+  height: 3px;
+
+  background: #6c6bb2;
+
+  border-radius: 3px 3px 0 0;
+}
+
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media (max-width: 700px) {
+
+  .profile-info {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .profile-user-info {
+    margin-left: 18px;
+  }
+
+  .profile-actions {
+    margin-left: auto;
+  }
+
+  .profile-name-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+
+}

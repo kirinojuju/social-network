@@ -40,9 +40,18 @@
   margin: 0;
 }
 
+.account-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.app:not(.has-right-sidebar) .chatbox { right: 20px; }
+
 @media (max-width: 900px) {
   .app-main.with-right-sidebar { margin-right: 0; }
   .right-sidebar { display: none; }
+  .chatbox { right: 20px; }
 }
 
 @media (max-width: 700px) {
@@ -53,4 +62,5 @@
   .app-main, .app-main.with-right-sidebar { margin: 0; }
   .explore-main { width: 100%; }
   .explore-right-sidebar { display: none; }
+  .account-bar { flex-wrap: wrap; }
 }

@@ -64,10 +64,11 @@ const moreMenu = [
   },
 ];
 
-function LeftSidebar({ activeView, onNavigate, onCreatePost, onOpenAI }) {
+function LeftSidebar({ activeView, onNavigate, onCreatePost, onOpenAI, onOpenMessages }) {
   const actions = {
     Home: () => onNavigate('home'),
     Explore: () => onNavigate('explore'),
+    Messages: onOpenMessages,
     UniAI: onOpenAI,
     'Create Post': onCreatePost,
   };
@@ -135,9 +136,9 @@ function LeftSidebar({ activeView, onNavigate, onCreatePost, onOpenAI }) {
               <SentimentSatisfiedOutlinedIcon />
             </div>
 
-        <button type="button" className="ai-chat-button" onClick={onOpenAI}>
+          <button type="button" className="ai-chat-button" onClick={onOpenAI}>
             AI Summary Preview
-        </button>
+          </button>
         </div>
 
       </div>

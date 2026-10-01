@@ -1,7 +1,6 @@
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
 import CloseIcon from "@mui/icons-material/Close";
-import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 
 import "./Explore.css";
 
@@ -17,36 +16,6 @@ function Explore() {
     "#CMUTrekking",
     "#Midterms_schedule",
     "#CMUEvents",
-  ];
-
-  const suggestedPeople = [
-    {
-      name: "User_Name",
-      major: "Engineering",
-    },
-    {
-      name: "User_Name",
-      major: "Engineering",
-    },
-    {
-      name: "User_Name",
-      major: "Engineering",
-    },
-  ];
-
-  const recommendedGroups = [
-    {
-      name: "Group_Name",
-      members: "2.3k members",
-    },
-    {
-      name: "Group_Name",
-      members: "2.3k members",
-    },
-    {
-      name: "Group_Name",
-      members: "2.3k members",
-    },
   ];
 
   return (
@@ -127,94 +96,6 @@ function Explore() {
         </div>
 
       </section>
-
-
-      {/* ================= RIGHT SIDEBAR ================= */}
-
-      <aside className="explore-right-sidebar">
-
-        {/* Suggested People */}
-
-        <section className="suggested-section">
-
-          <h2>Suggested People</h2>
-
-          {suggestedPeople.map((person, index) => (
-
-            <div className="suggested-person" key={index}>
-
-              <div className="person-avatar">
-                <PersonOutlineOutlinedIcon />
-              </div>
-
-              <div className="person-info">
-
-                <div className="person-name">
-                  {person.name}
-                </div>
-
-                <div className="person-major">
-                  {person.major}
-                </div>
-
-              </div>
-
-              <button className="follow-button">
-                Follow
-              </button>
-
-            </div>
-
-          ))}
-
-          <button className="show-more-button">
-            Show more...
-          </button>
-
-        </section>
-
-
-        {/* Recommended */}
-
-        <section className="recommended-section">
-
-          <h2>Recommended</h2>
-
-          {recommendedGroups.map((group, index) => (
-
-            <div className="recommended-group" key={index}>
-
-              <div className="group-avatar">
-                <PersonOutlineOutlinedIcon />
-              </div>
-
-              <div className="group-info">
-
-                <div className="group-name">
-                  {group.name}
-                </div>
-
-                <div className="group-members">
-                  {group.members}
-                </div>
-
-              </div>
-
-              <button className="join-button">
-                Join
-              </button>
-
-            </div>
-
-          ))}
-
-          <button className="show-more-button">
-            Show more...
-          </button>
-
-        </section>
-
-      </aside>
 
     </div>
   );

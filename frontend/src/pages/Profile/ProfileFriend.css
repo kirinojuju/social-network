@@ -1,0 +1,78 @@
+/* ========================================
+   FRIENDS CARD
+======================================== */
+
+.profile-friends {
+  width: 100%;
+
+  background: #ffffff;
+
+  border-radius: 8px;
+
+  padding: 20px 16px;
+
+  box-sizing: border-box;
+}
+
+.profile-friends h2 {
+  margin: 0 0 18px;
+
+  font-size: 17px;
+  font-weight: 600;
+
+  color: #1a1a1a;
+}
+
+
+/* ========================================
+   FRIEND
+======================================== */
+
+.friend-item {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  margin-bottom: 14px;
+}
+
+.friend-avatar {
+  width: 39px !important;
+  height: 39px !important;
+
+  color: #222222;
+
+  flex-shrink: 0;
+}
+
+.friend-info {
+  display: flex;
+
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+.friend-name {
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: #1a1a1a;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+.friend-faculty {
+  margin-top: 2px;
+
+  font-size: 11px;
+
+  color: #555555;
+}
