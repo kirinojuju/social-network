@@ -116,7 +116,7 @@ export default function App() {
             : <MiddlePage profile={profile} user={user} onSummarize={setSummaryPost} />}
         </div>
         {activeView === 'home' && <RightSideBar />}
-        {summaryPost !== null && <AISummary postText={summaryPost} onClose={() => setSummaryPost(null)} />}
+        {summaryPost !== null && <AISummary postText={summaryPost} user={user} onClose={() => setSummaryPost(null)} />}
       </div>
     )
   }

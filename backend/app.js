@@ -2,9 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const { createUsersRouter } = require('./routes/users');
 const { createPostsRouter } = require('./routes/posts');
+const { createAiRouter } = require('./routes/ai');
+const { summarizeText } = require('./ai/summarize');
 const { verifyFirebaseToken } = require('./config/firebase');
 
-function createApp(pool, origins = [], { verifyToken = verifyFirebaseToken } = {}) {
+function createApp(pool, origins = [], { verifyToken = verifyFirebaseToken, summarize = summarizeText } = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.use(cors({ origin: origins }));
@@ -27,6 +29,7 @@ function createApp(pool, origins = [], { verifyToken = verifyFirebaseToken } = {
 
   app.use('/api/users', createUsersRouter(pool, verifyToken));
   app.use('/api/posts', createPostsRouter(pool, verifyToken));
+  app.use('/api/ai', createAiRouter(verifyToken, summarize));
   app.use((req, res) => res.status(404).json({ error: 'Not found' }));
   app.use((err, req, res, next) => {
     if (res.headersSent) return next(err);
