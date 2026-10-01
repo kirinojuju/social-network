@@ -6,7 +6,7 @@ async function summarizeText(text) {
   const completion = await getClient().chat.completions.create({
     model,
     messages: [
-      { role: "system", content: "You are a helpful assistant that summarizes text concisely." },
+      { role: "system", content: "You are a helpful assistant that summarizes text concisely in plain text, without markdown formatting." },
       { role: "user", content: `Summarize this:\n\n${text}` },
     ],
   });

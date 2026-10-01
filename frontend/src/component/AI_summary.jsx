@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import SendIcon from '@mui/icons-material/Send'
 import { chatWithAI, summarizePost } from '../ai/client'
 import './AI_summary.css'
 
@@ -54,21 +55,31 @@ export default function AISummary({ postText, user, onClose }) {
           <h2 id="ai-summary-title">UniAI</h2>
         </div>
         <div className="ai-summary-content">
-          {postText && <>
-            <h3>Post</h3>
-            <p>{postText}</p>
-          </>}
+          {postText && (
+            <details className="ai-post-card">
+              <summary>Post</summary>
+              <p>{postText}</p>
+            </details>
+          )}
           {messages.map((message, index) => (
-            <p key={index} className={`ai-message ai-message-${message.role}`}>{message.content}</p>
+            <div key={index} className={`ai-message ai-message-${message.role}`}>
+              {message.role === 'assistant' && <span className="ai-avatar" aria-hidden="true"><AutoAwesomeIcon /></span>}
+              <p>{message.content}</p>
+            </div>
           ))}
-          {busy && <p role="status">Thinking...</p>}
-          {error && <p role="alert">{error}</p>}
+          {busy && (
+            <div className="ai-message ai-message-assistant" role="status" aria-label="UniAI is thinking">
+              <span className="ai-avatar" aria-hidden="true"><AutoAwesomeIcon /></span>
+              <p className="ai-typing"><span /><span /><span /></p>
+            </div>
+          )}
+          {error && <p className="ai-error" role="alert">{error}</p>}
           <div ref={endRef} />
         </div>
         <form className="ai-chat-form" onSubmit={send}>
           <input value={input} onChange={event => setInput(event.target.value)} maxLength={4000}
             placeholder="Ask UniAI..." aria-label="Message UniAI" disabled={busy} />
-          <button type="submit" disabled={busy || !input.trim()}>Send</button>
+          <button type="submit" aria-label="Send" disabled={busy || !input.trim()}><SendIcon /></button>
         </form>
       </section>
     </div>
