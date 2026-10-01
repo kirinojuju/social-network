@@ -5,6 +5,7 @@
 
 .main-content {
   margin-left: 235px;
+  margin-right: 260px;
   min-height: 100vh;
   padding: 0;
 }
@@ -29,4 +30,11 @@
 
 .test-ai-button:hover {
   opacity: 0.9;
+}
+
+.test-chat-button {
+  position: fixed;
+  bottom: 20px;
+  right: 280px;
+  z-index: 200;
 }
