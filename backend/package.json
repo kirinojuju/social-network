@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js",
+    "dev": "node --use-system-ca --watch server.js",
     "test": "node --test test/*.test.js",
     "test:integration-db": "node scripts/check-profile-persistence.js",
     "test:posts-db": "node scripts/check-post-persistence.js",
