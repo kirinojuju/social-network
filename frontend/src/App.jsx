@@ -1,6 +1,4 @@
-
 import { useState } from "react";
-
 import LeftSidebar from "./component/LeftSideBar";
 import Explore from "./component/Explore";
 import AISummary from "./component/AI_summary";
@@ -50,6 +48,6 @@ function App() {
       )}
     </div>
   );
-}`
+}
 
 export default App;
