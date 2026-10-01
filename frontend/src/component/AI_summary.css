@@ -118,11 +118,3 @@
   content: "✓";
   margin-right: 8px;
 }
-
-.ai-message { padding: 8px 12px; border-radius: 10px; max-width: 85%; white-space: pre-wrap; }
-.ai-message-user { background: rgba(255, 255, 255, 0.25); margin-left: auto; }
-.ai-message-assistant { background: rgba(0, 0, 0, 0.18); }
-.ai-chat-form { display: flex; gap: 8px; padding: 12px 16px; position: sticky; bottom: 0; background: #6c6bb2; }
-.ai-chat-form input { flex: 1; padding: 8px 12px; border-radius: 8px; border: 0; font: inherit; }
-.ai-chat-form button { padding: 8px 16px; border: 0; border-radius: 8px; background: #fff; color: #6c6bb2; font-weight: 600; cursor: pointer; }
-.ai-chat-form button:disabled { opacity: 0.6; cursor: default; }
