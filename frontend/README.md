@@ -3,9 +3,9 @@
 ## Run locally
 
 1. Run `npm.cmd install` in `frontend`.
-2. Copy `.env.example` to `.env` and enter the Firebase **web app** configuration
-   from Firebase Console > Project settings > Your apps. Use the same project as
-   `FIREBASE_PROJECT_ID` in `backend/.env`. Do not use Admin service-account credentials.
+2. Copy `.env.example` to `.env`. The shared Firebase **web app** configuration
+   is already filled in for team testing. It matches `FIREBASE_PROJECT_ID` in
+   `backend/.env.example`. Do not use Admin service-account credentials here.
 3. Enable **Email/Password** in Firebase Authentication > Sign-in method.
 4. Set `VITE_API_BASE_URL` to the Express API origin if it differs from
    `http://127.0.0.1:3000`. Run the backend and its migrations, then run
@@ -18,7 +18,7 @@ sign-ins, the app loads the saved profile through Express. Firebase restores the
 session on page reload. Forgot password still sends a password reset email.
 Users can create private text posts in Cloud Firestore. The app imports existing
 PostgreSQL posts into Firestore on sign-in and stores a copy of the profile there.
-JPEG, PNG, WebP, and GIF images up to 2 MB remain in PostgreSQL and are linked
+JPEG, PNG, WebP, and GIF images up to 5 MB remain in PostgreSQL and are linked
 from Firestore post documents. Firebase Storage requires the Blaze plan; this
 project currently uses Spark.
 

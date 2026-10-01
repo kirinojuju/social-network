@@ -9,6 +9,8 @@ are referenced from Firestore posts. The setup steps in
 [backend setup](docs/backend-setup.md) and [frontend setup](frontend/README.md)
 describe the Firebase web configuration and local database. Run
 `npm.cmd run migrate` in `backend` before using posts.
+For a teammate's copy of the shared Firebase test configuration, follow
+[team testing setup](docs/team-testing.md).
 
 ## Team Roles
 
