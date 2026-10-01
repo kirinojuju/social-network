@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { summarizeText } = require("./summarize");
+const { summarizeText } = require("../ai/summarize");
 
 (async () => {
   const longText = `
@@ -16,7 +16,7 @@ const { summarizeText } = require("./summarize");
 })();
 
 //how to test 
-//type |  node ai/test.js | in terminal (you need to cd backend before run this command)
+//type |  node scripts/try-ai-summarize.js | in terminal (you need to cd backend before run this command)
 // it should be summarize you message
 
 // try replacing the message in `longText` below with a longer paragraph
