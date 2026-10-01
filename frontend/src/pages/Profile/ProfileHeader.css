@@ -4,15 +4,10 @@
 
 .profile-header {
   width: 100%;
-
   margin: 0;
-
   background: #ffffff;
-
   border-radius: 8px;
-
   overflow: hidden;
-
   box-sizing: border-box;
 }
 
@@ -23,13 +18,9 @@
 
 .profile-cover {
   height: 140px;
-
   position: relative;
-
   background: #eeeeee;
-
   border: 1px solid #cfcfcf;
-
   box-sizing: border-box;
 }
 
@@ -47,7 +38,6 @@
 
 .change-cover-button {
   position: absolute;
-
   right: 18px;
   bottom: 16px;
 
@@ -64,7 +54,6 @@
   color: white;
 
   font-size: 12px;
-
   cursor: pointer;
 }
 
@@ -112,11 +101,9 @@
   height: 100px !important;
 
   color: #ffffff;
-
   background: #ffffff;
 
   border: 1px solid #222;
-
   border-radius: 50%;
 }
 
@@ -158,14 +145,15 @@
 
 .profile-user-info {
   margin-left: 28px;
-  flex: 1;
 
+  flex: 1;
   min-width: 0;
 }
 
 .profile-name-row {
   display: flex;
   align-items: center;
+
   gap: 18px;
 }
 
@@ -192,6 +180,7 @@
 
 .profile-followers {
   display: flex;
+
   gap: 25px;
 
   font-size: 12px;
@@ -204,12 +193,29 @@
 
 
 /* ========================================
+   PROFILE ACTIONS
+======================================== */
+
+.profile-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  margin-left: auto;
+}
+
+
+/* ========================================
    EDIT PROFILE
 ======================================== */
 
 .edit-profile-button {
   display: flex;
+
   align-items: center;
+
   gap: 5px;
 
   padding: 9px 15px;
@@ -226,9 +232,107 @@
   cursor: pointer;
 }
 
+.edit-profile-button:hover {
+  background: #5d5ca5;
+}
+
 .edit-profile-button svg {
   width: 16px;
   height: 16px;
+}
+
+
+/* ========================================
+   FOLLOWING BUTTON
+======================================== */
+
+.following-button {
+  display: flex;
+
+  align-items: center;
+
+  gap: 3px;
+
+  padding: 8px 12px;
+
+  border: 1px solid #6c6bb2;
+  border-radius: 8px;
+
+  background: white;
+  color: #6c6bb2;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.following-button:hover {
+  background: #f3f2fc;
+}
+
+.following-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+
+/* ========================================
+   MESSAGE BUTTON
+======================================== */
+
+.message-button {
+  display: flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+  padding: 9px 15px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #6c6bb2;
+  color: white;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.message-button:hover {
+  background: #5d5ca5;
+}
+
+.message-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+
+/* ========================================
+   FOLLOW BUTTON
+======================================== */
+
+.follow-button {
+  padding: 9px 20px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #6c6bb2;
+  color: white;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.follow-button:hover {
+  background: #5d5ca5;
 }
 
 
@@ -271,11 +375,13 @@
 
   left: 20%;
   right: 20%;
+
   bottom: 0;
 
   height: 3px;
 
   background: #6c6bb2;
+
   border-radius: 3px 3px 0 0;
 }
 
@@ -295,7 +401,7 @@
     margin-left: 18px;
   }
 
-  .edit-profile-button {
+  .profile-actions {
     margin-left: auto;
   }
 

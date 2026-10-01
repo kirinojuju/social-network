@@ -1,10 +1,17 @@
 import CameraAltOutlinedIcon from "@mui/icons-material/CameraAltOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
 import "./ProfileHeader.css";
 
-function ProfileHeader() {
+function ProfileHeader({ profileType = "personal" }) {
+
+  const isPersonal = profileType === "personal";
+  const isFollower = profileType === "follower";
+  const isNonFollower = profileType === "non-follower";
+
   return (
     <section className="profile-header">
 
@@ -18,10 +25,12 @@ function ProfileHeader() {
           <span>△</span>
         </div>
 
-        <button className="change-cover-button">
-          <CameraAltOutlinedIcon />
-          Change cover
-        </button>
+        {isPersonal && (
+          <button className="change-cover-button">
+            <CameraAltOutlinedIcon />
+            Change cover
+          </button>
+        )}
 
       </div>
 
@@ -38,9 +47,11 @@ function ProfileHeader() {
 
           <AccountCircleOutlinedIcon className="profile-picture" />
 
-          <button className="profile-camera-button">
-            <CameraAltOutlinedIcon />
-          </button>
+          {isPersonal && (
+            <button className="profile-camera-button">
+              <CameraAltOutlinedIcon />
+            </button>
+          )}
 
         </div>
 
@@ -51,7 +62,7 @@ function ProfileHeader() {
 
           <div className="profile-name-row">
 
-            <h1>Sally</h1>
+            <h1>User_Name</h1>
 
             <span className="profile-status">
               Student · Joined Oct 2025
@@ -78,12 +89,48 @@ function ProfileHeader() {
         </div>
 
 
-        {/* EDIT BUTTON */}
+        {/* ========================================
+            PROFILE ACTIONS
+        ======================================== */}
 
-        <button className="edit-profile-button">
-          <EditOutlinedIcon />
-          Edit Profile
-        </button>
+        <div className="profile-actions">
+
+          {/* PERSONAL PROFILE */}
+
+          {isPersonal && (
+            <button className="edit-profile-button">
+              <EditOutlinedIcon />
+              Edit Profile
+            </button>
+          )}
+
+
+          {/* FOLLOWER / FRIEND */}
+
+          {isFollower && (
+            <>
+              <button className="following-button">
+                Following
+                <KeyboardArrowDownIcon />
+              </button>
+
+              <button className="message-button">
+                <ChatBubbleOutlineOutlinedIcon />
+                Message
+              </button>
+            </>
+          )}
+
+
+          {/* NON-FOLLOWER */}
+
+          {isNonFollower && (
+            <button className="follow-button">
+              Follow
+            </button>
+          )}
+
+        </div>
 
       </div>
 
