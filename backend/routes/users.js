@@ -33,6 +33,15 @@ const columns = 'id, firebase_uid, email, username, display_name, bio, avatar_ur
 function createUsersRouter(pool, verifyToken) {
   const router = Router();
   router.use(createAuthMiddleware(verifyToken));
+  router.get('/', async (req, res, next) => {
+    try {
+      const result = await pool.query(`
+        SELECT firebase_uid AS uid, username, display_name
+        FROM public.users WHERE firebase_uid <> $1
+        ORDER BY created_at DESC, id DESC LIMIT 100`, [req.auth.uid]);
+      res.json({ people: result.rows });
+    } catch (error) { next(error); }
+  });
   router.get('/me', async (req, res) => {
     const result = await pool.query(`SELECT ${columns} FROM public.users WHERE firebase_uid = $1`, [req.auth.uid]);
     if (!result.rows.length) return res.status(404).json({ error: 'Profile not found' });

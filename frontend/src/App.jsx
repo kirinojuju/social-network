@@ -31,16 +31,22 @@ export default function App() {
   const [profileState, setProfileState] = useState('idle')
   const [profileError, setProfileError] = useState('')
   const [sessionVersion, setSessionVersion] = useState(0)
+  const [people, setPeople] = useState([])
+  const [peopleLoading, setPeopleLoading] = useState(false)
+  const [peopleError, setPeopleError] = useState('')
 
   useEffect(() => {
     if (!auth) return
     return watchUser(auth, nextUser => {
       setUser(nextUser)
+      setPeopleLoading(Boolean(nextUser))
+      setPeopleError('')
       setProfile(null)
       setProfileState(nextUser ? 'loading' : 'idle')
       setProfileError('')
       setLoading(false)
       if (!nextUser) {
+        setPeople([])
         setActiveView('home')
         setSummaryPost(null)
         setShowChat(false)
@@ -64,6 +70,27 @@ export default function App() {
       })
     return () => { active = false }
   }, [user, signingUp, sessionVersion])
+
+  useEffect(() => {
+    if (!user || profileState !== 'ready') return
+    let active = true
+    profileClient.listPeople(user).then(items => {
+      if (active) setPeople(items)
+    }).catch(() => {
+      if (active) setPeopleError('Could not load people. Try again.')
+    }).finally(() => {
+      if (active) setPeopleLoading(false)
+    })
+    return () => { active = false }
+  }, [user, profileState])
+
+  async function refreshPeople() {
+    setPeopleLoading(true)
+    setPeopleError('')
+    try { setPeople(await profileClient.listPeople(user)) }
+    catch { setPeopleError('Could not load people. Try again.') }
+    finally { setPeopleLoading(false) }
+  }
 
   async function signOut() {
     if (busy) return
@@ -119,11 +146,14 @@ export default function App() {
             </div>
           </div>
           {error && <p className="auth-error" role="alert">{error}</p>}
-          {activeView === 'explore' ? <Explore />
+          {activeView === 'explore' ? <Explore people={people} loading={peopleLoading}
+            error={peopleError} onRefresh={refreshPeople} />
             : activeView === 'profile' ? <Profile profile={profile} />
-              : <MiddlePage profile={profile} user={user} onSummarize={setSummaryPost} />}
+              : <MiddlePage profile={profile} user={user} people={people}
+                onSummarize={setSummaryPost} />}
         </div>
-        {activeView === 'home' && <RightSideBar />}
+        {activeView === 'home' && <RightSideBar people={people} loading={peopleLoading}
+          onExplore={() => setActiveView('explore')} />}
         {showChat && <Chatbox userName="Message preview" onClose={() => setShowChat(false)} />}
         {summaryPost !== null && <AISummary postText={summaryPost} onClose={() => setSummaryPost(null)} />}
       </div>

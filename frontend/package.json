@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "oxlint",
     "test": "node --test test/*.test.js",
+    "test:rules": "node scripts/check-firestore-rules.mjs",
     "test:firestore-live": "node scripts/check-firestore-live.mjs",
     "preview": "vite preview"
   },
@@ -21,6 +22,7 @@
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",

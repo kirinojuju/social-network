@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // users/{uid}: uid, email, username, displayName (strings), updatedAt (timestamp).
-    // posts/{postId}: authorUid, content, visibility (strings), createdAt
+    // posts/{postId}: authorUid, content, visibility (private/public), createdAt
     // (timestamp), originalCreatedAt and imageId (string or null).
     function isAuthenticated() {
       return request.auth != null;
@@ -37,8 +37,8 @@ service cloud.firestore {
         && data.keys().hasOnly(['authorUid', 'content', 'visibility', 'createdAt', 'originalCreatedAt', 'imageId'])
         && data.authorUid is string && data.authorUid.size() > 0 && data.authorUid.size() <= 128
         && data.content is string && data.content.size() <= 10000
-        && data.visibility == 'private'
-        && data.createdAt is timestamp && data.createdAt == request.time
+        && data.visibility in ['private', 'public']
+        && data.createdAt is timestamp
         && (data.originalCreatedAt == null ||
             (data.originalCreatedAt is string && data.originalCreatedAt.size() <= 35))
         && (data.imageId == null ||
@@ -57,11 +57,16 @@ service cloud.firestore {
     }
 
     match /posts/{postId} {
-      allow get, list: if isAuthenticated() && resource.data.authorUid == request.auth.uid;
+      allow get, list: if isAuthenticated() &&
+        (resource.data.authorUid == request.auth.uid || resource.data.visibility == 'public');
       allow create: if isAuthenticated() && postId.matches('^[A-Za-z0-9_-]{1,64}$')
         && request.resource.data.authorUid == request.auth.uid
-        && isValidPost(request.resource.data);
-      allow update, delete: if false;
+        && isValidPost(request.resource.data)
+        && request.resource.data.createdAt == request.time;
+      allow update: if isAuthenticated() && resource.data.authorUid == request.auth.uid
+        && isValidPost(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['visibility']);
+      allow delete: if false;
     }
   }
 }

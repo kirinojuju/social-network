@@ -20,9 +20,9 @@ async function withServer(run, query = async () => ({ rows: [] }), verifyToken =
   }
 }
 
-test('both profile endpoints require authentication and do not query the database', async () => {
+test('profile and directory endpoints require authentication and do not query the database', async () => {
   await withServer(async request => {
-    for (const [route, body] of [['/me', undefined], ['/sync', valid]]) {
+    for (const [route, body] of [['/', undefined], ['/me', undefined], ['/sync', valid]]) {
       const res = await request(route, body, {});
       assert.equal(res.status, 401);
       assert.deepEqual(await res.json(), { error: 'Unauthorized' });
@@ -83,6 +83,25 @@ test('me queries only the verified UID and returns profile or 404', async () => 
       return { rows };
     });
   }
+});
+
+test('people directory returns only safe profile fields and excludes the caller', async () => {
+  let statement
+  let parameters
+  await withServer(async request => {
+    const response = await request('/')
+    assert.equal(response.status, 200)
+    assert.deepEqual(await response.json(), { people: [
+      { uid: 'friend-uid', username: 'friend', display_name: 'Friend' },
+    ] })
+  }, async (sql, values) => {
+    statement = sql
+    parameters = values
+    return { rows: [{ uid: 'friend-uid', username: 'friend', display_name: 'Friend' }] }
+  })
+  assert.match(statement, /firebase_uid <> \$1/)
+  assert.doesNotMatch(statement, /\bemail\b/)
+  assert.deepEqual(parameters, [claims.uid])
 });
 
 test('ensure creates an initial profile for an unverified account and preserves the UID', async () => {

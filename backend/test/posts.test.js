@@ -50,4 +50,28 @@ test('post endpoints require a token and bind reads and writes to verified UID',
   for (const call of calls) assert.equal(call.values[0], 'owner-uid');
   assert.equal(calls[1].values[1], 'Hello');
   assert.equal(calls[2].values[1], imageId);
+  assert.match(calls[2].sql, /p\.visibility = 'public'/);
+});
+
+test('only an authenticated author can change post visibility', async () => {
+  const id = 'abbcccc0-0000-4000-8000-000000000000';
+  const calls = [];
+  await withServer({ async query(sql, values) {
+    calls.push({ sql, values });
+    return { rows: [{ id, visibility: values[2] }] };
+  } }, async root => {
+    const change = (path, body, headers = { Authorization: 'Bearer valid',
+      'Content-Type': 'application/json' }) => fetch(root + path, {
+      method: 'PATCH', headers, body: JSON.stringify(body),
+    });
+    assert.equal((await change(`/${id}/visibility`, { visibility: 'public' }, {})).status, 401);
+    for (const body of [{ visibility: 'everyone' }, { visibility: 'public', author: 'other' }]) {
+      assert.equal((await change(`/${id}/visibility`, body)).status, 400);
+    }
+    const accepted = await change(`/${id}/visibility`, { visibility: 'public' });
+    assert.equal(accepted.status, 200, await accepted.text());
+  });
+  assert.equal(calls.length, 1);
+  assert.match(calls[0].sql, /u\.firebase_uid = \$1/);
+  assert.deepEqual(calls[0].values, ['owner-uid', id, 'public']);
 });

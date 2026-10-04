@@ -84,12 +84,30 @@ function createPostsRouter(pool, verifyToken) {
     try {
       const result = await pool.query(`
         SELECT m.mime_type, m.image_data FROM public.media m
-        JOIN public.users u ON u.id = m.owner_id
-        WHERE m.id = $2 AND u.firebase_uid = $1 AND m.image_data IS NOT NULL`, [req.auth.uid, req.params.id]);
+        JOIN public.posts p ON p.id = m.post_id
+        JOIN public.users u ON u.id = p.author_id
+        WHERE m.id = $2 AND (u.firebase_uid = $1 OR p.visibility = 'public')
+          AND m.image_data IS NOT NULL`, [req.auth.uid, req.params.id]);
       if (!result.rows.length) return res.status(404).json({ error: 'Image not found' });
       res.set('Content-Type', result.rows[0].mime_type);
       res.set('X-Content-Type-Options', 'nosniff');
       res.send(result.rows[0].image_data);
+    } catch (error) { next(error); }
+  });
+  router.patch('/:id/visibility', async (req, res, next) => {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(req.params.id) ||
+        !req.body || Object.keys(req.body).length !== 1 ||
+        !['public', 'private'].includes(req.body.visibility)) {
+      return res.status(400).json({ error: 'Invalid visibility change' });
+    }
+    try {
+      const result = await pool.query(`
+        UPDATE public.posts p SET visibility = $3
+        FROM public.users u
+        WHERE p.id = $2 AND p.author_id = u.id AND u.firebase_uid = $1
+        RETURNING p.id, p.visibility`, [req.auth.uid, req.params.id, req.body.visibility]);
+      if (!result.rows.length) return res.status(404).json({ error: 'Post not found' });
+      res.json({ post: result.rows[0] });
     } catch (error) { next(error); }
   });
   return router;

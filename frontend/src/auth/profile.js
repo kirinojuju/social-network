@@ -68,6 +68,21 @@ export function createProfileClient({ baseUrl = defaultBaseUrl, fetchImpl = fetc
     get,
     sync,
     ensure,
+    async listPeople(user) {
+      const token = await user.getIdToken()
+      let response
+      try {
+        response = await fetchImpl(`${root}/api/users/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      } catch {
+        throw new ProfileApiError('Cannot reach the profile server.')
+      }
+      if (!response.ok) throw new ProfileApiError('Could not load people.', response.status)
+      const data = await response.json()
+      if (!Array.isArray(data?.people)) throw new ProfileApiError('Invalid people response.')
+      return data.people
+    },
     async load(user) {
       let existing
       try {

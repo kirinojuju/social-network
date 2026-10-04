@@ -114,6 +114,18 @@
 .post-tools .tool-button { display: inline-flex; align-items: center; }
 .post-tools .selected-file { overflow-wrap: anywhere; }
 .post-tools .post-button { margin-left: auto; }
+.visibility-picker { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #514c65; }
+.visibility-picker select { border: 1px solid #d7d1e9; border-radius: 8px; padding: 8px;
+  background: #fff; color: #353143; font: inherit; }
+.feed-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-top: 28px; flex-wrap: wrap; }
+.feed-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.feed-tabs button, .feed-refresh, .visibility-action { border: 1px solid #d7d1e9;
+  border-radius: 10px; background: #fff; color: #514888; padding: 9px 14px;
+  font: inherit; cursor: pointer; }
+.feed-tabs button[aria-pressed="true"] { background: #6f63c9; border-color: #6f63c9; color: #fff; }
+.post-visibility { margin-left: auto; color: #666174; font-size: 13px; }
+.visibility-action:disabled, .feed-refresh:disabled { opacity: .6; cursor: wait; }
 .post-text { white-space: pre-wrap; overflow-wrap: anywhere; }
 
 .avatar,

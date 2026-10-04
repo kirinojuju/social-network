@@ -484,3 +484,18 @@
   }
 
 }
+
+.explore-main { width: 100%; }
+.people-section { max-width: 680px; margin: 32px auto; }
+.people-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.people-heading h2 { margin: 0 0 5px; }
+.people-heading p { margin: 0 0 20px; color: #666174; }
+.people-heading button { border: 1px solid #6f63c9; border-radius: 10px; padding: 8px 14px;
+  background: white; color: #6256bb; cursor: pointer; }
+.people-list { display: grid; gap: 12px; }
+.person-card { display: flex; gap: 12px; align-items: center; padding: 16px;
+  background: white; border: 1px solid #e3e0ea; border-radius: 14px; }
+.person-card svg { font-size: 40px; color: #6f63c9; }
+.person-card div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.person-card strong, .person-card span { overflow-wrap: anywhere; }
+.person-card span { color: #666174; }
