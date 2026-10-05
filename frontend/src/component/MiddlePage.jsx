@@ -15,6 +15,18 @@ function readImage(file) {
   })
 }
 
+async function loadAvailablePosts(user) {
+  const owned = await listPosts(user)
+  try {
+    return { owned, shared: await listPublicPosts(), communityAvailable: true }
+  } catch (failure) {
+    if (failure?.code === 'permission-denied' || failure?.code === 'failed-precondition') {
+      return { owned, shared: [], communityAvailable: false }
+    }
+    throw failure
+  }
+}
+
 export default function MiddlePage({ profile, user, people, onSummarize }) {
   const [ownPosts, setOwnPosts] = useState([])
   const [publicPosts, setPublicPosts] = useState([])
@@ -26,15 +38,21 @@ export default function MiddlePage({ profile, user, people, onSummarize }) {
   const [busy, setBusy] = useState(false)
   const [changingId, setChangingId] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [communityAvailable, setCommunityAvailable] = useState(true)
   const [error, setError] = useState('')
   const fileInput = useRef(null)
 
   useEffect(() => {
     let active = true
-    listPosts(user).then(async owned => [owned, await listPublicPosts()]).then(([owned, shared]) => {
+    loadAvailablePosts(user).then(({ owned, shared, communityAvailable: available }) => {
       if (!active) return
       setOwnPosts(owned)
       setPublicPosts(shared)
+      setCommunityAvailable(available)
+      if (!available) {
+        setView('mine')
+        setVisibility('private')
+      }
     }).catch(failure => {
       if (active) setError(failure.message)
     }).finally(() => {
@@ -47,10 +65,14 @@ export default function MiddlePage({ profile, user, people, onSummarize }) {
     setLoading(true)
     setError('')
     try {
-      const owned = await listPosts(user)
-      const shared = await listPublicPosts()
+      const { owned, shared, communityAvailable: available } = await loadAvailablePosts(user)
       setOwnPosts(owned)
       setPublicPosts(shared)
+      setCommunityAvailable(available)
+      if (!available) {
+        setView('mine')
+        setVisibility('private')
+      }
     } catch (failure) { setError(failure.message) }
     finally { setLoading(false) }
   }
@@ -125,13 +147,13 @@ export default function MiddlePage({ profile, user, people, onSummarize }) {
             onChange={event => setFile(event.target.files[0] || null)} />
           <label className="tool-button" htmlFor="post-image"><PhotoCameraOutlinedIcon /> Photo</label>
           {file && <span className="selected-file">{file.name}</span>}
-          <label className="visibility-picker">Who can see this?
+          {communityAvailable && <label className="visibility-picker">Who can see this?
             <select value={visibility} onChange={event => setVisibility(event.target.value)}>
               <option value="private">Only me</option>
               <option value="public">Everyone signed in</option>
             </select>
-          </label>
-          <button className="post-button" disabled={busy || (!content.trim() && !file)} type="submit">
+          </label>}
+          <button className="post-button" disabled={busy || loading || (!content.trim() && !file)} type="submit">
             {busy ? 'Posting…' : 'Post'}
           </button>
         </div>
@@ -140,13 +162,14 @@ export default function MiddlePage({ profile, user, people, onSummarize }) {
       <section aria-label="Posts">
         <div className="feed-heading">
           <div className="feed-tabs" role="group" aria-label="Post feed">
-            <button type="button" aria-pressed={view === 'community'}
+            <button type="button" aria-pressed={view === 'community'} disabled={!communityAvailable}
               onClick={() => setView('community')}>Community posts</button>
             <button type="button" aria-pressed={view === 'mine'}
               onClick={() => setView('mine')}>My posts</button>
           </div>
           <button type="button" className="feed-refresh" onClick={refreshPosts} disabled={loading}>Refresh</button>
         </div>
+        {!communityAvailable && <p role="status">Community posts are not available in this test project yet. You can still create private posts.</p>}
         {error && <p className="auth-error" role="alert">{error}</p>}
         {loading && <p role="status">Loading posts…</p>}
         {!loading && visiblePosts.length === 0 && <p>{query ? 'No matching posts.'
@@ -168,7 +191,7 @@ export default function MiddlePage({ profile, user, people, onSummarize }) {
             {post.content && <p className="post-text">{post.content}</p>}
             {post.image_id && <PostImage user={user} id={post.image_id} />}
             <div className="post-actions">
-              {isMine && <button className="visibility-action" type="button"
+              {isMine && communityAvailable && <button className="visibility-action" type="button"
                 disabled={changingId === post.id} onClick={() => toggleVisibility(post)}>
                 {changingId === post.id ? 'Saving…' : post.visibility === 'public' ? 'Make private' : 'Share with community'}
               </button>}

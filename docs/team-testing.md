@@ -21,6 +21,9 @@ The Render API must be available for profile loading. Check
 but the app shows **Profile unavailable**. The hosted API must allow
 `http://localhost:5173` in `CORS_ORIGIN`; the checked-in server default does.
 Use test accounts and data because this mode writes to the shared services.
+Until the project owner publishes the community sharing rules and index,
+Firestore may reject the community feed. The page then switches to **My posts**
+and keeps private post testing available.
 
 If sign-in itself fails, confirm that Firebase Authentication has Email/Password
 enabled. A missing local web configuration suggests the teammate ran `npm run
