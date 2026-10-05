@@ -2,14 +2,18 @@
 
 ## Run locally
 
-1. Run `npm.cmd install` in `frontend`.
-2. Copy `.env.example` to `.env`. The shared Firebase **web app** configuration
-   is already filled in for team testing. It matches `FIREBASE_PROJECT_ID` in
-   `backend/.env.example`. Do not use Admin service-account credentials here.
-3. Enable **Email/Password** in Firebase Authentication > Sign-in method.
-4. Set `VITE_API_BASE_URL` to the Express API origin if it differs from
-   `http://127.0.0.1:3000`. Run the backend and its migrations, then run
-   `npm.cmd run dev`. Restart Vite after changing environment variables.
+For team testing, run `npm.cmd ci` and `npm.cmd run dev:team` in `frontend`.
+Open `http://localhost:5173`. This uses the shared Firebase project and the
+hosted Render API; no local backend or database password is needed. The
+committed `.env.team` contains only public Firebase Web identifiers and the
+API URL. See [team testing setup](../docs/team-testing.md) for checks.
+
+For full local backend development, copy `.env.example` to `.env` without
+overwriting an existing file. Set `VITE_API_BASE_URL` if the local Express API
+is not at `http://127.0.0.1:3000`; otherwise leave it blank. Run the backend
+and its database migrations, then `npm.cmd run dev`. Restart Vite after changing
+environment variables. Do not use Admin service-account credentials in the
+frontend. Enable **Email/Password** in Firebase Authentication > Sign-in method.
 
 The signup and login forms use the Firebase client SDK. Signup creates an
 email/password account without sending a verification email. The app creates a

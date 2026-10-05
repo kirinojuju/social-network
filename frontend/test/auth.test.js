@@ -71,5 +71,6 @@ test('password reset connection errors remain errors', async () => {
 test('UI error messages do not expose provider details or distinguish invalid credentials', () => {
   assert.equal(authError({ code: 'auth/wrong-password' }), authError({ code: 'auth/user-not-found' }))
   assert.equal(authError({ message: 'private internal detail' }), 'Something went wrong. Please try again.')
-  assert.match(authError({ code: 'auth/not-configured' }), /not available/)
+  assert.match(authError({ code: 'auth/not-configured' }), /dev:team/)
+  assert.match(authError({ code: 'auth/operation-not-allowed' }), /Email\/password sign-in is disabled/)
 })

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:team": "vite --mode team --host localhost --port 5173 --strictPort",
     "build": "vite build",
     "lint": "oxlint",
     "test": "node --test test/*.test.js",
