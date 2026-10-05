@@ -6,6 +6,7 @@ import MailOutlinedIcon from "@mui/icons-material/MailOutlined";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import SentimentSatisfiedOutlinedIcon from "@mui/icons-material/SentimentSatisfiedOutlined";
+import { Link } from "react-router-dom";
 
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlined";
@@ -16,10 +17,12 @@ const mainMenu = [
   {
     name: "Home",
     icon: HomeOutlinedIcon,
+    path: "/",
   },
   {
     name: "Explore",
     icon: SearchOutlinedIcon,
+    path: "/explore",
   },
   {
     name: "StudyHub",
@@ -67,12 +70,19 @@ function LeftSidebar() {
       <nav className="sidebar-menu">
         {mainMenu.map((item) => {
           const Icon = item.icon;
-
-          return (
-            <div className="sidebar-item" key={item.name}>
+          const content = (
+            <div className="sidebar-item">
               <Icon className="sidebar-icon" />
               <span>{item.name}</span>
             </div>
+          );
+
+          return item.path ? (
+            <Link to={item.path} className="sidebar-link" key={item.name}>
+              {content}
+            </Link>
+          ) : (
+            <div key={item.name}>{content}</div>
           );
         })}
       </nav>

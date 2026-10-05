@@ -36,5 +36,8 @@
   position: fixed;
   bottom: 20px;
   right: 280px;
-  z-index: 200;
+  z-index: 101;
+}
+.main-content.full-width {
+  margin-right: 0;
 }

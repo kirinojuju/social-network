@@ -270,3 +270,9 @@
 
   transform: translateY(-1px);
 }
+
+.sidebar-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}

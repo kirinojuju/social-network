@@ -1,53 +1,29 @@
-import { useState } from "react";
-
-import LeftSidebar from "./component/LeftSideBar";
-import Explore from "./component/Explore";
-import AISummary from "./component/AI_summary";
-import RightSideBar from "./component/RightSideBar";
-import Chatbox from "./component/Chatbox";
-import Profile from "./pages/Profile/Profile";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Layout from "./pages/Layout";
+import Home from "./pages/Home";
+import Explore from "./pages/Explore";
+import Profile from "./pages/Profile";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import Missing from "./pages/Missing";
 
 import "./App.css";
 
 function App() {
-  const [showAISummary, setShowAISummary] = useState(false);
-  const [showChat, setShowChat] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
-
   return (
-    <div className="app">
-      <LeftSidebar />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
 
-      <main className="main-content">
-        {showProfile ? (
-          <Profile />
-        ) : (
-          <>
-            <Explore />
-            <button className="test-ai-button" onClick={() => setShowAISummary(true)}>
-              Test AI Summary
-            </button>
-          </>
-        )}
-      </main>
-
-      <RightSideBar />
-
-      {showChat && <Chatbox userName="User_Name" onClose={() => setShowChat(false)} />}
-      <button className="test-chat-button" onClick={() => setShowChat(true)}>
-        Test Chatbox
-      </button>
-
-      <button
-        className="test-ai-button"
-        style={{ bottom: 80 }}
-        onClick={() => setShowProfile((v) => !v)}
-      >
-        {showProfile ? "Back to Explore" : "View Profile"}
-      </button>
-
-      {showAISummary && <AISummary onClose={() => setShowAISummary(false)} />}
-    </div>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="explore" element={<Explore />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="*" element={<Missing />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
