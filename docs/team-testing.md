@@ -2,7 +2,7 @@
 
 ## Run the frontend locally against the shared test services
 
-1. Get the latest `codex/jr-team-integration` branch.
+1. Get the latest `codex/team-localhost-setup` branch.
 2. In `frontend`, run `npm.cmd ci` and `npm.cmd run dev:team`.
 3. Open `http://localhost:5173` (or the URL Vite prints). Sign in with a test
    account and check that a text post remains after a reload.
