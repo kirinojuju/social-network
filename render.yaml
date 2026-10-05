@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: social-network-team-test
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci --prefix frontend && npm run build --prefix frontend && npm ci --prefix backend
+    startCommand: npm start --prefix backend
+    healthCheckPath: /api/health
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: SERVE_FRONTEND
+        value: 'true'
+      - key: PGSSLMODE
+        value: require
+      - key: REQUIRE_LIMITED_DB_ROLE
+        value: 'true'
+      - key: PGCONNECT_TIMEOUT_MS
+        value: '10000'
+      - key: PGPORT
+        value: '5432'
+      - key: PGDATABASE
+        value: social_network
+      - key: PGHOST
+        sync: false
+      - key: PGUSER
+        sync: false
+      - key: PGPASSWORD
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        value: uniconnect-d5705
+      - key: VITE_FIREBASE_API_KEY
+        value: AIzaSyCWQgMafaXYEj0EJXdO1kw_hX6MdUm69uY
+      - key: VITE_FIREBASE_AUTH_DOMAIN
+        value: uniconnect-d5705.firebaseapp.com
+      - key: VITE_FIREBASE_PROJECT_ID
+        value: uniconnect-d5705
+      - key: VITE_FIREBASE_APP_ID
+        value: '1:859111981856:web:24881fa7a278bfc16b0d45'

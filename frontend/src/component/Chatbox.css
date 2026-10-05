@@ -130,3 +130,10 @@
 .chatbox-icon-btn:hover {
   color: #4d4685;
 }
+
+.chatbox-preview {
+  margin: 0;
+  color: #777;
+  font-size: 11px;
+  text-align: center;
+}

@@ -153,6 +153,12 @@ input:focus {
 
 .btn:hover { opacity: 0.9; }
 
+.auth-fields { border: 0; padding: 0; margin: 0; min-width: 0; }
+.auth-error { color: #a51c30; font-size: 14px; }
+.auth-message { color: #285b40; font-size: 14px; }
+.account-action { display: block; margin-top: 18px; }
+button:disabled { opacity: 0.6; cursor: wait; }
+
 .btn-signup {
   width: 250px;
   display: block;
@@ -175,6 +181,18 @@ input:focus {
 }
 
 .footer-text a:hover, .forgot-password:hover { text-decoration: underline; }
+
+.auth-link {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--link-color);
+  font: inherit;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+.auth-link:hover { text-decoration: underline; }
 
 .forgot-password {
   display: block;

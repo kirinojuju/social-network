@@ -100,6 +100,22 @@
   gap: 18px;
 }
 
+.create-post-top textarea {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  resize: vertical;
+  font: inherit;
+  font-size: 18px;
+  outline: 0;
+}
+
+.post-tools input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.post-tools .tool-button { display: inline-flex; align-items: center; }
+.post-tools .selected-file { overflow-wrap: anywhere; }
+.post-tools .post-button { margin-left: auto; }
+.post-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+
 .avatar,
 .story-avatar {
   display: grid;

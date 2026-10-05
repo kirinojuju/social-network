@@ -1,311 +1,123 @@
-import "./MiddlePage.css";
-import PhotoCameraOutlinedIcon from "@mui/icons-material/PhotoCameraOutlined";
-import VideocamOutlinedIcon from "@mui/icons-material/VideocamOutlined";
-import AttachFileOutlinedIcon from "@mui/icons-material/AttachFileOutlined";
-import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
-import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined";
-import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
-import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlined";
-import { useState } from "react";
-import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from 'react'
+import PhotoCameraOutlinedIcon from '@mui/icons-material/PhotoCameraOutlined'
+import { createPost, listPosts } from '../posts/client'
+import PostImage from '../posts/PostImage'
+import './MiddlePage.css'
 
-function MiddlePage() {
-  const stories = ["A", "B", "C", "D", "E", "F"];
-    const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+
+function readImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = () => reject(new Error('Could not read this image.'))
+    reader.onload = () => resolve({ mime_type: file.type, base64: String(reader.result).split(',')[1] })
+    reader.readAsDataURL(file)
+  })
+}
+
+export default function MiddlePage({ profile, user, onSummarize }) {
+  const [posts, setPosts] = useState([])
+  const [content, setContent] = useState('')
+  const [file, setFile] = useState(null)
+  const [query, setQuery] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const fileInput = useRef(null)
+
+  useEffect(() => {
+    let active = true
+    listPosts(user).then(items => {
+      if (active) setPosts(items)
+    }).catch(failure => {
+      if (active) setError(failure.message)
+    }).finally(() => {
+      if (active) setLoading(false)
+    })
+    return () => { active = false }
+  }, [user])
+
+  async function submit(event) {
+    event.preventDefault()
+    if (busy || (!content.trim() && !file)) return
+    setError('')
+    if (file && (!allowedTypes.includes(file.type) || file.size > 5 * 1024 * 1024)) {
+      setError('Choose a JPEG, PNG, WebP, or GIF image up to 5 MB.')
+      return
+    }
+    setBusy(true)
+    try {
+      const image = file ? await readImage(file) : null
+      const post = await createPost(user, { content, visibility: 'private', image })
+      setPosts(items => [post, ...items])
+      setContent('')
+      setFile(null)
+      if (fileInput.current) fileInput.current.value = ''
+    } catch (failure) {
+      setError(failure.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const visiblePosts = posts.filter(post => post.content.toLowerCase().includes(query.toLowerCase()))
+
   return (
     <main className="middle-page">
-      {/* Top bar */}
       <header className="topbar">
-        <div className="search-box">
-          <span className="search-icon">⌕</span>
-          <input
-            type="text"
-            placeholder="Search people, posts, courses, and more..."
-          />
-        </div>
-
-        <div className="topbar-actions">
-          <button aria-label="Create post">✎</button>
-          <button aria-label="Notifications">🔔</button>
-          <Link to="/profile" className="profile-icon" aria-label="Profile">◯</Link>
+        <label className="search-box">
+          <span className="search-icon" aria-hidden="true">⌕</span>
+          <input type="search" value={query} onChange={event => setQuery(event.target.value)}
+            placeholder="Search your posts..." aria-label="Search your posts" />
+        </label>
+        <div className="profile-icon" title={profile.display_name} aria-label={profile.display_name}>
+          {profile.display_name?.charAt(0).toUpperCase() || 'U'}
         </div>
       </header>
 
       <section className="feed-content">
-        {/* Post Box */}
-        <section className="create-post-card">
+        <form className="create-post-card" onSubmit={submit}>
           <div className="create-post-top">
-            <div className="avatar">👤</div>
-            <div className="post-placeholder">Create a post...</div>
+            <div className="avatar" aria-hidden="true">👤</div>
+            <textarea id="post-content" value={content} maxLength={10000} rows={3}
+              onChange={event => setContent(event.target.value)} placeholder="Create a post..." />
           </div>
-
           <div className="post-divider" />
-
-         <div className="post-tools">
-            <button className="tool-button">
-                <PhotoCameraOutlinedIcon />
-                <span>Photo</span>
+          <div className="post-tools">
+            <input ref={fileInput} type="file" id="post-image"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={event => setFile(event.target.files[0] || null)} />
+            <label className="tool-button" htmlFor="post-image"><PhotoCameraOutlinedIcon /> Photo</label>
+            {file && <span className="selected-file">{file.name}</span>}
+            <button className="post-button" disabled={busy || (!content.trim() && !file)} type="submit">
+              {busy ? 'Posting…' : 'Post'}
             </button>
-
-            <button className="tool-button">
-                <VideocamOutlinedIcon />
-                <span>Video</span>
-            </button>
-
-            <button className="tool-button">
-                <AttachFileOutlinedIcon />
-                <span>File</span>
-            </button>
-
-            <button className="post-button">Post</button>
-            </div>
-        </section>
-
-        {/* Stories */}
-        {/* Stories */}
-            <div className="stories-box">
-            <h2>Stories</h2>
-
-            <div className="stories-list">
-                {stories.map((name) => (
-                <article className="story-card" key={name}>
-                    <div className="story-avatar">👤</div>
-                    <div className="story-image">...</div>
-                    <p>{name}</p>
-                </article>
-                ))}
-            </div>
-            </div>
-
-        {/* Sample Post */}
-        <article className="sample-post">
-          <div className="post-header">
-            <div className="avatar">👤</div>
-
-            <div>
-              <strong>User_Name</strong>
-              <p>ISNE · 2 hr</p>
-            </div>
-
-            <button className="follow-button">Follow</button>
-            <button className="more-button">•••</button>
           </div>
+          {error && <p className="auth-error" role="alert">{error}</p>}
+        </form>
 
-          <p className="post-text">
-            Welcome to UniConnect! test post 1234658799876543216858641.
-          </p>
-
-         {/* 
-<div className="post-image-placeholder">
-  <span>UniConnect</span>
-</div> 
-*/}
-
-          <div className="post-actions">
-  <button className="post-action-button">
-    <FavoriteBorderOutlinedIcon />
-    <span>1.1k</span>
-  </button>
-
-  <button className="post-action-button">
-    <ChatBubbleOutlineOutlinedIcon />
-    <span>520</span>
-  </button>
-
-  <button className="post-action-button">
-    <SendOutlinedIcon />
-    <span>143</span>
-  </button>
-
-  <button className="post-action-button">
-    <BookmarkBorderOutlinedIcon />
-    <span>493</span>
-  </button>
-
-  <button className="summarise-button">
-  ✦ Summarise
-</button>
-</div>
-        </article>
-
-        <article className="sample-post">
-  <div className="post-header">
-    <div className="avatar">👤</div>
-
-    <div>
-      <strong>CMU Student</strong>
-      <p>Faculty of Engineering · 1 hr</p>
-    </div>
-
-    <button className="follow-button">Follow</button>
-    <button className="more-button">•••</button>
-  </div>
-
-  <p className="post-text">
-     Wonderful day at the university! 🌿
-  </p>
-
-  <img
-    className="post-image"
-    src="https://www.geocities.ws/entaneer-cmu/Slide-CMU-05.jpg"
-    alt="University campus"
-  />
-
-  <div className="post-actions">
-    <button className="post-action-button">
-      <FavoriteBorderOutlinedIcon />
-      <span>245</span>
-    </button>
-
-    <button className="post-action-button">
-      <ChatBubbleOutlineOutlinedIcon />
-      <span>32</span>
-    </button>
-
-    <button className="post-action-button">
-      <SendOutlinedIcon />
-      <span>10</span>
-    </button>
-
-    <button className="post-action-button">
-      <BookmarkBorderOutlinedIcon />
-      <span>58</span>
-    </button>
-
-    <button className="summarise-button">
-      ✦ Summarise
-    </button>
-  </div>
-</article>
-<article className="sample-post">
-  <div className="post-header">
-    <div className="avatar">👤</div>
-
-    <div>
-      <strong>CMU Campus Life</strong>
-      <p>Faculty of Engineering  · 30 min</p>
-    </div>
-
-    <button className="follow-button">Follow</button>
-    <button className="more-button">•••</button>
-  </div>
-
-  <p className="post-text">
-    Wonderful day at the university! 🌿 * 3
-  </p>
-
-  <div className="post-gallery">
-    <img
-      src="https://www.geocities.ws/entaneer-cmu/Slide-CMU-05.jpg"
-   
-    />
-
-    <img
-      src="https://www.geocities.ws/entaneer-cmu/Slide-CMU-05.jpg"
-   
-    />
-
-    <img
-      src="https://www.geocities.ws/entaneer-cmu/Slide-CMU-05.jpg"
-
-    /> 
-    
-  </div>
-
-  <div className="post-actions">
-    <button className="post-action-button">
-      <FavoriteBorderOutlinedIcon />
-      <span>326</span>
-    </button>
-
-    <button className="post-action-button">
-      <ChatBubbleOutlineOutlinedIcon />
-      <span>47</span>
-    </button>
-
-    <button className="post-action-button">
-      <SendOutlinedIcon />
-      <span>21</span>
-    </button>
-
-    <button className="post-action-button">
-      <BookmarkBorderOutlinedIcon />
-      <span>89</span>
-    </button>
-
-    <button className="summarise-button">
-      ✦ Summarise
-    </button>
-  </div>
-</article>
-<article className="sample-post">
-  <div className="post-header">
-    <div className="avatar">👤</div>
-
-    <div>
-      <strong>CMU Campus Life</strong>
-      <p>Faculty of Engineering  · 10 min</p>
-    </div>
-
-    <button className="follow-button">Follow</button>
-    <button className="more-button">•••</button>
-  </div>
-
-  <p className="post-text">
-    Vid test 
-  </p>
-
-<div className="video-frame">
-  {!isVideoPlaying ? (
-    <button
-      className="video-thumbnail white-thumbnail"
-      onClick={() => setIsVideoPlaying(true)}
-    
-    >
-      <span className="play-icon">
-        <PlayArrowRoundedIcon />
-      </span>
-    </button>
-  ) : (
-    <iframe
-      src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
-      title="CMU Campus Video"
-      allow="autoplay; encrypted-media; picture-in-picture"
-      allowFullScreen
-    />
-  )}
-</div>
-
-  <div className="post-actions">
-    <button className="post-action-button">
-      <FavoriteBorderOutlinedIcon />
-      <span>615</span>
-    </button>
-
-    <button className="post-action-button">
-      <ChatBubbleOutlineOutlinedIcon />
-      <span>84</span>
-    </button>
-
-    <button className="post-action-button">
-      <SendOutlinedIcon />
-      <span>36</span>
-    </button>
-
-    <button className="post-action-button">
-      <BookmarkBorderOutlinedIcon />
-      <span>121</span>
-    </button>
-
-    <button className="summarise-button">
-      ✦ Summarise
-    </button>
-  </div>
-</article>
+        <section aria-label="Your posts">
+          <h2>Your posts</h2>
+          {loading && <p role="status">Loading posts…</p>}
+          {!loading && visiblePosts.length === 0 && <p>{query ? 'No matching posts.' : 'No posts yet.'}</p>}
+          {visiblePosts.map(post => <article className="sample-post" key={post.id}>
+            <div className="post-header">
+              <div className="avatar" aria-hidden="true">👤</div>
+              <div>
+                <strong>{profile.display_name}</strong>
+                <p>{post.created_at ? new Date(post.created_at).toLocaleString() : 'Just now'}</p>
+              </div>
+            </div>
+            {post.content && <p className="post-text">{post.content}</p>}
+            {post.image_id && <PostImage user={user} id={post.image_id} />}
+            {post.content && <div className="post-actions">
+              <button className="summarise-button" type="button" onClick={() => onSummarize(post.content)}>
+                ✦ Summarise preview
+              </button>
+            </div>}
+          </article>)}
+        </section>
       </section>
     </main>
-  );
+  )
 }
-
-export default MiddlePage;

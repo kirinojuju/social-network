@@ -1,7 +1,6 @@
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
 import CloseIcon from "@mui/icons-material/Close";
-import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 
 import "./Explore.css";
 

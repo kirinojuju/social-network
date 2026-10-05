@@ -1,11 +1,16 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('node:path');
+const { createUsersRouter } = require('./routes/users');
+const { createPostsRouter } = require('./routes/posts');
+const { verifyFirebaseToken } = require('./config/firebase');
 
-function createApp(pool, origins = []) {
+function createApp(pool, origins = [], { verifyToken = verifyFirebaseToken, staticDir } = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.use(cors({ origin: origins }));
-  app.use(express.json({ limit: '100kb' }));
+  app.use('/api/posts', express.json({ limit: '7mb' }));
+  app.use(express.json({ limit: '3mb' }));
 
   app.get('/api/health', (req, res) => {
     res.set('Cache-Control', 'no-store').json({ status: 'ok' });
@@ -21,6 +26,16 @@ function createApp(pool, origins = []) {
     }
   });
 
+  app.use('/api/users', createUsersRouter(pool, verifyToken));
+  app.use('/api/posts', createPostsRouter(pool, verifyToken));
+  if (staticDir) {
+    app.use(express.static(staticDir));
+    app.use((req, res, next) => {
+      if (req.method !== 'GET' || (req.path === '/api' || req.path.startsWith('/api/')) ||
+          !req.accepts('html')) return next();
+      res.sendFile(path.join(staticDir, 'index.html'));
+    });
+  }
   app.use((req, res) => res.status(404).json({ error: 'Not found' }));
   app.use((err, req, res, next) => {
     if (res.headersSent) return next(err);
