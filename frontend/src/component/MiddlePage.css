@@ -507,3 +507,29 @@
 .white-thumbnail .play-icon svg {
   font-size: 42px;
 }
+
+.search-box-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.search-popup {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  max-width: 480px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 20px;
+  z-index: 50;
+}
+
+button.profile-icon {
+  border: none;
+  background: inherit;
+  cursor: pointer;
+  font: inherit;
+}

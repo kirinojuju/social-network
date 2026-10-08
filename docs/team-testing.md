@@ -39,3 +39,24 @@ Do not commit your `.env` files, PostgreSQL passwords, migration owner URL,
 Firebase Admin service-account JSON, or AI provider keys. If a future test
 needs a shared server credential, keep it in the hosted backend's secret
 settings. Teammates using the website should receive only the site URL.
+
+## Troubleshooting: "Backend failed to start"
+
+If `node server.js` prints "Backend failed to start" with no further detail,
+check `.env` first:
+
+- The backend reads **separate** PG* variables (`PGHOST`, `PGPORT`,
+  `PGDATABASE`, `PGUSER`, `PGPASSWORD`, `PGSSLMODE`) — not a single
+  `DATABASE_URL`. If you have a Neon connection string, split it into the
+  pieces above (see `backend/.env.example`).
+- If your Postgres role is an elevated/owner role, set
+  `REQUIRE_LIMITED_DB_ROLE=false` locally, or ask for a non-owner
+  connection string.
+- `FIREBASE_PROJECT_ID` must be set even without Admin credentials;
+  `GOOGLE_APPLICATION_CREDENTIALS` can stay blank for basic token
+  verification.
+
+If the frontend shows "Cannot reach the profile server," it means the
+backend isn't running — start it in a separate terminal with
+`node server.js` (or `npm run dev`) inside `backend/`, alongside
+`npm run dev` in `frontend/`.

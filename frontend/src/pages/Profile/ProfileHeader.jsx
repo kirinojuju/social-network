@@ -6,7 +6,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
 import "./ProfileHeader.css";
 
-function ProfileHeader({ profileType = "personal", profile }) {
+function ProfileHeader({ profileType = "personal", profile, onMessage, onSignOut, signOutBusy }) {
 
   const isPersonal = profileType === "personal";
   const isFollower = profileType === "follower";
@@ -84,10 +84,16 @@ function ProfileHeader({ profileType = "personal", profile }) {
           {/* PERSONAL PROFILE */}
 
           {isPersonal && (
-            <button className="edit-profile-button">
-              <EditOutlinedIcon />
-              Edit Profile
-            </button>
+            <>
+              <button className="edit-profile-button">
+                <EditOutlinedIcon />
+                Edit Profile
+              </button>
+
+              <button className="sign-out-button" disabled={signOutBusy} onClick={onSignOut}>
+                Sign Out
+              </button>
+            </>
           )}
 
 
@@ -100,7 +106,10 @@ function ProfileHeader({ profileType = "personal", profile }) {
                 <KeyboardArrowDownIcon />
               </button>
 
-              <button className="message-button">
+              <button
+                className="message-button"
+                onClick={() => onMessage?.({ name: profile?.display_name || profile?.username })}
+              >
                 <ChatBubbleOutlineOutlinedIcon />
                 Message
               </button>

@@ -22,20 +22,24 @@ export function profileToSync(profile) {
 export function createProfileClient({ baseUrl = defaultBaseUrl, fetchImpl = fetch } = {}) {
   const root = baseUrl.replace(/\/$/, '')
 
-  async function request(user, path, method, body) {
-    // Obtain a current ID token for each request; never store it in app state.
-    let token
+  async function authHeaders(user) {
     try {
-      token = await user.getIdToken()
+      const token = await user.getIdToken()
+      return { Authorization: `Bearer ${token}` }
     } catch {
       throw new ProfileApiError('Your session could not be verified. Sign out and sign in again.')
     }
+  }
+
+  async function request(user, path, method, body) {
+    // Obtain a current ID token for each request; never store it in app state.
+    const headers = await authHeaders(user)
     let response
     try {
       response = await fetchImpl(`${root}/api/users/${path}`, {
         method,
         headers: {
-          Authorization: `Bearer ${token}`,
+          ...headers,
           ...(body ? { 'Content-Type': 'application/json' } : {}),
         },
         ...(body ? { body: JSON.stringify(body) } : {}),
@@ -82,6 +86,24 @@ export function createProfileClient({ baseUrl = defaultBaseUrl, fetchImpl = fetc
     async syncAndRead(user, profile) {
       await sync(user, profile)
       return get(user)
+    },
+    async listPeople(user) {
+      const headers = await authHeaders(user)
+      let response
+      try {
+        response = await fetchImpl(`${root}/api/users`, { headers })
+      } catch {
+        throw new ProfileApiError('Cannot reach the profile server. Check that the backend is running.')
+      }
+      if (!response.ok) {
+        throw new ProfileApiError('Could not load people. Please try again.', response.status)
+      }
+      try {
+        const data = await response.json()
+        return Array.isArray(data?.users) ? data.users : []
+      } catch {
+        throw new ProfileApiError('The profile server returned an invalid response.')
+      }
     },
   }
 }
