@@ -526,3 +526,10 @@
   padding: 20px;
   z-index: 50;
 }
+
+button.profile-icon {
+  border: none;
+  background: inherit;
+  cursor: pointer;
+  font: inherit;
+}

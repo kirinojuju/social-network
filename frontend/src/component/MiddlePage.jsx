@@ -17,7 +17,7 @@ function readImage(file) {
   })
 }
 
-export default function MiddlePage({ profile, user, onSummarize }) {
+export default function MiddlePage({ profile, user, onSummarize, onOpenProfile }) {
   const [posts, setPosts] = useState([])
   const [content, setContent] = useState('')
   const [file, setFile] = useState(null)
@@ -125,9 +125,10 @@ export default function MiddlePage({ profile, user, onSummarize }) {
           )}
         </div>
 
-        <div className="profile-icon" title={profile.display_name} aria-label={profile.display_name}>
+        <button className="profile-icon" type="button" onClick={onOpenProfile}
+          title={profile.display_name} aria-label={`Open ${profile.display_name}'s profile`}>
           {profile.display_name?.charAt(0).toUpperCase() || 'U'}
-        </div>
+        </button>
       </header>
 
       <section className="feed-content">

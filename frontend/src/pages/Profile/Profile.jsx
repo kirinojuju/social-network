@@ -4,14 +4,14 @@ import ProfilePhotos from "./ProfilePhoto";
 
 import "./Profile.css";
 
-function Profile({ profile }) {
+function Profile({ profile, onMessage, onSignOut, signOutBusy }) {
   return (
     <div className="profile-page">
 
       <p className="profile-preview-note">Friends and photos are layout previews; live data is not connected yet.</p>
 
       {/* TOP PROFILE */}
-      <ProfileHeader profile={profile} />
+      <ProfileHeader profile={profile} onMessage={onMessage} onSignOut={onSignOut} signOutBusy={signOutBusy} />
 
       {/* PROFILE CONTENT */}
       <div className="profile-content">

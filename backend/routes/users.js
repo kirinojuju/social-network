@@ -95,6 +95,17 @@ function createUsersRouter(pool, verifyToken) {
       return next(error);
     }
   });
+      router.get('/', async (req, res, next) => {
+        try {
+          const result = await pool.query(
+            `SELECT ${columns} FROM public.users WHERE firebase_uid != $1 ORDER BY created_at DESC LIMIT 20`,
+          [req.auth.uid]
+        );
+      res.json({ users: result.rows });
+        } catch (error) {
+          next(error);
+    }
+  });
   return router;
 }
 
