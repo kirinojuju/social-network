@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import PhotoCameraOutlinedIcon from '@mui/icons-material/PhotoCameraOutlined'
-import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined'
-import CloseIcon from '@mui/icons-material/Close'
 import { createPost, listPosts } from '../posts/client'
 import PostImage from '../posts/PostImage'
 import './MiddlePage.css'
@@ -26,19 +24,6 @@ export default function MiddlePage({ profile, user, onSummarize, onOpenProfile }
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const fileInput = useRef(null)
-
-  const [showSearchPopup, setShowSearchPopup] = useState(false)
-  const [recentSearches, setRecentSearches] = useState([
-    'algorithm notes',
-    'fresher night',
-    'algorithm notes',
-    'Entaneer shirt',
-  ])
-  const trendingTopics = ['#CMUTrekking', '#Midterms_schedule', '#CMUEvents']
-
-  const removeSearch = (index) => {
-    setRecentSearches((prev) => prev.filter((_, i) => i !== index))
-  }
 
   useEffect(() => {
     let active = true
@@ -79,57 +64,6 @@ export default function MiddlePage({ profile, user, onSummarize, onOpenProfile }
 
   return (
     <main className="middle-page">
-      <header className="topbar">
-        <div className="search-box-wrapper">
-          <label className="search-box">
-            <span className="search-icon" aria-hidden="true">⌕</span>
-            <input type="search" value={query} onChange={event => setQuery(event.target.value)}
-              placeholder="Search your posts..." aria-label="Search your posts"
-              onFocus={() => setShowSearchPopup(true)}
-              onBlur={() => setTimeout(() => setShowSearchPopup(false), 150)} />
-          </label>
-
-          {showSearchPopup && (
-            <div className="search-popup">
-              <div className="recent-section">
-                <h2>Recently searches</h2>
-                <div className="recent-list">
-                  {recentSearches.map((search, index) => (
-                    <div className="recent-item" key={index}>
-                      <HistoryOutlinedIcon className="history-icon" />
-                      <span>{search}</span>
-                      <button className="remove-search" onClick={() => removeSearch(index)}>
-                        <CloseIcon />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="trending-section">
-                <h2>Trending</h2>
-                <div className="trending-grid">
-                  <div className="trending-column">
-                    {trendingTopics.map((topic, index) => (
-                      <div className="trending-item" key={index}>{topic}</div>
-                    ))}
-                  </div>
-                  <div className="trending-column">
-                    {trendingTopics.map((topic, index) => (
-                      <div className="trending-item" key={index}>{topic}</div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <button className="profile-icon" type="button" onClick={onOpenProfile}
-          title={profile.display_name} aria-label={`Open ${profile.display_name}'s profile`}>
-          {profile.display_name?.charAt(0).toUpperCase() || 'U'}
-        </button>
-      </header>
 
       <section className="feed-content">
         <form className="create-post-card" onSubmit={submit}>

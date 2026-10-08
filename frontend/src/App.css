@@ -1,3 +1,4 @@
+
 .auth-page {
   justify-content: center;
   min-height: 100svh;
@@ -15,11 +16,15 @@
 
 .app-main {
   margin-left: 235px;
-  min-height: 100vh;
-}
-
-.app-main.with-right-sidebar {
   margin-right: 260px;
+
+  min-height: 100vh;
+
+  padding-top: 90px;
+
+  box-sizing: border-box;
+
+  background-color: #eeeeee;
 }
 
 .app-status {
@@ -31,7 +36,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+
   padding: 12px 24px;
+
   background: #fff;
   border-bottom: 1px solid #e4e1ee;
 }
@@ -46,21 +53,62 @@
   gap: 16px;
 }
 
-.app:not(.has-right-sidebar) .chatbox { right: 20px; }
 
 @media (max-width: 900px) {
-  .app-main.with-right-sidebar { margin-right: 0; }
-  .right-sidebar { display: none; }
-  .chatbox { right: 20px; }
+
+  .right-sidebar {
+    display: none;
+  }
+
+  .app-main {
+    margin-right: 0;
+  }
+
+  .chatbox {
+    right: 20px;
+  }
+
 }
 
+
 @media (max-width: 700px) {
-  .left-sidebar { position: relative; width: 100%; height: auto; }
-  .sidebar-menu, .more-section { display: flex; flex-wrap: wrap; gap: 4px; }
-  .sidebar-item { width: auto; }
-  .ai-study-card { display: none; }
-  .app-main, .app-main.with-right-sidebar { margin: 0; }
-  .explore-main { width: 100%; }
-  .explore-right-sidebar { display: none; }
-  .account-bar { flex-wrap: wrap; }
+
+  .left-sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+  }
+
+  .sidebar-menu,
+  .more-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .sidebar-item {
+    width: auto;
+  }
+
+  .ai-study-card {
+    display: none;
+  }
+
+  .app-main {
+    margin: 0;
+    padding-top: 90px;
+  }
+
+  .explore-main {
+    width: 100%;
+  }
+
+  .explore-right-sidebar {
+    display: none;
+  }
+
+  .account-bar {
+    flex-wrap: wrap;
+  }
+
 }

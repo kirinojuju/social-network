@@ -4,136 +4,75 @@
 
 .explore-page {
   min-height: 100vh;
-
-  display: flex;
-
   background-color: #eeeeee;
-
   font-family: "Inter", Arial, sans-serif;
 }
 
-
 /* =========================================
-   MAIN EXPLORE AREA
+   EXPLORE CONTENT
    ========================================= */
 
-.explore-main {
-  width: calc(100% - 350px);
-
-  min-height: 100vh;
-
-  background-color: #eeeeee;
-
-  padding: 25px 35px 60px 35px;
-
+.explore-content {
+  min-height: calc(100vh - 90px);
+  padding: 0 50px 60px;
   box-sizing: border-box;
 }
 
-
-/* =========================================
-   SEARCH BAR
-   ========================================= */
-
-.explore-search-container {
-  width: 100%;
-  max-width: 680px;
-
-  height: 44px;
+.explore-search-card {
+  width: min(1200px, 100%);
 
   margin: 0 auto;
 
-  display: flex;
-  align-items: center;
+  padding: 28px 35px 38px;
 
-  background-color: white;
+  background-color: #ffffff;
 
-  border: 1.5px solid #202020;
+  border-radius: 12px;
 
-  border-radius: 25px;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.12);
 
   box-sizing: border-box;
+
+  /* ONLY the Explore popup goes above the TopBar */
+  position: fixed;
+  z-index: 1000;
+
+  /* position it just below the search bar */
+  top: 75px;
+
+  /* move it slightly right */
+  left: 300px;
+
+  /* keep it from becoming too wide */
+  width: min(885px, calc(100vw - 350px));
 }
 
-
-.explore-search-icon {
-  width: 22px !important;
-  height: 22px !important;
-
-  margin-left: 20px;
-
-  color: #111111;
-
-  flex-shrink: 0;
-}
-
-
-.explore-search-container input {
-  flex: 1;
-
-  height: 100%;
-
-  margin-left: 15px;
-  margin-right: 20px;
-
-  border: none;
-  outline: none;
-
-  background: transparent;
-
-  font-family: "Inter", Arial, sans-serif;
-
-  font-size: 15px;
-
-  color: #333333;
-}
-
-
-.explore-search-container input::placeholder {
-  color: #b5b5b5;
-}
-
-
-/* =========================================
-   RECENT SEARCHES
-   ========================================= */
-
-.recent-section {
-  max-width: 680px;
-
-  margin: 25px auto 0;
-}
-
-
-.recent-section h2,
-.trending-section h2 {
-  margin: 0 0 18px 0;
+.explore-search-card h2 {
+  margin: 0 0 18px;
 
   font-size: 20px;
-
   font-weight: 500;
 
   color: #303030;
 }
 
 
-/* Recent list */
+/* =========================================
+   RECENT SEARCH ITEMS
+   ========================================= */
 
 .recent-list {
   display: flex;
-
   flex-direction: column;
 
   gap: 12px;
 }
 
-
 .recent-item {
   width: 100%;
-
   height: 45px;
 
   display: flex;
-
   align-items: center;
 
   background-color: #f3f4f4;
@@ -145,7 +84,6 @@
   color: #555555;
 }
 
-
 .history-icon {
   width: 22px !important;
   height: 22px !important;
@@ -153,8 +91,9 @@
   margin-left: 25px;
 
   color: #183535;
-}
 
+  flex-shrink: 0;
+}
 
 .recent-item span {
   margin-left: 20px;
@@ -162,13 +101,12 @@
   font-size: 16px;
 }
 
-
 .remove-search {
-  margin-left: auto;
-  margin-right: 24px;
-
   width: 25px;
   height: 25px;
+
+  margin-left: auto;
+  margin-right: 20px;
 
   display: flex;
   align-items: center;
@@ -180,17 +118,15 @@
 
   background: transparent;
 
-  cursor: pointer;
-
   color: #111111;
-}
 
+  cursor: pointer;
+}
 
 .remove-search svg {
   width: 16px;
   height: 16px;
 }
-
 
 .remove-search:hover {
   color: #6c6bb2;
@@ -202,11 +138,12 @@
    ========================================= */
 
 .trending-section {
-  max-width: 680px;
-
-  margin: 38px auto 0;
+  margin-top: 38px;
 }
 
+.trending-section h2 {
+  margin-bottom: 18px;
+}
 
 .trending-grid {
   display: grid;
@@ -216,7 +153,6 @@
   column-gap: 100px;
 }
 
-
 .trending-column {
   display: flex;
 
@@ -224,7 +160,6 @@
 
   gap: 8px;
 }
-
 
 .trending-item {
   font-size: 16px;
@@ -234,213 +169,8 @@
   cursor: pointer;
 }
 
-
 .trending-item:hover {
   color: #6c6bb2;
-}
-
-
-/* =========================================
-   RIGHT SIDEBAR
-   ========================================= */
-
-.explore-right-sidebar {
-  width: 350px;
-
-  min-height: 100vh;
-
-  background-color: #eeeeee;
-
-  padding: 55px 30px 40px 20px;
-
-  box-sizing: border-box;
-
-  flex-shrink: 0;
-}
-
-
-/* =========================================
-   SUGGESTED PEOPLE
-   ========================================= */
-
-.suggested-section h2,
-.recommended-section h2 {
-  margin: 0 0 18px 0;
-
-  font-size: 20px;
-
-  font-weight: 600;
-
-  color: #111111;
-}
-
-
-.suggested-person {
-  display: flex;
-
-  align-items: center;
-
-  margin-bottom: 17px;
-
-  min-height: 48px;
-}
-
-
-.person-avatar,
-.group-avatar {
-  width: 43px;
-  height: 43px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border: 1.5px solid #111111;
-
-  border-radius: 50%;
-
-  background-color: white;
-
-  flex-shrink: 0;
-}
-
-
-.person-avatar svg,
-.group-avatar svg {
-  width: 28px;
-  height: 28px;
-
-  color: #111111;
-}
-
-
-.person-info {
-  margin-left: 10px;
-
-  min-width: 0;
-
-  flex: 1;
-}
-
-
-.person-name {
-  font-size: 16px;
-
-  font-weight: 600;
-
-  color: #111111;
-}
-
-
-.person-major {
-  margin-top: 2px;
-
-  font-size: 14px;
-
-  color: #555555;
-}
-
-
-.follow-button,
-.join-button {
-  height: 27px;
-
-  padding: 0 13px;
-
-  border: 1.5px solid #6c6bb2;
-
-  border-radius: 14px;
-
-  background-color: white;
-
-  color: #6c6bb2;
-
-  font-family: "Inter", Arial, sans-serif;
-
-  font-size: 13px;
-
-  cursor: pointer;
-
-  flex-shrink: 0;
-}
-
-
-.follow-button:hover,
-.join-button:hover {
-  background-color: #6c6bb2;
-
-  color: white;
-}
-
-
-.show-more-button {
-  padding: 0;
-
-  margin-top: 1px;
-
-  border: none;
-
-  background: transparent;
-
-  font-family: "Inter", Arial, sans-serif;
-
-  font-size: 14px;
-
-  color: #222222;
-
-  cursor: pointer;
-}
-
-
-.show-more-button:hover {
-  text-decoration: underline;
-}
-
-
-/* =========================================
-   RECOMMENDED
-   ========================================= */
-
-.recommended-section {
-  margin-top: 22px;
-}
-
-
-.recommended-group {
-  display: flex;
-
-  align-items: center;
-
-  margin-bottom: 17px;
-
-  min-height: 48px;
-}
-
-
-.group-info {
-  margin-left: 10px;
-
-  min-width: 0;
-
-  flex: 1;
-}
-
-
-.group-name {
-  font-size: 16px;
-
-  font-weight: 600;
-
-  color: #111111;
-}
-
-
-.group-members {
-  margin-top: 2px;
-
-  font-size: 14px;
-
-  color: #555555;
 }
 
 
@@ -448,18 +178,20 @@
    RESPONSIVE
    ========================================= */
 
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
 
-  .explore-right-sidebar {
-    width: 300px;
+  .explore-header {
+    padding-left: 25px;
+    padding-right: 25px;
   }
 
-  .explore-main {
-    width: calc(100% - 300px);
+  .explore-header-actions {
+    gap: 18px;
   }
 
-  .trending-grid {
-    column-gap: 40px;
+  .explore-content {
+    padding-left: 30px;
+    padding-right: 30px;
   }
 
 }
@@ -467,20 +199,28 @@
 
 @media (max-width: 800px) {
 
-  .explore-page {
-    display: block;
+  .explore-header {
+    height: 75px;
   }
 
-  .explore-main {
-    width: 100%;
-
-    padding: 25px;
+  .explore-header-actions {
+    display: none;
   }
 
-  .explore-right-sidebar {
-    width: 100%;
+  .explore-content {
+    min-height: calc(100vh - 75px);
 
-    padding: 25px;
+    padding: 20px;
+  }
+
+  .explore-search-card {
+    padding: 22px;
+  }
+
+  .trending-grid {
+    grid-template-columns: 1fr;
+
+    row-gap: 15px;
   }
 
 }

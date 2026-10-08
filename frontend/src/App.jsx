@@ -13,10 +13,12 @@ import { profileClient } from './auth/profile'
 import { saveFirestoreProfile } from './auth/firestore-profile'
 import { authError } from './auth/validation'
 import './App.css'
+import TopBar from './component/Top_bar'
 
 export default function App() {
   const [page, setPage] = useState('login')
   const [activeView, setActiveView] = useState('home')
+  const [exploreOpen, setExploreOpen] = useState(false)
   const [summaryPost, setSummaryPost] = useState(null)
   const [chatTarget, setChatTarget] = useState(null)
   const [auth] = useState(() => {
@@ -133,25 +135,84 @@ export default function App() {
     )
 
     return (
-      <div className={`app ${activeView === 'home' ? 'has-right-sidebar' : ''}`}>
-        <LeftSidebar activeView={activeView} onNavigate={setActiveView}
-          onCreatePost={focusComposer} onOpenAI={() => setSummaryPost('')}
-          onOpenMessages={() => setChatTarget({ name: 'Message preview' })} />
-        <div className={`app-main ${activeView === 'home' ? 'with-right-sidebar' : ''}`}>
-          {error && <p className="auth-error" role="alert">{error}</p>}
-          {activeView === 'explore' ? <Explore people={people} loading={peopleLoading}
-            error={peopleError} onRefresh={refreshPeople} />
-            : activeView === 'profile' ? <Profile profile={profile} onMessage={setChatTarget}
-                onSignOut={signOut} signOutBusy={busy} />
-              : <MiddlePage profile={profile} user={user} people={people}
-                  onSummarize={setSummaryPost} onOpenProfile={() => setActiveView('profile')} />}
-        </div>
-        {activeView === 'home' && <RightSideBar people={people} loading={peopleLoading}
-          onExplore={() => setActiveView('explore')} />}
-        {chatTarget && <Chatbox userName={chatTarget.name} onClose={() => setChatTarget(null)} />}
-        {summaryPost !== null && <AISummary postText={summaryPost} onClose={() => setSummaryPost(null)} />}
-      </div>
-    )
+  <div className="app">
+
+    <LeftSidebar
+      activeView={activeView}
+      onNavigate={setActiveView}
+      onCreatePost={focusComposer}
+      onOpenAI={() => setSummaryPost('')}
+      onOpenMessages={() =>
+        setChatTarget({ name: 'Message preview' })
+      }
+      onOpenExplore={() => setExploreOpen(true)}
+    />
+
+   <TopBar
+  onOpenProfile={() => setActiveView('profile')}
+  onOpenExplore={() => setExploreOpen(true)}
+/>
+
+<main className="app-main">
+
+  {error && (
+    <p className="auth-error" role="alert">
+      {error}
+    </p>
+  )}
+
+  {activeView === 'profile' ? (
+    <Profile
+      profile={profile}
+      onMessage={setChatTarget}
+      onSignOut={signOut}
+      signOutBusy={busy}
+    />
+  ) : (
+    <MiddlePage
+      profile={profile}
+      user={user}
+      people={people}
+      onSummarize={setSummaryPost}
+      onOpenProfile={() => setActiveView('profile')}
+    />
+  )}
+
+</main>
+
+{/* Search popup */}
+{exploreOpen && (
+  <Explore
+    people={people}
+    loading={peopleLoading}
+    error={peopleError}
+    onRefresh={refreshPeople}
+    onClose={() => setExploreOpen(false)}
+  />
+)}
+
+    <RightSideBar
+      people={people}
+      loading={peopleLoading}
+      onExplore={() => setActiveView('explore')}
+    />
+
+    {chatTarget && (
+      <Chatbox
+        userName={chatTarget.name}
+        onClose={() => setChatTarget(null)}
+      />
+    )}
+
+    {summaryPost !== null && (
+      <AISummary
+        postText={summaryPost}
+        onClose={() => setSummaryPost(null)}
+      />
+    )}
+
+  </div>
+)
   }
 
   return (

@@ -1,87 +1,14 @@
 .middle-page {
   min-height: 100vh;
   flex: 1;
-  background: #f7f7fb;
   color: #29263a;
-}
-
-/* ===== Top bar ===== */
-.topbar {
-  height: 92px;
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  padding: 0 38px;
-  background: #ffffff;
-  border-bottom: 1px solid #e4e1ee;
-  position: sticky;
-  top: 0;
-  z-index: 5;
-}
-
-.search-box {
-  flex: 1;
-  max-width: 750px; /* decrease width */
-  margin: 0 auto;   /* push to center */
-  height: 52px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 0 20px;
-  border: 1.5px solid #5b5870;
-  border-radius: 28px;
-  background: #ffffff;
-}
-
-.search-icon {
-  font-size: 30px;
-  font-weight: bold;
-  transform: rotate(-20deg);
-}
-
-.search-box input {
-  width: 100%;
-  border: 0;
-  outline: 0;
-  font-size: 17px;
-  color: #333;
-  background: transparent;
-}
-
-.search-box input::placeholder {
-  color: #a09cab;
-}
-
-.topbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 22px;
-}
-
-.topbar-actions button {
-  border: 0;
-  background: transparent;
-  font-size: 29px;
-  cursor: pointer;
-  color: #2e2a3b;
-}
-
-.profile-icon {
-  width: 48px;
-  height: 48px;
-  display: grid;
-  place-items: center;
-  border: 2px solid #2e2a3b;
-  border-radius: 50%;
-  font-size: 28px;
 }
 
 /* ===== Main feed ===== */
 .feed-content {
   width: min(900px, calc(100% - 48px));
-  margin: 36px auto 80px;
+  margin: 20px auto 80px;
 }
-
 .create-post-card,
 .sample-post {
   background: #fff;
@@ -280,25 +207,6 @@
 
 /* ===== Responsive ===== */
 @media (max-width: 700px) {
-  .topbar {
-    height: auto;
-    padding: 16px;
-    gap: 12px;
-  }
-
-  .topbar-actions {
-    gap: 8px;
-  }
-
-  .topbar-actions button {
-    font-size: 22px;
-  }
-
-  .profile-icon {
-    width: 38px;
-    height: 38px;
-    font-size: 22px;
-  }
 
   .feed-content {
     width: min(100% - 24px, 900px);
@@ -506,30 +414,4 @@
 
 .white-thumbnail .play-icon svg {
   font-size: 42px;
-}
-
-.search-box-wrapper {
-  position: relative;
-  flex: 1;
-}
-
-.search-popup {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  width: 100%;
-  max-width: 480px;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  padding: 20px;
-  z-index: 50;
-}
-
-button.profile-icon {
-  border: none;
-  background: inherit;
-  cursor: pointer;
-  font: inherit;
 }

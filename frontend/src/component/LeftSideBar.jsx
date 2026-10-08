@@ -1,7 +1,5 @@
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
-import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
-import VideocamOutlinedIcon from "@mui/icons-material/VideocamOutlined";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import MailOutlinedIcon from "@mui/icons-material/MailOutlined";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -24,20 +22,12 @@ const mainMenu = [
     icon: SearchOutlinedIcon,
   },
   {
-    name: "StudyHub",
-    icon: MenuBookOutlinedIcon,
-  },
-  {
-    name: "Campus Videos",
-    icon: VideocamOutlinedIcon,
-  },
-  {
     name: "Campus Market",
     icon: ShoppingCartOutlinedIcon,
   },
   {
-  name: "Messages",
-  icon: MailOutlinedIcon,
+    name: "Messages",
+    icon: MailOutlinedIcon,
   },
   {
     name: "UniAI",
@@ -48,6 +38,7 @@ const mainMenu = [
     icon: EditOutlinedIcon,
   },
 ];
+
 
 const moreMenu = [
   {
@@ -64,14 +55,21 @@ const moreMenu = [
   },
 ];
 
-function LeftSidebar({ activeView, onNavigate, onCreatePost, onOpenAI, onOpenMessages }) {
+function LeftSidebar({
+  activeView,
+  onNavigate,
+  onCreatePost,
+  onOpenAI,
+  onOpenMessages,
+  onOpenExplore,
+}) {
   const actions = {
-    Home: () => onNavigate('home'),
-    Explore: () => onNavigate('explore'),
-    Messages: onOpenMessages,
-    UniAI: onOpenAI,
-    'Create Post': onCreatePost,
-  };
+  Home: () => onNavigate('home'),
+  Explore: onOpenExplore,
+  Messages: onOpenMessages,
+  UniAI: onOpenAI,
+  'Create Post': onCreatePost,
+};
 
   return (
     <aside className="left-sidebar">
