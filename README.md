@@ -5,11 +5,13 @@ For the owner-managed shared test site, see [shared Neon testing](docs/shared-ne
 
 Firebase Authentication handles email/password signup and login without email
 verification. Cloud Firestore stores private post documents and a copy of each
-profile. PostgreSQL retains existing profiles and image bytes up to 5 MB; images
+profile. PostgreSQL retains existing profiles and image bytes up to 2 MB; images
 are referenced from Firestore posts. The setup steps in
 [backend setup](docs/backend-setup.md) and [frontend setup](frontend/README.md)
 describe the Firebase web configuration and local database. Run
 `npm.cmd run migrate` in `backend` before using posts.
+For Prisma schema validation and client generation, see
+[Prisma development setup](docs/prisma-setup.md). SQL migrations remain authoritative.
 For a teammate's copy of the shared Firebase test configuration, follow
 [team testing setup](docs/team-testing.md).
 

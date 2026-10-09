@@ -51,3 +51,14 @@ test('post endpoints require a token and bind reads and writes to verified UID',
   assert.equal(calls[1].values[1], 'Hello');
   assert.equal(calls[2].values[1], imageId);
 });
+
+
+test('image size validation accepts exactly 2 MiB and rejects a larger image with a valid signature', () => {
+  for (const [size, allowed] of [[2 * 1024 * 1024, true], [2 * 1024 * 1024 + 1, false]]) {
+    const data = Buffer.alloc(size);
+    Buffer.from('89504e470d0a1a0a', 'hex').copy(data);
+    const result = parsePost({ content: '', image: { mime_type: 'image/png', base64: data.toString('base64') } });
+    assert.equal(Boolean(result), allowed);
+    if (allowed) assert.equal(result.image.data.length, size);
+  }
+});
