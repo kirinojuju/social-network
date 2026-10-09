@@ -1,7 +1,5 @@
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
-import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
-import VideocamOutlinedIcon from "@mui/icons-material/VideocamOutlined";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import MailOutlinedIcon from "@mui/icons-material/MailOutlined";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -24,20 +22,12 @@ const mainMenu = [
     icon: SearchOutlinedIcon,
   },
   {
-    name: "StudyHub",
-    icon: MenuBookOutlinedIcon,
-  },
-  {
-    name: "Campus Videos",
-    icon: VideocamOutlinedIcon,
-  },
-  {
     name: "Campus Market",
     icon: ShoppingCartOutlinedIcon,
   },
   {
-  name: "Messages",
-  icon: MailOutlinedIcon,
+    name: "Messages",
+    icon: MailOutlinedIcon,
   },
   {
     name: "UniAI",
@@ -48,6 +38,7 @@ const mainMenu = [
     icon: EditOutlinedIcon,
   },
 ];
+
 
 const moreMenu = [
   {
@@ -64,7 +55,22 @@ const moreMenu = [
   },
 ];
 
-function LeftSidebar() {
+function LeftSidebar({
+  activeView,
+  onNavigate,
+  onCreatePost,
+  onOpenAI,
+  onOpenMessages,
+  onOpenExplore,
+}) {
+  const actions = {
+  Home: () => onNavigate('home'),
+  Explore: onOpenExplore,
+  Messages: onOpenMessages,
+  UniAI: onOpenAI,
+  'Create Post': onCreatePost,
+};
+
   return (
     <aside className="left-sidebar">
 
@@ -79,10 +85,12 @@ function LeftSidebar() {
           const Icon = item.icon;
 
           return (
-            <div className="sidebar-item" key={item.name}>
+            <button type="button" className="sidebar-item" key={item.name}
+              disabled={!actions[item.name]} onClick={actions[item.name]}
+              aria-current={item.name.toLowerCase() === activeView ? 'page' : undefined}>
               <Icon className="sidebar-icon" />
               <span>{item.name}</span>
-            </div>
+            </button>
           );
         })}
       </nav>
@@ -101,10 +109,10 @@ function LeftSidebar() {
           const Icon = item.icon;
 
           return (
-            <div className="sidebar-item" key={item.name}>
+            <button type="button" className="sidebar-item" key={item.name} disabled>
               <Icon className="sidebar-icon" />
               <span>{item.name}</span>
-            </div>
+            </button>
           );
         })}
 
@@ -126,9 +134,9 @@ function LeftSidebar() {
               <SentimentSatisfiedOutlinedIcon />
             </div>
 
-        <button className="ai-chat-button">
-            Start Chat
-        </button>
+          <button type="button" className="ai-chat-button" onClick={onOpenAI}>
+            AI Summary Preview
+          </button>
         </div>
 
       </div>

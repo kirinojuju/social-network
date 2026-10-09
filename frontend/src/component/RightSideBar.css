@@ -1,13 +1,20 @@
 .right-sidebar {
+  position: fixed;
+  top: 90px;
+  right: 0;
+  bottom: 0;
+
   width: 260px;
-  flex-shrink: 0;
-  padding: 20px 16px;
-  background: #fff;
-  height: 100vh;
-  position: sticky;
-  top: 0;
+
+  padding: 30px 16px;
+
+  background: #ffffff;
+
   overflow-y: auto;
+
   box-sizing: border-box;
+
+  z-index: 800;
 }
 
 .rs-section {
@@ -89,15 +96,4 @@
 
 .rs-more:hover {
   text-decoration: underline;
-}
-.right-sidebar {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 260px;
-  height: 100vh;
-  padding: 20px 16px;
-  background: #fff;
-  overflow-y: auto;
-  box-sizing: border-box;
 }

@@ -1,34 +1,114 @@
+
+.auth-page {
+  justify-content: center;
+  min-height: 100svh;
+  box-sizing: border-box;
+}
+
+.auth-page code {
+  overflow-wrap: anywhere;
+}
+
 .app {
   min-height: 100vh;
   background-color: #eeeeee;
 }
 
-/* Main content starts AFTER sidebar */
-.main-content {
+.app-main {
   margin-left: 235px;
   margin-right: 260px;
+
   min-height: 100vh;
-  padding: 40px;
+
+  padding-top: 90px;
+
+  box-sizing: border-box;
+
+  background-color: #eeeeee;
 }
 
-.main-content h1 {
-  font-size: 30px;
-  font-weight: bold;
-  margin: 0 0 30px 0;
-  color: #222222;
+.app-status {
+  width: min(100%, 600px);
 }
 
-/* Temporary button for testing AI Summary */
-.test-ai-button {
+.account-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
   padding: 12px 24px;
-  background-color: #6c6bb2;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 15px;
-  cursor: pointer;
+
+  background: #fff;
+  border-bottom: 1px solid #e4e1ee;
 }
 
-.test-ai-button:hover {
-  opacity: 0.9;
+.account-bar .account-action {
+  margin: 0;
+}
+
+.account-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+
+@media (max-width: 900px) {
+
+  .right-sidebar {
+    display: none;
+  }
+
+  .app-main {
+    margin-right: 0;
+  }
+
+  .chatbox {
+    right: 20px;
+  }
+
+}
+
+
+@media (max-width: 700px) {
+
+  .left-sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+  }
+
+  .sidebar-menu,
+  .more-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .sidebar-item {
+    width: auto;
+  }
+
+  .ai-study-card {
+    display: none;
+  }
+
+  .app-main {
+    margin: 0;
+    padding-top: 90px;
+  }
+
+  .explore-main {
+    width: 100%;
+  }
+
+  .explore-right-sidebar {
+    display: none;
+  }
+
+  .account-bar {
+    flex-wrap: wrap;
+  }
+
 }

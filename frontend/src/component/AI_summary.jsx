@@ -1,55 +1,27 @@
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import "./AI_summary.css";
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import './AI_summary.css'
 
-function AISummary({ onClose }) {
+export default function AISummary({ postText, onClose }) {
   return (
-    <div className="ai-summary-overlay">
-
-      <div className="ai-summary-box">
-
-        {/* HEADER */}
+    <div className="ai-summary-overlay" role="presentation" onClick={onClose}>
+      <section className="ai-summary-box" role="dialog" aria-modal="true" aria-labelledby="ai-summary-title"
+        onClick={event => event.stopPropagation()}>
         <div className="ai-summary-header">
-
-          <button
-            className="ai-back-button"
-            onClick={onClose}
-          >
+          <button type="button" className="ai-back-button" aria-label="Close AI summary" onClick={onClose}>
             <ArrowBackIcon />
           </button>
-
           <AutoAwesomeIcon className="ai-summary-icon" />
-
-          <h2>AI Summary</h2>
-
+          <h2 id="ai-summary-title">AI Summary Preview</h2>
         </div>
-
-
-        {/* CONTENT */}
         <div className="ai-summary-content">
-
-          <h3>Quick Summary</h3>
-
-          <p>
-            This announcement explains the midterm
-            schedule and required topics.
-          </p>
-
-
-          <h3>Key Points</h3>
-
-          <ul>
-            <li>Exam date: Oct 15</li>
-            <li>Chapters 1–5</li>
-            <li>30% of final grade</li>
-          </ul>
-
+          <p>The summary screen is ready. AI generation is not connected to the backend yet.</p>
+          {postText && <>
+            <h3>Selected post</h3>
+            <p>{postText}</p>
+          </>}
         </div>
-
-      </div>
-
+      </section>
     </div>
-  );
+  )
 }
-
-export default AISummary;

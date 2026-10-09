@@ -1,0 +1,118 @@
+.top-bar {
+  position: fixed;
+  top: 0;
+  left: 235px;
+  right: 0px;
+  height: 90px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 0 30px 0 45px;
+  box-sizing: border-box;
+
+  background-color: #ffffff;
+  border-bottom: 1px solid #dddddd;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+
+  z-index: 900;
+}
+
+
+/* =========================
+   SEARCH
+   ========================= */
+
+.top-bar-search {
+  flex: 1;
+
+  height: 45px;
+
+  display: flex;
+  align-items: center;
+
+  border: 1.5px solid #202020;
+  border-radius: 25px;
+
+  background-color: #ffffff;
+
+  box-sizing: border-box;
+
+  cursor: text;
+}
+
+.top-bar-search svg {
+  width: 22px;
+  height: 22px;
+
+  margin-left: 22px;
+
+  color: #111111;
+
+  flex-shrink: 0;
+}
+
+.top-bar-search input {
+  flex: 1;
+
+  height: 100%;
+
+  margin-left: 15px;
+  margin-right: 20px;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 15px;
+
+  color: #333333;
+
+  cursor: text;
+}
+
+.top-bar-search input::placeholder {
+  color: #b5b5b5;
+}
+
+
+/* =========================
+   RIGHT SIDE BUTTONS
+   ========================= */
+
+.top-bar-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 28px;
+
+  margin-left: 30px;
+}
+
+.top-bar-button,
+.top-bar-profile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
+  color: #111111;
+
+  cursor: pointer;
+}
+
+.top-bar-button svg {
+  width: 25px;
+  height: 25px;
+}
+
+.top-bar-profile svg {
+  width: 48px;
+  height: 48px;
+}

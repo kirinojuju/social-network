@@ -1,0 +1,95 @@
+// Introspected from database/migrations/001 through 005. SQL migrations remain authoritative.
+// Do not use Prisma Migrate or db push for this shared schema.
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model faculties {
+  id     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name   String   @unique
+  majors majors[]
+  users  users[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model majors {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  faculty_id String    @db.Uuid
+  name       String
+  faculties  faculties @relation(fields: [faculty_id], references: [id], onUpdate: NoAction)
+  users      users[]
+
+  @@unique([faculty_id, name])
+  @@unique([id, faculty_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model media {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  post_id      String   @db.Uuid
+  owner_id     String   @db.Uuid
+  storage_path String
+  media_type   String
+  mime_type    String
+  file_size    BigInt
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  image_data   Bytes?
+  users        users    @relation(fields: [owner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  posts        posts    @relation(fields: [post_id, owner_id], references: [id, author_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([owner_id], map: "media_owner_idx")
+  @@index([post_id], map: "media_post_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model posts {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  author_id  String   @db.Uuid
+  content    String   @default("")
+  visibility String   @default("private")
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+  media      media[]
+  users      users    @relation(fields: [author_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([id, author_id])
+  @@index([author_id, created_at(sort: Desc), id(sort: Desc)], map: "posts_author_created_idx")
+  @@index([created_at(sort: Desc), id(sort: Desc)], map: "posts_public_created_idx", where: raw("(visibility = 'public'::text)"))
+}
+
+model schema_migrations {
+  name       String   @id
+  checksum   String
+  applied_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@ignore
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model users {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  firebase_uid String     @unique
+  email        String
+  username     String     @unique
+  display_name String
+  bio          String?
+  avatar_url   String?
+  faculty_id   String?    @db.Uuid
+  major_id     String?    @db.Uuid
+  created_at   DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime   @default(now()) @db.Timestamptz(6)
+  media        media[]
+  posts        posts[]
+  faculties    faculties? @relation(fields: [faculty_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  majors       majors?    @relation(fields: [major_id, faculty_id], references: [id, faculty_id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@index([faculty_id, major_id], map: "users_faculty_major_idx")
+  @@index([major_id], map: "users_major_idx", where: raw("(major_id IS NOT NULL)"))
+}

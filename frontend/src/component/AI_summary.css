@@ -15,7 +15,8 @@
 }
 
 .ai-summary-box {
-  width: 480px;
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
   min-height: 330px;
 
   background: #6c6bb2;
@@ -25,7 +26,7 @@
 
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
 
-  overflow: hidden;
+  overflow: auto;
 }
 
 .ai-summary-header {
@@ -95,6 +96,8 @@
 
   font-size: 16px;
   line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .ai-summary-content ul {
