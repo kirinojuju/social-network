@@ -41,8 +41,8 @@ export default function MiddlePage({ profile, user, onSummarize, onOpenProfile }
     event.preventDefault()
     if (busy || (!content.trim() && !file)) return
     setError('')
-    if (file && (!allowedTypes.includes(file.type) || file.size > 5 * 1024 * 1024)) {
-      setError('Choose a JPEG, PNG, WebP, or GIF image up to 5 MB.')
+    if (file && (!allowedTypes.includes(file.type) || file.size > 2 * 1024 * 1024)) {
+      setError('Choose a JPEG, PNG, WebP, or GIF image up to 2 MB.')
       return
     }
     setBusy(true)

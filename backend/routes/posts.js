@@ -3,7 +3,7 @@ const { Router } = require('express');
 const { createAuthMiddleware } = require('../middleware/auth');
 
 const allowedImages = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
-const maxImageBytes = 5 * 1024 * 1024;
+const maxImageBytes = 2 * 1024 * 1024;
 
 function matchesImageType(data, type) {
   if (type === 'image/png') return data.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex'));

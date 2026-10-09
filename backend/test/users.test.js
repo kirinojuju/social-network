@@ -129,3 +129,26 @@ test('malformed JSON and oversized bodies return safe errors', async () => {
     }
   });
 });
+
+
+test('people directory requires authentication and returns only public profile fields', async () => {
+  const publicProfile = { id: 'other-user', username: 'other_user', display_name: 'Other User',
+    bio: null, avatar_url: null, faculty_id: null, major_id: null };
+  let calls = 0;
+  await withServer(async request => {
+    assert.equal((await request('', undefined, {})).status, 401);
+    assert.equal(calls, 0);
+    const response = await request('');
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+    assert.deepEqual(await response.json(), { users: [publicProfile] });
+    assert.equal(calls, 1);
+  }, async (sql, values) => {
+    calls++;
+    const selected = sql.match(/SELECT\s+([\s\S]+?)\s+FROM/i)[1];
+    assert.doesNotMatch(selected, /\b(email|firebase_uid|created_at|updated_at)\b|\*/i);
+    assert.match(sql, /WHERE firebase_uid != \$1/);
+    assert.deepEqual(values, [claims.uid]);
+    return { rows: [publicProfile] };
+  });
+});
