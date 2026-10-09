@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import PhotoCameraOutlinedIcon from '@mui/icons-material/PhotoCameraOutlined'
 import { createPost, listPosts } from '../posts/client'
-import PostImage from '../posts/PostImage'
+import PostCard from '../posts/PostCard'
+import MemberDirectory from './MemberDirectory'
+import { useAutoRefresh } from '../live/useAutoRefresh'
 import './MiddlePage.css'
 
 const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
@@ -15,27 +17,41 @@ function readImage(file) {
   })
 }
 
-export default function MiddlePage({ profile, user, onSummarize, onOpenProfile }) {
+export default function MiddlePage({ user, people, peopleLoading, peopleError, onRefreshPeople }) {
   const [posts, setPosts] = useState([])
   const [content, setContent] = useState('')
   const [file, setFile] = useState(null)
-  const [query, setQuery] = useState('')
+  const [visibility, setVisibility] = useState('public')
+  const [revision, setRevision] = useState(0)
   const [busy, setBusy] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [feedError, setFeedError] = useState('')
   const fileInput = useRef(null)
+  const feedVersion = useRef(0)
+  const mutations = useRef(new Set())
 
   useEffect(() => {
     let active = true
     listPosts(user).then(items => {
       if (active) setPosts(items)
     }).catch(failure => {
-      if (active) setError(failure.message)
+      if (active) setFeedError(failure.message)
     }).finally(() => {
       if (active) setLoading(false)
     })
     return () => { active = false }
   }, [user])
+
+  useAutoRefresh(async signal => {
+    if (busy || loading || mutations.current.size) return
+    const version = feedVersion.current
+    const items = await listPosts(user, { signal })
+    if (!signal.aborted && version === feedVersion.current && !mutations.current.size) {
+      setPosts(items)
+      setFeedError('')
+    }
+  }, 10000)
 
   async function submit(event) {
     event.preventDefault()
@@ -46,9 +62,11 @@ export default function MiddlePage({ profile, user, onSummarize, onOpenProfile }
       return
     }
     setBusy(true)
+    feedVersion.current++
     try {
       const image = file ? await readImage(file) : null
-      const post = await createPost(user, { content, visibility: 'private', image })
+      const post = await createPost(user, { content, visibility, image })
+      feedVersion.current++
       setPosts(items => [post, ...items])
       setContent('')
       setFile(null)
@@ -60,7 +78,17 @@ export default function MiddlePage({ profile, user, onSummarize, onOpenProfile }
     }
   }
 
-  const visiblePosts = posts.filter(post => post.content.toLowerCase().includes(query.toLowerCase()))
+  async function refresh() {
+    if (busy || loading || mutations.current.size) return
+    setLoading(true)
+    setFeedError('')
+
+    try {
+      setPosts(await listPosts(user))
+      setRevision(value => value + 1)
+    } catch (failure) { setFeedError(failure.message) }
+    finally { setLoading(false) }
+  }
 
   return (
     <main className="middle-page">
@@ -78,6 +106,11 @@ export default function MiddlePage({ profile, user, onSummarize, onOpenProfile }
               accept="image/jpeg,image/png,image/webp,image/gif"
               onChange={event => setFile(event.target.files[0] || null)} />
             <label className="tool-button" htmlFor="post-image"><PhotoCameraOutlinedIcon /> Photo</label>
+            <label className="audience-label">Audience
+              <select value={visibility} onChange={event => setVisibility(event.target.value)} disabled={busy}>
+                <option value="public">All members</option><option value="private">Only me</option>
+              </select>
+            </label>
             {file && <span className="selected-file">{file.name}</span>}
             <button className="post-button" disabled={busy || (!content.trim() && !file)} type="submit">
               {busy ? 'Posting…' : 'Post'}
@@ -85,27 +118,25 @@ export default function MiddlePage({ profile, user, onSummarize, onOpenProfile }
           </div>
           {error && <p className="auth-error" role="alert">{error}</p>}
         </form>
-
-        <section aria-label="Your posts">
-          <h2>Your posts</h2>
+        <MemberDirectory people={people} loading={peopleLoading} error={peopleError} onRefresh={onRefreshPeople} />
+        <section aria-label="Community feed">
+          <div className="feed-heading"><h2>Community feed</h2>
+            <button className="tool-button" type="button" disabled={loading || busy} onClick={() => refresh()}>Refresh</button>
+          </div>
+          {feedError && <p className="auth-error" role="alert">{feedError}</p>}
           {loading && <p role="status">Loading posts…</p>}
-          {!loading && visiblePosts.length === 0 && <p>{query ? 'No matching posts.' : 'No posts yet.'}</p>}
-          {visiblePosts.map(post => <article className="sample-post" key={post.id}>
-            <div className="post-header">
-              <div className="avatar" aria-hidden="true">👤</div>
-              <div>
-                <strong>{profile.display_name}</strong>
-                <p>{post.created_at ? new Date(post.created_at).toLocaleString() : 'Just now'}</p>
-              </div>
-            </div>
-            {post.content && <p className="post-text">{post.content}</p>}
-            {post.image_id && <PostImage user={user} id={post.image_id} />}
-            {post.content && <div className="post-actions">
-              <button className="summarise-button" type="button" onClick={() => onSummarize(post.content)}>
-                ✦ Summarise preview
-              </button>
-            </div>}
-          </article>)}
+          {!loading && posts.length === 0 && <p>No posts yet.</p>}
+          {posts.map(post => <PostCard post={post} user={user} key={`${user.uid}:${post.id}`}
+            refreshing={loading} refreshRevision={revision}
+            onBusyChange={isBusy => {
+              feedVersion.current++
+              if (isBusy) mutations.current.add(post.id)
+              else mutations.current.delete(post.id)
+            }}
+            onChange={updated => {
+              feedVersion.current++
+              setPosts(items => items.map(item => item.id === updated.id ? updated : item))
+            }} />)}
         </section>
       </section>
     </main>

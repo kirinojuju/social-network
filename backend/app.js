@@ -3,9 +3,12 @@ const cors = require('cors');
 const path = require('node:path');
 const { createUsersRouter } = require('./routes/users');
 const { createPostsRouter } = require('./routes/posts');
+const { createAiRouter } = require('./routes/ai');
+const { summarizeText } = require('./ai/summarize');
+const { chatWithAssistant } = require('./ai/chat');
 const { verifyFirebaseToken } = require('./config/firebase');
 
-function createApp(pool, origins = [], { verifyToken = verifyFirebaseToken, staticDir } = {}) {
+function createApp(pool, origins = [], { verifyToken = verifyFirebaseToken, staticDir, summarize = summarizeText, chat = chatWithAssistant } = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.use(cors({ origin: origins }));
@@ -28,6 +31,7 @@ function createApp(pool, origins = [], { verifyToken = verifyFirebaseToken, stat
 
   app.use('/api/users', createUsersRouter(pool, verifyToken));
   app.use('/api/posts', createPostsRouter(pool, verifyToken));
+  app.use('/api/ai', createAiRouter(verifyToken, { summarize, chat }));
   if (staticDir) {
     app.use(express.static(staticDir));
     app.use((req, res, next) => {

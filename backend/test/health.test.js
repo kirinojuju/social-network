@@ -41,6 +41,7 @@ test('serves the built frontend and keeps unknown API paths as JSON 404', async 
   await fs.writeFile(path.join(staticDir, 'index.html'), '<!doctype html><title>Team test</title>');
   const server = createApp({ query: async () => ({ rows: [] }) }, [], {
     staticDir, verifyToken: async () => ({ uid: 'test' }),
+    chat: async messages => `Reply: ${messages[0].content}`,
   }).listen(0, '127.0.0.1');
   await new Promise(resolve => server.once('listening', resolve));
   const url = `http://127.0.0.1:${server.address().port}`;
@@ -51,6 +52,13 @@ test('serves the built frontend and keeps unknown API paths as JSON 404', async 
     const api = await fetch(`${url}/api/missing`, { headers: { Accept: 'text/html' } });
     assert.equal(api.status, 404);
     assert.deepEqual(await api.json(), { error: 'Not found' });
+    const ai = await fetch(`${url}/api/ai/chat`, {
+      method: 'POST', headers: { Authorization: 'Bearer test', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: 'hello' }] }),
+    });
+    assert.equal(ai.status, 200);
+    assert.equal(ai.headers.get('cache-control'), 'private, no-store');
+    assert.deepEqual(await ai.json(), { reply: 'Reply: hello' });
   } finally {
     server.closeAllConnections();
     await new Promise(resolve => server.close(resolve));
