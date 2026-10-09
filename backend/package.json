@@ -25,8 +25,8 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "openai": "^6.0.0",
     "firebase-admin": "^14.4.0",
+    "openai": "^6.49.0",
     "pg": "^8.23.0"
   },
   "devDependencies": {
