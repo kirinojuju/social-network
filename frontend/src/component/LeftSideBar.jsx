@@ -135,7 +135,7 @@ function LeftSidebar({
             </div>
 
           <button type="button" className="ai-chat-button" onClick={onOpenAI}>
-            AI Summary Preview
+            Chat with UniAI
           </button>
         </div>
 

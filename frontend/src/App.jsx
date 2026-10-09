@@ -218,6 +218,8 @@ export default function App() {
 
     {summaryPost !== null && (
       <AISummary
+        key={user.uid}
+        user={user}
         postText={summaryPost}
         onClose={() => setSummaryPost(null)}
       />
