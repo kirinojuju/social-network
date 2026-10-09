@@ -14,6 +14,7 @@ import { saveFirestoreProfile } from './auth/firestore-profile'
 import { authError } from './auth/validation'
 import './App.css'
 import TopBar from './component/Top_bar'
+import { useAutoRefresh } from './live/useAutoRefresh'
 
 export default function App() {
   const [page, setPage] = useState('login')
@@ -87,12 +88,22 @@ export default function App() {
   }, [user, profileState])
 
   async function refreshPeople() {
+    if (!user || peopleLoading) return
     setPeopleLoading(true)
     setPeopleError('')
     try { setPeople(await profileClient.listPeople(user)) }
     catch { setPeopleError('Could not load people. Try again.') }
     finally { setPeopleLoading(false) }
   }
+
+  useAutoRefresh(async signal => {
+    if (!user || peopleLoading) return
+    const items = await profileClient.listPeople(user, { signal })
+    if (!signal.aborted) {
+      setPeople(items)
+      setPeopleError('')
+    }
+  }, 30000, Boolean(user) && profileState === 'ready')
 
   async function signOut() {
     if (busy) return
@@ -170,11 +181,12 @@ export default function App() {
     />
   ) : (
     <MiddlePage
-      profile={profile}
+      key={user.uid}
       user={user}
       people={people}
-      onSummarize={setSummaryPost}
-      onOpenProfile={() => setActiveView('profile')}
+      peopleLoading={peopleLoading}
+      peopleError={peopleError}
+      onRefreshPeople={refreshPeople}
     />
   )}
 

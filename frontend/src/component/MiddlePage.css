@@ -271,7 +271,32 @@
   gap: 12px;
   margin-top: 18px;
   padding-top: 14px;
+  flex-wrap: wrap;
 }
+
+.feed-heading { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.feed-heading { justify-content: space-between; }
+.audience-label { display: flex; align-items: center; gap: 8px; }
+.audience-label select, .post-visibility { border: 1px solid #d8d4e1; border-radius: 8px; padding: 8px; font: inherit; }
+.post-visibility { margin-left: auto; font-size: 14px; }
+.post-header { flex-wrap: wrap; }
+.post-action-button.is-liked { color: #a72b65; background: #fff0f6; }
+.post-comments { margin-top: 16px; border-top: 1px solid #e7e4ec; padding-top: 16px; }
+.post-comment { display: flex; gap: 12px; justify-content: space-between; margin: 12px 0; padding: 12px; border-radius: 12px; background: #f6f4fc; }
+.post-comment > div { min-width: 0; }
+.post-comment p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 8px 0; }
+.post-comment span, .post-comment time { color: #666174; font-size: 13px; }
+.post-comment button { align-self: flex-start; background: white; border: 1px solid #d8d4e1; border-radius: 8px; padding: 6px; cursor: pointer; }
+.comment-form { display: flex; gap: 12px; align-items: flex-start; }
+.comment-form textarea { flex: 1; min-width: 0; font: inherit; resize: vertical; border: 1px solid #d8d4e1; border-radius: 10px; padding: 10px; }
+.post-actions button:disabled, .tool-button:disabled { opacity: .6; cursor: wait; }
+.member-directory { margin-top: 28px; }
+.member-directory h2 { font-size: 20px; }
+.member-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; list-style: none; padding: 0; }
+.member-list li { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #e3e0ea; border-radius: 12px; padding: 12px; min-width: 0; }
+.member-initial { flex-shrink: 0; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; background: #f3f1fb; color: #6256bb; }
+.member-list li > div { display: flex; flex-direction: column; min-width: 0; overflow-wrap: anywhere; }
+.member-list li span:not(.member-initial) { color: #666174; font-size: 13px; }
 
 .post-action-button {
   display: flex;
