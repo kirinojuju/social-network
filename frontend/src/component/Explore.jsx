@@ -1,50 +1,46 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
+import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 
 import "./Explore.css";
 
-function Explore({ onClose }) {
+const trendingTopics = [
+  "#CMUTrekking",
+  "#Midterms_schedule",
+  "#CMUEvents",
+];
+
+function Explore({ query, recentSearches, onSelectSearch, onRemoveSearch, onClose }) {
   const exploreRef = useRef(null);
+  const term = query.trim();
+  const matchingRecent = recentSearches.filter(item =>
+    item.toLowerCase().includes(term.toLowerCase())
+  );
 
-  const [searchText, setSearchText] = useState("");
-
-  const [recentSearches, setRecentSearches] = useState([
-    "algorithm notes",
-    "fresher night",
-    "algorithm notes",
-    "Entaneer shirt",
-  ]);
-
-  const trendingTopics = [
-    "#CMUTrekking",
-    "#Midterms_schedule",
-    "#CMUEvents",
-  ];
-
-  // Close Explore when clicking anywhere outside the box
+  // Close Explore when clicking outside the popup or the search bar that controls it
   useEffect(() => {
     function handleClickOutside(event) {
       if (
         exploreRef.current &&
-        !exploreRef.current.contains(event.target)
+        !exploreRef.current.contains(event.target) &&
+        !event.target.closest?.(".top-bar-search")
       ) {
         onClose();
       }
     }
+    function handleKeyDown(event) {
+      if (event.key === "Escape") onClose();
+    }
 
     document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [onClose]);
-
-  function removeSearch(indexToRemove) {
-    setRecentSearches(
-      recentSearches.filter((_, index) => index !== indexToRemove)
-    );
-  }
 
   return (
     <div className="explore-page">
@@ -58,26 +54,51 @@ function Explore({ onClose }) {
         <section
           className="explore-search-card"
           ref={exploreRef}
+          aria-label="Search"
         >
+          {term && (
+            <button
+              type="button"
+              className="search-for"
+              onClick={() => onSelectSearch(term)}
+            >
+              <SearchOutlinedIcon className="history-icon" />
+              <span>Search for “<strong>{term}</strong>”</span>
+            </button>
+          )}
 
-          <h2>Recently searches</h2>
+          <h2>Recent searches</h2>
+
+          {matchingRecent.length === 0 && (
+            <p className="search-status">
+              {recentSearches.length ? "No matching recent searches." : "Your recent searches will appear here."}
+            </p>
+          )}
 
           <div className="recent-list">
 
-            {recentSearches.map((search, index) => (
+            {matchingRecent.map(item => (
 
               <div
                 className="recent-item"
-                key={`${search}-${index}`}
+                key={item}
               >
 
                 <HistoryOutlinedIcon className="history-icon" />
 
-                <span>{search}</span>
+                <button
+                  type="button"
+                  className="recent-search-term"
+                  onClick={() => onSelectSearch(item)}
+                >
+                  {item}
+                </button>
 
                 <button
+                  type="button"
                   className="remove-search"
-                  onClick={() => removeSearch(index)}
+                  aria-label={`Remove ${item} from recent searches`}
+                  onClick={() => onRemoveSearch(item)}
                 >
                   <CloseIcon />
                 </button>
@@ -91,42 +112,32 @@ function Explore({ onClose }) {
 
           {/* ================= TRENDING ================= */}
 
-          <div className="trending-section">
+          {!term && (
+            <div className="trending-section">
 
-            <h2>Trending</h2>
+              <h2>Trending</h2>
 
-            <div className="trending-grid">
+              <div className="trending-grid">
 
-              <div className="trending-column">
+                <div className="trending-column">
 
-                {trendingTopics.map((topic, index) => (
-                  <div
-                    className="trending-item"
-                    key={index}
-                  >
-                    {topic}
-                  </div>
-                ))}
+                  {trendingTopics.map(topic => (
+                    <button
+                      type="button"
+                      className="trending-item"
+                      key={topic}
+                      onClick={() => onSelectSearch(topic)}
+                    >
+                      {topic}
+                    </button>
+                  ))}
 
-              </div>
-
-
-              <div className="trending-column">
-
-                {trendingTopics.map((topic, index) => (
-                  <div
-                    className="trending-item"
-                    key={index}
-                  >
-                    {topic}
-                  </div>
-                ))}
+                </div>
 
               </div>
 
             </div>
-
-          </div>
+          )}
 
         </section>
 

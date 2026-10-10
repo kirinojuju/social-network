@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import AuthFormLogin from './component/AuthFormsLogin'
 import AuthFormSignUp from './component/AuthFormsSignUp'
 import LeftSidebar from './component/LeftSideBar'
 import RightSideBar from './component/RightSideBar'
 import Explore from './component/Explore'
+import SearchResults from './component/SearchResults'
 import MiddlePage from './component/MiddlePage'
 import AISummary from './component/AI_summary'
 import Chatbox from './component/Chatbox'
@@ -15,11 +16,15 @@ import { authError } from './auth/validation'
 import './App.css'
 import TopBar from './component/Top_bar'
 import { useAutoRefresh } from './live/useAutoRefresh'
+import { addRecentSearch, loadRecentSearches, saveRecentSearches } from './search/recent'
 
 export default function App() {
   const [page, setPage] = useState('login')
   const [activeView, setActiveView] = useState('home')
   const [exploreOpen, setExploreOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [submittedSearch, setSubmittedSearch] = useState('')
+  const [recentSearches, setRecentSearches] = useState([])
   const [summaryPost, setSummaryPost] = useState(null)
   const [chatTarget, setChatTarget] = useState(null)
   const [auth] = useState(() => {
@@ -48,6 +53,10 @@ export default function App() {
       setProfileState(nextUser ? 'loading' : 'idle')
       setProfileError('')
       setLoading(false)
+      setExploreOpen(false)
+      setSearchQuery('')
+      setSubmittedSearch('')
+      setRecentSearches(nextUser ? loadRecentSearches(nextUser.uid) : [])
       if (!nextUser) {
         setPeople([])
         setActiveView('home')
@@ -119,6 +128,27 @@ export default function App() {
     }
   }
 
+  const closeExplore = useCallback(() => setExploreOpen(false), [])
+
+  function updateRecentSearches(items) {
+    setRecentSearches(items)
+    if (user) saveRecentSearches(user.uid, items)
+  }
+
+  function recordSearch(term) {
+    updateRecentSearches(addRecentSearch(recentSearches, term))
+  }
+
+  function runSearch(text) {
+    const term = text.trim()
+    if (!term) return
+    setSearchQuery(term)
+    setSubmittedSearch(term)
+    setActiveView('search')
+    setExploreOpen(false)
+    recordSearch(term)
+  }
+
   function focusComposer() {
     setActiveView('home')
     requestAnimationFrame(() => document.getElementById('post-content')?.focus())
@@ -162,6 +192,9 @@ export default function App() {
    <TopBar
   onOpenProfile={() => setActiveView('profile')}
   onOpenExplore={() => setExploreOpen(true)}
+  searchQuery={searchQuery}
+  onSearchChange={setSearchQuery}
+  onSearchSubmit={runSearch}
 />
 
 <main className="app-main">
@@ -179,6 +212,8 @@ export default function App() {
       onSignOut={signOut}
       signOutBusy={busy}
     />
+  ) : activeView === 'search' ? (
+    <SearchResults user={user} query={submittedSearch} />
   ) : (
     <MiddlePage
       key={user.uid}
@@ -195,11 +230,11 @@ export default function App() {
 {/* Search popup */}
 {exploreOpen && (
   <Explore
-    people={people}
-    loading={peopleLoading}
-    error={peopleError}
-    onRefresh={refreshPeople}
-    onClose={() => setExploreOpen(false)}
+    query={searchQuery}
+    recentSearches={recentSearches}
+    onSelectSearch={runSearch}
+    onRemoveSearch={term => updateRecentSearches(recentSearches.filter(item => item !== term))}
+    onClose={closeExplore}
   />
 )}
 

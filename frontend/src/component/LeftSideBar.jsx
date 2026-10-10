@@ -1,6 +1,5 @@
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
-import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import MailOutlinedIcon from "@mui/icons-material/MailOutlined";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -14,16 +13,12 @@ import "./LeftSideBar.css";
 
 const mainMenu = [
   {
-    name: "Home",
+    name: "Home",  
     icon: HomeOutlinedIcon,
   },
   {
     name: "Explore",
     icon: SearchOutlinedIcon,
-  },
-  {
-    name: "Campus Market",
-    icon: ShoppingCartOutlinedIcon,
   },
   {
     name: "Messages",
