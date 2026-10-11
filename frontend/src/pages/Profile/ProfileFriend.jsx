@@ -6,22 +6,18 @@ const friends = [
   {
     id: 1,
     name: "User_Name",
-    faculty: "Engineering",
   },
   {
     id: 2,
     name: "User_Name",
-    faculty: "Engineering",
   },
   {
     id: 3,
     name: "User_Name",
-    faculty: "Engineering",
   },
   {
     id: 4,
     name: "User_Name",
-    faculty: "Engineering",
   },
 ];
 
@@ -42,10 +38,6 @@ function ProfileFriends() {
 
               <span className="friend-name">
                 {friend.name}
-              </span>
-
-              <span className="friend-faculty">
-                {friend.faculty}
               </span>
 
             </div>

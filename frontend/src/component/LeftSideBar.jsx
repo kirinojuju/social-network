@@ -82,6 +82,7 @@ function LeftSidebar({
           return (
             <button type="button" className="sidebar-item" key={item.name}
               disabled={!actions[item.name]} onClick={actions[item.name]}
+              data-messages-toggle={item.name === "Messages" || undefined}
               aria-current={item.name.toLowerCase() === activeView ? 'page' : undefined}>
               <Icon className="sidebar-icon" />
               <span>{item.name}</span>

@@ -17,7 +17,7 @@ function readImage(file) {
   })
 }
 
-export default function MiddlePage({ user, people, peopleLoading, peopleError, onRefreshPeople }) {
+export default function MiddlePage({ user, people, peopleLoading, peopleError, onRefreshPeople, onOpenProfile }) {
   const [posts, setPosts] = useState([])
   const [content, setContent] = useState('')
   const [file, setFile] = useState(null)
@@ -118,7 +118,8 @@ export default function MiddlePage({ user, people, peopleLoading, peopleError, o
           </div>
           {error && <p className="auth-error" role="alert">{error}</p>}
         </form>
-        <MemberDirectory people={people} loading={peopleLoading} error={peopleError} onRefresh={onRefreshPeople} />
+        <MemberDirectory people={people} loading={peopleLoading} error={peopleError} onRefresh={onRefreshPeople}
+          onOpenProfile={onOpenProfile} />
         <section aria-label="Community feed">
           <div className="feed-heading"><h2>Community feed</h2>
             <button className="tool-button" type="button" disabled={loading || busy} onClick={() => refresh()}>Refresh</button>
@@ -127,7 +128,7 @@ export default function MiddlePage({ user, people, peopleLoading, peopleError, o
           {loading && <p role="status">Loading posts…</p>}
           {!loading && posts.length === 0 && <p>No posts yet.</p>}
           {posts.map(post => <PostCard post={post} user={user} key={`${user.uid}:${post.id}`}
-            refreshing={loading} refreshRevision={revision}
+            refreshing={loading} refreshRevision={revision} onOpenProfile={onOpenProfile}
             onBusyChange={isBusy => {
               feedVersion.current++
               if (isBusy) mutations.current.add(post.id)

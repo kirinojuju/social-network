@@ -8,6 +8,7 @@ import SearchResults from './component/SearchResults'
 import MiddlePage from './component/MiddlePage'
 import AISummary from './component/AI_summary'
 import Chatbox from './component/Chatbox'
+import MessagesPanel from './component/MessagesPanel'
 import Profile from './pages/Profile/Profile'
 import { getClientAuth, logout, watchUser } from './auth/firebase'
 import { profileClient } from './auth/profile'
@@ -21,12 +22,14 @@ import { addRecentSearch, loadRecentSearches, saveRecentSearches } from './searc
 export default function App() {
   const [page, setPage] = useState('login')
   const [activeView, setActiveView] = useState('home')
+  const [viewedProfileId, setViewedProfileId] = useState(null)
   const [exploreOpen, setExploreOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [submittedSearch, setSubmittedSearch] = useState('')
   const [recentSearches, setRecentSearches] = useState([])
   const [summaryPost, setSummaryPost] = useState(null)
   const [chatTarget, setChatTarget] = useState(null)
+  const [messagesOpen, setMessagesOpen] = useState(false)
   const [auth] = useState(() => {
     try { return getClientAuth() } catch { return null }
   })
@@ -56,6 +59,8 @@ export default function App() {
       setExploreOpen(false)
       setSearchQuery('')
       setSubmittedSearch('')
+      setViewedProfileId(null)
+      setMessagesOpen(false)
       setRecentSearches(nextUser ? loadRecentSearches(nextUser.uid) : [])
       if (!nextUser) {
         setPeople([])
@@ -129,6 +134,12 @@ export default function App() {
   }
 
   const closeExplore = useCallback(() => setExploreOpen(false), [])
+  const closeMessages = useCallback(() => setMessagesOpen(false), [])
+
+  function openChat(person) {
+    setChatTarget({ id: person.id, name: person.display_name || person.username })
+    setMessagesOpen(false)
+  }
 
   function updateRecentSearches(items) {
     setRecentSearches(items)
@@ -147,6 +158,12 @@ export default function App() {
     setActiveView('search')
     setExploreOpen(false)
     recordSearch(term)
+  }
+
+  function openProfile(id = null) {
+    setViewedProfileId(id)
+    setActiveView('profile')
+    setExploreOpen(false)
   }
 
   function focusComposer() {
@@ -183,21 +200,19 @@ export default function App() {
       onNavigate={setActiveView}
       onCreatePost={focusComposer}
       onOpenAI={() => setSummaryPost('')}
-      onOpenMessages={() =>
-        setChatTarget({ name: 'Message preview' })
-      }
+      onOpenMessages={() => setMessagesOpen(open => !open)}
       onOpenExplore={() => setExploreOpen(true)}
     />
 
    <TopBar
-  onOpenProfile={() => setActiveView('profile')}
+  onOpenProfile={() => openProfile()}
   onOpenExplore={() => setExploreOpen(true)}
   searchQuery={searchQuery}
   onSearchChange={setSearchQuery}
   onSearchSubmit={runSearch}
 />
 
-<main className="app-main">
+<main className={`app-main${activeView === 'profile' ? ' full-width' : ''}`}>
 
   {error && (
     <p className="auth-error" role="alert">
@@ -207,13 +222,16 @@ export default function App() {
 
   {activeView === 'profile' ? (
     <Profile
+      user={user}
       profile={profile}
-      onMessage={setChatTarget}
+      profileId={viewedProfileId}
+      onProfileChange={setProfile}
+      onMessage={openChat}
       onSignOut={signOut}
       signOutBusy={busy}
     />
   ) : activeView === 'search' ? (
-    <SearchResults user={user} query={submittedSearch} />
+    <SearchResults user={user} query={submittedSearch} onOpenProfile={openProfile} />
   ) : (
     <MiddlePage
       key={user.uid}
@@ -222,6 +240,7 @@ export default function App() {
       peopleLoading={peopleLoading}
       peopleError={peopleError}
       onRefreshPeople={refreshPeople}
+      onOpenProfile={openProfile}
     />
   )}
 
@@ -238,16 +257,31 @@ export default function App() {
   />
 )}
 
-    <RightSideBar
-      people={people}
-      loading={peopleLoading}
-      onExplore={() => setActiveView('explore')}
-    />
+    {activeView !== 'profile' && (
+      <RightSideBar
+        user={user}
+        people={people}
+        loading={peopleLoading}
+        onOpenProfile={openProfile}
+      />
+    )}
+
+    {messagesOpen && (
+      <MessagesPanel
+        user={user}
+        people={people}
+        onOpenChat={openChat}
+        onClose={closeMessages}
+      />
+    )}
 
     {chatTarget && (
       <Chatbox
-        userName={chatTarget.name}
+        key={chatTarget.id}
+        user={user}
+        target={chatTarget}
         onClose={() => setChatTarget(null)}
+        onOpenProfile={openProfile}
       />
     )}
 

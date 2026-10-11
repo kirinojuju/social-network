@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function MemberDirectory({ people, loading, error, onRefresh }) {
+export default function MemberDirectory({ people, loading, error, onRefresh, onOpenProfile }) {
   const [expanded, setExpanded] = useState(false)
   const visiblePeople = expanded ? people : people.slice(0, 6)
 
@@ -14,8 +14,10 @@ export default function MemberDirectory({ people, loading, error, onRefresh }) {
     {!loading && !error && people.length === 0 && <p>No other members yet.</p>}
     <ul className="member-list">
       {visiblePeople.map(person => <li key={person.id}>
-        <span className="member-initial" aria-hidden="true">{person.display_name?.slice(0, 1)}</span>
-        <div><strong>{person.display_name}</strong><span>@{person.username}</span></div>
+        <button type="button" className="member-link" onClick={() => onOpenProfile(person.id)}>
+          <span className="member-initial" aria-hidden="true">{person.display_name?.slice(0, 1)}</span>
+          <div><strong>{person.display_name}</strong><span>@{person.username}</span></div>
+        </button>
       </li>)}
     </ul>
     {people.length > 6 && <button className="tool-button" type="button" aria-expanded={expanded}

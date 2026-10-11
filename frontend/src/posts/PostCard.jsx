@@ -4,7 +4,7 @@ import PostImage from './PostImage'
 import { useAutoRefresh } from '../live/useAutoRefresh'
 import { mergeNewestComments } from './merge-comments'
 
-export default function PostCard({ post, user, onChange, onBusyChange, refreshing, refreshRevision }) {
+export default function PostCard({ post, user, onChange, onBusyChange, refreshing, refreshRevision, onOpenProfile }) {
   const [busy, setBusy] = useState(false)
   const [comments, setComments] = useState([])
   const [open, setOpen] = useState(false)
@@ -71,7 +71,9 @@ export default function PostCard({ post, user, onChange, onBusyChange, refreshin
     <div className="post-header">
       <div className="avatar" aria-hidden="true">👤</div>
       <div>
-        <strong>{post.author_name}</strong>
+        <button type="button" className="author-link" onClick={() => onOpenProfile(post.is_own ? null : post.author_id)}>
+          {post.author_name}
+        </button>
         <p>@{post.author_username} · {post.created_at ? new Date(post.created_at).toLocaleString() : 'Just now'}</p>
       </div>
       {post.is_own ? <select className="post-visibility" aria-label="Who can see this post"

@@ -1,12 +1,8 @@
 import { useState } from "react";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+import { useAvatar } from "../pages/Profile/useAvatar";
+import { useFollow } from "../pages/Profile/useFollow";
 import "./RightSideBar.css";
-
-const suggestedPeople = [
-  { id: 1, name: "User_Name", faculty: "Engineering" },
-  { id: 2, name: "User_Name", faculty: "Engineering" },
-  { id: 3, name: "User_Name", faculty: "Engineering" },
-];
 
 const recommendedGroups = [
   { id: 1, name: "Group_Name", members: "2.3k members" },
@@ -14,35 +10,56 @@ const recommendedGroups = [
   { id: 3, name: "Group_Name", members: "2.3k members" },
 ];
 
-function RightSideBar() {
-  // ids the user has followed / joined
-  const [followed, setFollowed] = useState([]);
-  const [joined, setJoined] = useState([]);
+function SuggestedPerson({ user, person, onOpenProfile }) {
+  const photoUrl = useAvatar(user, person.id, 0);
+  const follow = useFollow(user, person.id);
+  const following = follow.summary?.following;
 
-  const toggle = (id, list, setList) =>
-    setList(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
+  return (
+    <div className="rs-item">
+      <button type="button" className="rs-person" onClick={() => onOpenProfile(person.id)}>
+        {photoUrl
+          ? <img className="rs-avatar rs-photo" src={photoUrl} alt="" />
+          : <AccountCircleOutlinedIcon className="rs-avatar" />}
+        <span className="rs-info">
+          <span className="rs-name">{person.display_name}</span>
+        </span>
+      </button>
+      <button
+        type="button"
+        className={`rs-btn ${following ? "active" : ""}`}
+        disabled={!follow.summary || follow.busy}
+        title={follow.error || undefined}
+        onClick={follow.toggle}
+      >
+        {following ? "Following" : "Follow"}
+      </button>
+    </div>
+  );
+}
+
+function RightSideBar({ user, people = [], loading, onOpenProfile }) {
+  const [showAllPeople, setShowAllPeople] = useState(false);
+  const [joined, setJoined] = useState([]);
+  const visiblePeople = showAllPeople ? people : people.slice(0, 3);
+
+  const toggleJoined = (id) =>
+    setJoined(joined.includes(id) ? joined.filter((x) => x !== id) : [...joined, id]);
 
   return (
     <aside className="right-sidebar">
       <section className="rs-section">
         <h2 className="rs-title">Suggested People</h2>
-        {suggestedPeople.map((p) => (
-          <div className="rs-item" key={p.id}>
-            <AccountCircleOutlinedIcon className="rs-avatar" />
-            <div className="rs-info">
-              <span className="rs-name">{p.name}</span>
-              <span className="rs-sub">{p.faculty}</span>
-            </div>
-            <button
-              type="button"
-              className={`rs-btn ${followed.includes(p.id) ? "active" : ""}`}
-              onClick={() => toggle(p.id, followed, setFollowed)}
-            >
-              {followed.includes(p.id) ? "Following" : "Follow"}
-            </button>
-          </div>
+        {loading && people.length === 0 && <p className="rs-sub">Loading people…</p>}
+        {!loading && people.length === 0 && <p className="rs-sub">No suggestions yet.</p>}
+        {visiblePeople.map((person) => (
+          <SuggestedPerson key={person.id} user={user} person={person} onOpenProfile={onOpenProfile} />
         ))}
-        <button type="button" className="rs-more">Show more...</button>
+        {people.length > 3 && (
+          <button type="button" className="rs-more" onClick={() => setShowAllPeople(value => !value)}>
+            {showAllPeople ? "Show less" : "Show more..."}
+          </button>
+        )}
       </section>
 
       <section className="rs-section">
@@ -57,7 +74,7 @@ function RightSideBar() {
             <button
               type="button"
               className={`rs-btn ${joined.includes(g.id) ? "active" : ""}`}
-              onClick={() => toggle(g.id, joined, setJoined)}
+              onClick={() => toggleJoined(g.id)}
             >
               {joined.includes(g.id) ? "Joined" : "Join"}
             </button>

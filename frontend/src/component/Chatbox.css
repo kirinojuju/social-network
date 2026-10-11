@@ -3,8 +3,8 @@
   bottom: 20px;
   right: 280px;
   z-index: 100;
-  width: 260px;
-  max-height: 380px;
+  width: 320px;
+  height: min(420px, calc(100vh - 120px));
   border: 1px solid #e0e0e0;
   border-radius: 10px;
   background: #fff;
@@ -52,8 +52,8 @@
   flex-direction: column;
   gap: 8px;
   padding: 12px;
-  min-height: 120px;
-  max-height: 260px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -83,7 +83,7 @@
 .chatbox-bubble {
   padding: 7px 12px;
   border-radius: 14px;
-  max-width: 180px;
+  max-width: 220px;
   line-height: 1.35;
   word-wrap: break-word;
 }
@@ -131,9 +131,153 @@
   color: #4d4685;
 }
 
-.chatbox-preview {
-  margin: 0;
-  color: #777;
+.chatbox-person {
+  flex: 1;
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 0;
+
+  border: none;
+  background: none;
+
+  font: inherit;
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.chatbox-person:hover .chatbox-name {
+  text-decoration: underline;
+}
+
+.chatbox-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+img.chatbox-avatar {
+  width: 28px;
+  height: 28px;
+}
+
+img.chatbox-bubble-avatar {
+  width: 20px;
+  height: 20px;
+}
+
+.chatbox-older {
+  align-self: center;
+
+  padding: 4px 10px;
+
+  border: none;
+  border-radius: 999px;
+
+  background: #f1f0f5;
+
   font-size: 11px;
-  text-align: center;
+  color: #555;
+
+  cursor: pointer;
+}
+
+.chatbox-bubble {
+  white-space: pre-wrap;
+}
+
+.chatbox-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chatbox-row.me .chatbox-content {
+  align-items: flex-end;
+}
+
+.chatbox-row.them .chatbox-content {
+  align-items: flex-start;
+}
+
+.chatbox-photo {
+  display: block;
+
+  max-width: 200px;
+  max-height: 220px;
+
+  border-radius: 14px;
+
+  object-fit: cover;
+}
+
+.chatbox-photo-loading {
+  width: 160px;
+  height: 120px;
+
+  background: #f1f0f5;
+}
+
+.chatbox-pending {
+  position: relative;
+
+  align-self: flex-start;
+
+  margin: 6px 12px 0;
+}
+
+.chatbox-pending img {
+  display: block;
+
+  max-width: 90px;
+  max-height: 90px;
+
+  border-radius: 8px;
+
+  object-fit: cover;
+}
+
+.chatbox-pending button {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+
+  width: 22px;
+  height: 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #333;
+  color: #fff;
+
+  cursor: pointer;
+}
+
+.chatbox-pending button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.chatbox-error {
+  margin: 0;
+  padding: 4px 12px;
+
+  font-size: 11px;
+  color: #b3261e;
+}
+
+.chatbox-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
 }

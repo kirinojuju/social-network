@@ -1,0 +1,165 @@
+.edit-profile-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+
+  display: grid;
+  place-items: center;
+
+  padding: 20px;
+
+  background: rgba(0, 0, 0, 0.35);
+
+  box-sizing: border-box;
+}
+
+.edit-profile-dialog {
+  width: min(480px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+
+  padding: 22px 26px 26px;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+  box-sizing: border-box;
+}
+
+.edit-profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 16px;
+}
+
+.edit-profile-header h2 {
+  margin: 0;
+
+  font-size: 20px;
+  color: #111111;
+}
+
+.edit-profile-close {
+  display: flex;
+
+  padding: 4px;
+
+  border: none;
+  background: transparent;
+
+  color: #333333;
+
+  cursor: pointer;
+}
+
+.edit-profile-photo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  padding: 12px 0 18px;
+  margin-bottom: 14px;
+
+  border-bottom: 1px solid #e3e0ea;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: #222222;
+}
+
+.edit-profile-photo-row div {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-profile-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  margin: 0;
+  padding: 0;
+
+  border: none;
+}
+
+.edit-profile-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: #222222;
+}
+
+.edit-profile-fields input,
+.edit-profile-fields textarea {
+  padding: 10px 12px;
+
+  border: 1px solid #d8d4e1;
+  border-radius: 8px;
+
+  font: inherit;
+  font-weight: 400;
+
+  resize: vertical;
+}
+
+.edit-profile-fields input:focus,
+.edit-profile-fields textarea:focus {
+  outline: 2px solid #6c6bb2;
+  outline-offset: 1px;
+}
+
+.edit-profile-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  margin-top: 20px;
+}
+
+.edit-profile-secondary,
+.edit-profile-save {
+  padding: 9px 16px;
+
+  border-radius: 8px;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.edit-profile-secondary {
+  border: 1px solid #d0d0d0;
+  background: #ffffff;
+  color: #444444;
+}
+
+.edit-profile-secondary:hover:not(:disabled) {
+  background: #f5f5f5;
+}
+
+.edit-profile-save {
+  border: none;
+  background: #6c6bb2;
+  color: #ffffff;
+}
+
+.edit-profile-save:hover:not(:disabled) {
+  background: #5d5ca5;
+}
+
+.edit-profile-secondary:disabled,
+.edit-profile-save:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

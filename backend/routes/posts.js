@@ -38,6 +38,18 @@ function matchesImageType(data, type) {
   return false;
 }
 
+function parseImage(image) {
+  if (!image || typeof image !== 'object' || Array.isArray(image) ||
+      Object.keys(image).some(key => !['mime_type', 'base64'].includes(key)) ||
+      !allowedImages.has(image.mime_type) ||
+      typeof image.base64 !== 'string' ||
+      !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(image.base64)) return null;
+  const data = Buffer.from(image.base64, 'base64');
+  if (!data.length || data.length > maxImageBytes || data.toString('base64') !== image.base64 ||
+      !matchesImageType(data, image.mime_type)) return null;
+  return { mime_type: image.mime_type, data };
+}
+
 function parsePost(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body) ||
       Object.keys(body).some(key => !['content', 'visibility', 'image'].includes(key))) return null;
@@ -46,15 +58,8 @@ function parsePost(body) {
   if (!['public', 'private'].includes(visibility)) return null;
   let image = null;
   if (body.image != null) {
-    if (typeof body.image !== 'object' || Array.isArray(body.image) ||
-        Object.keys(body.image).some(key => !['mime_type', 'base64'].includes(key)) ||
-        !allowedImages.has(body.image.mime_type) ||
-        typeof body.image.base64 !== 'string' ||
-        !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(body.image.base64)) return null;
-    const data = Buffer.from(body.image.base64, 'base64');
-    if (!data.length || data.length > maxImageBytes || data.toString('base64') !== body.image.base64 ||
-        !matchesImageType(data, body.image.mime_type)) return null;
-    image = { mime_type: body.image.mime_type, data };
+    image = parseImage(body.image);
+    if (!image) return null;
   }
   if (!body.content.trim() && !image) return null;
   return { content: body.content.trim(), visibility, image };
@@ -242,4 +247,4 @@ function createPostsRouter(pool, verifyToken) {
   return router;
 }
 
-module.exports = { createPostsRouter, parsePost, parseComment };
+module.exports = { createPostsRouter, parsePost, parseComment, parseImage };
