@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { listPosts } from './client'
 import PostCard from './PostCard'
+import { applyPostUpdate } from './apply-update'
 import '../component/MiddlePage.css'
 import './PostList.css'
 
@@ -28,9 +29,7 @@ export default function PostList({ user, author, scope, title, emptyText, onOpen
       {!loading && state.posts.map(post => (
         <PostCard key={post.id} post={post} user={user} refreshing={false} refreshRevision={0}
           onOpenProfile={onOpenProfile} onBusyChange={() => {}}
-          onChange={updated => setState(current => ({
-            ...current, posts: current.posts.map(item => item.id === updated.id ? { ...item, ...updated } : item),
-          }))} />
+          onChange={updated => setState(current => ({ ...current, posts: applyPostUpdate(current.posts, updated) }))} />
       ))}
     </section>
   )

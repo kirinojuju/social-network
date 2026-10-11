@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined'
 import { listPosts } from '../posts/client'
 import PostCard from '../posts/PostCard'
+import { applyPostUpdate } from '../posts/apply-update'
 import CreatePostDialog from '../posts/CreatePostDialog'
 import Avatar from './Avatar'
 import { useAutoRefresh } from '../live/useAutoRefresh'
@@ -84,7 +85,7 @@ export default function MiddlePage({ user, profile, composer, onOpenComposer, on
             }}
             onChange={updated => {
               feedVersion.current++
-              setPosts(items => items.map(item => item.id === updated.id ? updated : item))
+              setPosts(items => applyPostUpdate(items, updated))
             }} />)}
         </section>
       </section>

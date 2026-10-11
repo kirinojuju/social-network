@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined'
 import BookmarkIcon from '@mui/icons-material/Bookmark'
 import Avatar from '../component/Avatar'
+import { profileClient } from '../auth/profile'
 import { createComment, deleteComment, listComments, setPostLike, setPostSaved, setPostVisibility } from './client'
 import PostGallery from './PostGallery'
 import { useAutoRefresh } from '../live/useAutoRefresh'
@@ -85,7 +86,12 @@ export default function PostCard({ post, user, onChange, onBusyChange, refreshin
           mutate(async () => onChange({ ...post, ...await setPostVisibility(user, post.id, visibility) }))
         }}>
         <option value="public">All members</option><option value="private">Only me</option>
-      </select> : <span className="post-visibility">All members</span>}
+      </select> : post.author_following ? <span className="post-follow is-following">Following</span>
+        : <button type="button" className="post-follow" disabled={busy || refreshing}
+          aria-label={`Follow ${post.author_name}`} onClick={() => mutate(async () => {
+            const summary = await profileClient.setFollow(user, post.author_id, true)
+            onChange({ ...post, author_following: summary.following })
+          })}>+ Follow</button>}
     </div>
     {post.content && <p className="post-text">{post.content}</p>}
     <PostGallery user={user} post={post} />

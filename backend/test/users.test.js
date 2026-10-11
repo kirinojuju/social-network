@@ -230,6 +230,25 @@ test('follow and unfollow act as the verified user and reject following yourself
   });
 });
 
+test('friends are mutual follows of the requested profile', async () => {
+  const id = '00000000-0000-4000-8000-000000000003';
+  const friend = { id: '00000000-0000-4000-8000-000000000004', username: 'friend', display_name: 'Friend' };
+  await withServer(async request => {
+    assert.equal((await request(`/${id}/friends`, undefined, {})).status, 401);
+    assert.equal((await request('/not-a-uuid/friends')).status, 404);
+    const res = await request(`/${id}/friends`);
+    assert.equal(res.status, 200);
+    assert.deepEqual(await res.json(), { friends: [friend], total: 3 });
+  }, async (sql, values) => {
+    assert.match(sql, /incoming\.follower_id = outgoing\.followee_id AND incoming\.followee_id = outgoing\.follower_id/);
+    assert.deepEqual(values, [id]);
+    return { rows: [{ ...friend, total: 3 }] };
+  });
+  await withServer(async request => {
+    assert.deepEqual(await (await request(`/${id}/friends`)).json(), { friends: [], total: 0 });
+  });
+});
+
 test('people directory requires authentication and returns only public profile fields', async () => {
   const publicProfile = { id: 'other-user', username: 'other_user', display_name: 'Other User',
     bio: null, avatar_url: null, faculty_id: null, major_id: null };

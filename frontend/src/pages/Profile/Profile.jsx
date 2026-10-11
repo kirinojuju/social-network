@@ -27,6 +27,7 @@ function Profile({ user, profile: ownProfile, profileId, onProfileChange, onAvat
   const [selectedTab, setSelectedTab] = useState({ id: null, tab: "All" });
   const [viewing, setViewing] = useState({ id: null, index: null });
   const closeViewer = useCallback(() => setViewing({ id: null, index: null }), []);
+  const [friendsVersion, setFriendsVersion] = useState(0);
 
   const loaded = isOwn || other.id === profileId;
   const profile = isOwn ? ownProfile : loaded ? other.profile : null;
@@ -43,11 +44,9 @@ function Profile({ user, profile: ownProfile, profileId, onProfileChange, onAvat
   return (
     <div className="profile-page">
 
-      <p className="profile-preview-note">The Friends list is a layout preview; live data is not connected yet.</p>
-
       {/* TOP PROFILE */}
       <ProfileHeader key={profile.id} isOwn={isOwn} user={user} profile={profile} onProfileChange={onProfileChange}
-        onAvatarChange={onAvatarChange}
+        onAvatarChange={onAvatarChange} onFollowChange={() => setFriendsVersion(version => version + 1)}
         onMessage={onMessage} onSignOut={onSignOut} signOutBusy={signOutBusy}
         tabs={tabs} activeTab={activeTab} onTabChange={tab => setSelectedTab({ id: profile.id, tab })} />
 
@@ -70,7 +69,8 @@ function Profile({ user, profile: ownProfile, profileId, onProfileChange, onAvat
         {/* RIGHT SIDE */}
         <aside className="profile-right">
 
-          <ProfileFriends />
+          <ProfileFriends user={user} profileId={profile.id} isOwn={isOwn} version={friendsVersion}
+            onOpenProfile={id => onOpenProfile(id === ownProfile?.id ? null : id)} />
 
           <ProfilePhotos user={user} media={media} onOpenPhoto={openPhoto}
             onSeeAll={() => setSelectedTab({ id: profile.id, tab: "Media" })} />

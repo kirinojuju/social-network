@@ -20,7 +20,9 @@ const postSelection = `SELECT p.id, p.content, p.visibility, p.created_at,
   EXISTS (SELECT FROM public.post_likes l JOIN public.users viewer ON viewer.id = l.user_id
     WHERE l.post_id = p.id AND viewer.firebase_uid = $1) AS liked,
   EXISTS (SELECT FROM public.saved_posts s JOIN public.users viewer ON viewer.id = s.user_id
-    WHERE s.post_id = p.id AND viewer.firebase_uid = $1) AS saved
+    WHERE s.post_id = p.id AND viewer.firebase_uid = $1) AS saved,
+  EXISTS (SELECT FROM public.follows f JOIN public.users viewer ON viewer.id = f.follower_id
+    WHERE f.followee_id = u.id AND viewer.firebase_uid = $1) AS author_following
   FROM public.posts p JOIN public.users u ON u.id = p.author_id`;
 
 const visibleTarget = `SELECT p.id, viewer.id AS user_id FROM public.posts p
@@ -129,7 +131,8 @@ function createPostsRouter(pool, verifyToken) {
         SELECT p.*, (SELECT id FROM new_images ORDER BY position LIMIT 1) AS image_id,
           ARRAY(SELECT id::text FROM new_images ORDER BY position) AS image_ids,
           u.display_name AS author_name, u.username AS author_username,
-          true AS is_own, false AS liked, false AS saved, 0 AS like_count, 0 AS comment_count
+          true AS is_own, false AS liked, false AS saved, false AS author_following,
+          0 AS like_count, 0 AS comment_count
         FROM new_post p JOIN public.users u ON u.id = p.author_id`,
       [req.auth.uid, post.content, post.visibility, post.images.map(() => randomUUID()),
         post.images.map(image => image.mime_type), post.images.map(image => image.data)]);

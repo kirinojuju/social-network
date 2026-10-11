@@ -304,6 +304,10 @@
 .audience-label select, .post-visibility { border: 1px solid #d8d4e1; border-radius: 8px; padding: 8px; font: inherit; }
 .post-visibility { margin-left: auto; font-size: 14px; }
 .post-header { flex-wrap: wrap; }
+.post-follow { margin-left: auto; padding: 6px 14px; border: 1px solid #6f63c9; border-radius: 999px; background: #6f63c9; color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.post-follow:hover:not(:disabled) { background: #5b50b5; border-color: #5b50b5; }
+.post-follow:disabled { opacity: .6; cursor: wait; }
+.post-follow.is-following { background: #f0edfc; border-color: #f0edfc; color: #5b50b5; cursor: default; }
 .post-action-button.is-liked { color: #a72b65; background: #fff0f6; }
 .post-save-button { margin-left: auto; }
 .post-action-button.post-save-button svg { font-size: 22px; }

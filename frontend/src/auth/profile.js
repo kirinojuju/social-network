@@ -113,6 +113,20 @@ export function createProfileClient({ baseUrl = defaultBaseUrl, fetchImpl = fetc
       const data = await response.json()
       return Array.isArray(data?.users) ? data.users : []
     },
+    async listFriends(user, id, { signal } = {}) {
+      const headers = await authHeaders(user)
+      let response
+      try {
+        response = await fetchImpl(`${root}/api/users/${encodeURIComponent(id)}/friends`,
+          { headers, signal, cache: 'no-store' })
+      } catch (failure) {
+        if (failure.name === 'AbortError') throw failure
+        throw new ProfileApiError('Cannot reach the profile server. Check that the backend is running.')
+      }
+      if (!response.ok) throw new ProfileApiError('Could not load friends.', response.status)
+      const data = await response.json()
+      return { friends: Array.isArray(data?.friends) ? data.friends : [], total: Number(data?.total) || 0 }
+    },
     async getFollow(user, id, { signal } = {}) {
       return followRequest(user, id, 'GET', signal)
     },

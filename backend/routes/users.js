@@ -193,6 +193,25 @@ function createUsersRouter(pool, verifyToken) {
   router.put('/:id/follow', setFollow);
   router.delete('/:id/follow', setFollow);
 
+  // Friends are members who follow each other; newest friendship first.
+  router.get('/:id/friends', async (req, res, next) => {
+    if (!uuid.test(req.params.id)) return res.status(404).json({ error: 'Profile not found' });
+    try {
+      const result = await pool.query(`SELECT u.id, u.username, u.display_name, count(*) OVER ()::int AS total
+        FROM public.follows outgoing
+        JOIN public.follows incoming
+          ON incoming.follower_id = outgoing.followee_id AND incoming.followee_id = outgoing.follower_id
+        JOIN public.users u ON u.id = outgoing.followee_id
+        WHERE outgoing.follower_id = $1
+        ORDER BY greatest(outgoing.created_at, incoming.created_at) DESC, u.id
+        LIMIT 50`, [req.params.id]);
+      res.json({
+        friends: result.rows.map(({ total, ...friend }) => friend),
+        total: result.rows[0]?.total ?? 0,
+      });
+    } catch (error) { next(error); }
+  });
+
   for (const [kind, table] of profileImages) {
     router.get(`/:id/${kind}`, async (req, res, next) => {
       if (!uuid.test(req.params.id)) return res.status(404).json({ error: 'Photo not found' });

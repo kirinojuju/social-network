@@ -11,8 +11,8 @@ import EditProfileDialog from "./EditProfileDialog";
 
 import "./ProfileHeader.css";
 
-function ProfileHeader({ isOwn, user, profile, onProfileChange, onAvatarChange, onMessage, onSignOut, signOutBusy,
-  tabs, activeTab, onTabChange }) {
+function ProfileHeader({ isOwn, user, profile, onProfileChange, onAvatarChange, onFollowChange, onMessage, onSignOut,
+  signOutBusy, tabs, activeTab, onTabChange }) {
 
   const isPersonal = isOwn;
   const follow = useFollow(user, profile?.id);
@@ -179,7 +179,10 @@ function ProfileHeader({ isOwn, user, profile, onProfileChange, onAvatarChange, 
                 type="button"
                 className={follow.summary?.following ? "following-button" : "follow-button"}
                 disabled={!follow.summary || follow.busy}
-                onClick={follow.toggle}
+                onClick={async () => {
+                  await follow.toggle();
+                  onFollowChange?.();
+                }}
               >
                 {follow.summary?.following ? "Unfollow" : "Follow"}
               </button>
