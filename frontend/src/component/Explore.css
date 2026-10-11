@@ -45,6 +45,10 @@
 
   /* keep it from becoming too wide */
   width: min(885px, calc(100vw - 350px));
+
+  /* scroll long result lists inside the popup */
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
 }
 
 .explore-search-card h2 {
@@ -95,10 +99,27 @@
   flex-shrink: 0;
 }
 
-.recent-item span {
-  margin-left: 20px;
+.recent-search-term {
+  flex: 1;
+  height: 100%;
 
+  margin-left: 20px;
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
+  font: inherit;
   font-size: 16px;
+  text-align: left;
+
+  color: inherit;
+
+  cursor: pointer;
+}
+
+.recent-search-term:hover {
+  color: #6c6bb2;
 }
 
 .remove-search {
@@ -162,7 +183,14 @@
 }
 
 .trending-item {
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
+  font: inherit;
   font-size: 16px;
+  text-align: left;
 
   color: #222222;
 
@@ -171,6 +199,49 @@
 
 .trending-item:hover {
   color: #6c6bb2;
+}
+
+
+/* =========================================
+   SEARCH SUGGESTIONS
+   ========================================= */
+
+.search-status {
+  margin: 0 0 12px;
+
+  color: #666666;
+}
+
+.search-for {
+  width: 100%;
+  height: 45px;
+
+  display: flex;
+  align-items: center;
+
+  margin-bottom: 24px;
+  padding: 0;
+
+  border: none;
+  border-radius: 7px;
+
+  background-color: #ebeaf6;
+
+  font: inherit;
+  font-size: 16px;
+  text-align: left;
+
+  color: #303030;
+
+  cursor: pointer;
+}
+
+.search-for span {
+  margin-left: 20px;
+}
+
+.search-for:hover {
+  background-color: #e3e2f3;
 }
 
 

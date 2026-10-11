@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import AuthFormLogin from './component/AuthFormsLogin'
 import AuthFormSignUp from './component/AuthFormsSignUp'
 import LeftSidebar from './component/LeftSideBar'
 import RightSideBar from './component/RightSideBar'
 import Explore from './component/Explore'
+import SearchResults from './component/SearchResults'
 import MiddlePage from './component/MiddlePage'
 import AISummary from './component/AI_summary'
 import Chatbox from './component/Chatbox'
@@ -14,11 +15,16 @@ import { saveFirestoreProfile } from './auth/firestore-profile'
 import { authError } from './auth/validation'
 import './App.css'
 import TopBar from './component/Top_bar'
+import { useAutoRefresh } from './live/useAutoRefresh'
+import { addRecentSearch, loadRecentSearches, saveRecentSearches } from './search/recent'
 
 export default function App() {
   const [page, setPage] = useState('login')
   const [activeView, setActiveView] = useState('home')
   const [exploreOpen, setExploreOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [submittedSearch, setSubmittedSearch] = useState('')
+  const [recentSearches, setRecentSearches] = useState([])
   const [summaryPost, setSummaryPost] = useState(null)
   const [chatTarget, setChatTarget] = useState(null)
   const [auth] = useState(() => {
@@ -47,6 +53,10 @@ export default function App() {
       setProfileState(nextUser ? 'loading' : 'idle')
       setProfileError('')
       setLoading(false)
+      setExploreOpen(false)
+      setSearchQuery('')
+      setSubmittedSearch('')
+      setRecentSearches(nextUser ? loadRecentSearches(nextUser.uid) : [])
       if (!nextUser) {
         setPeople([])
         setActiveView('home')
@@ -87,12 +97,22 @@ export default function App() {
   }, [user, profileState])
 
   async function refreshPeople() {
+    if (!user || peopleLoading) return
     setPeopleLoading(true)
     setPeopleError('')
     try { setPeople(await profileClient.listPeople(user)) }
     catch { setPeopleError('Could not load people. Try again.') }
     finally { setPeopleLoading(false) }
   }
+
+  useAutoRefresh(async signal => {
+    if (!user || peopleLoading) return
+    const items = await profileClient.listPeople(user, { signal })
+    if (!signal.aborted) {
+      setPeople(items)
+      setPeopleError('')
+    }
+  }, 30000, Boolean(user) && profileState === 'ready')
 
   async function signOut() {
     if (busy) return
@@ -106,6 +126,27 @@ export default function App() {
     } finally {
       setBusy(false)
     }
+  }
+
+  const closeExplore = useCallback(() => setExploreOpen(false), [])
+
+  function updateRecentSearches(items) {
+    setRecentSearches(items)
+    if (user) saveRecentSearches(user.uid, items)
+  }
+
+  function recordSearch(term) {
+    updateRecentSearches(addRecentSearch(recentSearches, term))
+  }
+
+  function runSearch(text) {
+    const term = text.trim()
+    if (!term) return
+    setSearchQuery(term)
+    setSubmittedSearch(term)
+    setActiveView('search')
+    setExploreOpen(false)
+    recordSearch(term)
   }
 
   function focusComposer() {
@@ -151,6 +192,9 @@ export default function App() {
    <TopBar
   onOpenProfile={() => setActiveView('profile')}
   onOpenExplore={() => setExploreOpen(true)}
+  searchQuery={searchQuery}
+  onSearchChange={setSearchQuery}
+  onSearchSubmit={runSearch}
 />
 
 <main className="app-main">
@@ -168,13 +212,16 @@ export default function App() {
       onSignOut={signOut}
       signOutBusy={busy}
     />
+  ) : activeView === 'search' ? (
+    <SearchResults user={user} query={submittedSearch} />
   ) : (
     <MiddlePage
-      profile={profile}
+      key={user.uid}
       user={user}
       people={people}
-      onSummarize={setSummaryPost}
-      onOpenProfile={() => setActiveView('profile')}
+      peopleLoading={peopleLoading}
+      peopleError={peopleError}
+      onRefreshPeople={refreshPeople}
     />
   )}
 
@@ -183,11 +230,11 @@ export default function App() {
 {/* Search popup */}
 {exploreOpen && (
   <Explore
-    people={people}
-    loading={peopleLoading}
-    error={peopleError}
-    onRefresh={refreshPeople}
-    onClose={() => setExploreOpen(false)}
+    query={searchQuery}
+    recentSearches={recentSearches}
+    onSelectSearch={runSearch}
+    onRemoveSearch={term => updateRecentSearches(recentSearches.filter(item => item !== term))}
+    onClose={closeExplore}
   />
 )}
 
@@ -206,6 +253,8 @@ export default function App() {
 
     {summaryPost !== null && (
       <AISummary
+        key={user.uid}
+        user={user}
         postText={summaryPost}
         onClose={() => setSummaryPost(null)}
       />

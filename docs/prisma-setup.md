@@ -25,7 +25,8 @@ permissions: use a limited application role for normal API reads and writes.
 ## Schema changes
 
 The checked-in Prisma schema was introspected from a disposable PostgreSQL
-database created by SQL migrations 001 through 005. It models the existing table
+database created by SQL migrations 001 through 005, then extended alongside 006
+for post interactions. It models the existing table
 names, UUIDs, timestamptz columns, composite foreign keys, and partial indexes.
 The internal schema_migrations table is ignored by Prisma Client.
 

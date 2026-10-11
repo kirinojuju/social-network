@@ -1,0 +1,34 @@
+.search-page > h2 {
+  margin-bottom: 8px;
+
+  font-size: 22px;
+  overflow-wrap: anywhere;
+}
+
+.search-empty {
+  margin-top: 40px;
+
+  font-size: 18px;
+  text-align: center;
+
+  color: #666174;
+}
+
+.search-page .sample-post {
+  margin-top: 12px;
+}
+
+.search-badge {
+  margin-left: 8px;
+  padding: 2px 8px;
+
+  border-radius: 10px;
+
+  background-color: #e3e2f3;
+
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+
+  color: #6c6bb2;
+}

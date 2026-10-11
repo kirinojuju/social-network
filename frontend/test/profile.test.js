@@ -68,3 +68,17 @@ test('ensure sends a display name and current Firebase token for first login', a
   assert.deepEqual(await client.ensure({ displayName: 'New User', getIdToken: async () => 'first-login-token' }),
     { id: 'created-profile' })
 })
+
+test('member checks use a current auth token, bypass cache and pass the cancellation signal', async () => {
+  const controller = new AbortController()
+  const people = [{ id: 'other-member', display_name: 'Other member', username: 'other' }]
+  const client = createProfileClient({ fetchImpl: async (url, options) => {
+    assert.equal(new URL(url).pathname, '/api/users')
+    assert.equal(options.headers.Authorization, 'Bearer current-token')
+    assert.equal(options.signal, controller.signal)
+    assert.equal(options.cache, 'no-store')
+    return Response.json({ users: people })
+  } })
+  assert.deepEqual(await client.listPeople({ getIdToken: async () => 'current-token' },
+    { signal: controller.signal }), people)
+})

@@ -9,6 +9,7 @@
     "test": "node --test test/*.test.js",
     "test:integration-db": "node scripts/check-profile-persistence.js",
     "test:posts-db": "node scripts/check-post-persistence.js",
+    "test:post-interactions": "node scripts/check-post-interactions.js",
     "test:firebase-live": "node scripts/check-firebase-login.js",
     "migrate": "node scripts/migrate.js",
     "prisma:validate": "prisma validate",
@@ -25,6 +26,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "firebase-admin": "^14.4.0",
+    "openai": "^6.49.0",
     "pg": "^8.23.0"
   },
   "devDependencies": {

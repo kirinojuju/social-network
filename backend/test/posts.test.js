@@ -1,7 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { createApp } = require('../app');
-const { parsePost } = require('../routes/posts');
+const { parsePost, parseComment } = require('../routes/posts');
 
 async function withServer(pool, run) {
   const server = createApp(pool, [], { verifyToken: async () => ({ uid: 'owner-uid' }) }).listen(0, '127.0.0.1');
@@ -61,4 +61,23 @@ test('image size validation accepts exactly 2 MiB and rejects a larger image wit
     assert.equal(Boolean(result), allowed);
     if (allowed) assert.equal(result.image.data.length, size);
   }
+});
+
+test('comments reject forged authors, blank, oversized and null-containing text', () => {
+  assert.equal(parseComment({ content: '  สวัสดีครับ  ' }), 'สวัสดีครับ');
+  assert.equal(parseComment({ content: '😀'.repeat(2000) }), '😀'.repeat(2000));
+  for (const input of [null, [], {}, { content: '  ' }, { content: '\0' },
+    { content: 'a'.repeat(2001) }, { content: 'x', author_id: 'forged' }]) {
+    assert.equal(parseComment(input), null);
+  }
+});
+
+test('interaction endpoints require auth before validation or database access', async () => {
+  await withServer({ query() { throw new Error('Must not query'); } }, async root => {
+    for (const [method, path] of [['PUT', '/invalid/like'], ['DELETE', '/invalid/like'],
+      ['GET', '/invalid/comments'], ['POST', '/invalid/comments'],
+      ['DELETE', '/invalid/comments/invalid'], ['PATCH', '/invalid/visibility'], ['POST', '/import']]) {
+      assert.equal((await fetch(root + path, { method })).status, 401);
+    }
+  });
 });

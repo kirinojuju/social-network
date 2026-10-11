@@ -5,22 +5,34 @@ import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined
 
 import './Top_bar.css'
 
-export default function TopBar({ onOpenProfile, onOpenExplore }) {
+export default function TopBar({ onOpenProfile, onOpenExplore, searchQuery, onSearchChange, onSearchSubmit }) {
   return (
     <header className="top-bar">
 
-      <div
+      <form
         className="top-bar-search"
+        role="search"
         onClick={onOpenExplore}
+        onSubmit={event => {
+          event.preventDefault()
+          onSearchSubmit(searchQuery)
+        }}
       >
         <SearchOutlinedIcon />
 
         <input
           type="text"
+          aria-label="Search people and posts"
           placeholder="Search people, posts, courses, and more..."
+          value={searchQuery}
+          maxLength={100}
           onFocus={onOpenExplore}
+          onChange={event => {
+            onSearchChange(event.target.value)
+            onOpenExplore()
+          }}
         />
-      </div>
+      </form>
 
       <div className="top-bar-actions">
 

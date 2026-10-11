@@ -87,11 +87,11 @@ export function createProfileClient({ baseUrl = defaultBaseUrl, fetchImpl = fetc
       await sync(user, profile)
       return get(user)
     },
-    async listPeople(user) {
+    async listPeople(user, { signal } = {}) {
       const headers = await authHeaders(user)
       let response
       try {
-        response = await fetchImpl(`${root}/api/users`, { headers })
+        response = await fetchImpl(`${root}/api/users`, { headers, signal, cache: 'no-store' })
       } catch {
         throw new ProfileApiError('Cannot reach the profile server. Check that the backend is running.')
       }

@@ -1,4 +1,4 @@
-// Introspected from database/migrations/001 through 005. SQL migrations remain authoritative.
+// Mirrors database/migrations/001 through 006. SQL migrations remain authoritative.
 // Do not use Prisma Migrate or db push for this shared schema.
 generator client {
   provider        = "prisma-client-js"
@@ -55,12 +55,41 @@ model posts {
   visibility String   @default("private")
   created_at DateTime @default(now()) @db.Timestamptz(6)
   updated_at DateTime @default(now()) @db.Timestamptz(6)
+  legacy_firestore_id String?
   media      media[]
+  post_likes post_likes[]
+  post_comments post_comments[]
   users      users    @relation(fields: [author_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([id, author_id])
+  @@unique([author_id, legacy_firestore_id], map: "posts_author_legacy_key")
   @@index([author_id, created_at(sort: Desc), id(sort: Desc)], map: "posts_author_created_idx")
   @@index([created_at(sort: Desc), id(sort: Desc)], map: "posts_public_created_idx", where: raw("(visibility = 'public'::text)"))
+}
+
+model post_likes {
+  post_id    String   @db.Uuid
+  user_id    String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  posts      posts    @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([post_id, user_id])
+  @@index([user_id], map: "post_likes_user_idx")
+}
+
+/// SQL migration enforces the nonempty comment and 2000 character limit.
+model post_comments {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  post_id    String   @db.Uuid
+  author_id  String   @db.Uuid
+  content    String
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  posts      posts    @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users    @relation(fields: [author_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([post_id, created_at, id], map: "post_comments_post_created_idx")
+  @@index([author_id], map: "post_comments_author_idx")
 }
 
 model schema_migrations {
@@ -87,6 +116,8 @@ model users {
   updated_at   DateTime   @default(now()) @db.Timestamptz(6)
   media        media[]
   posts        posts[]
+  post_likes   post_likes[]
+  post_comments post_comments[]
   faculties    faculties? @relation(fields: [faculty_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
   majors       majors?    @relation(fields: [major_id, faculty_id], references: [id, faculty_id], onDelete: Restrict, onUpdate: NoAction)
 
