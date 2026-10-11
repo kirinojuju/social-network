@@ -66,7 +66,10 @@ function createMessagesRouter(pool, verifyToken) {
         WHERE ((m.sender_id = pair.me_id AND m.recipient_id = pair.other_id) OR
                (m.sender_id = pair.other_id AND m.recipient_id = pair.me_id))
           AND ($3::uuid IS NULL OR (m.created_at, m.id) < (
-            SELECT created_at, id FROM public.messages WHERE id = $3))
+            SELECT cursor_message.created_at, cursor_message.id FROM public.messages cursor_message
+            WHERE cursor_message.id = $3 AND
+              ((cursor_message.sender_id = pair.me_id AND cursor_message.recipient_id = pair.other_id) OR
+               (cursor_message.sender_id = pair.other_id AND cursor_message.recipient_id = pair.me_id))))
         ORDER BY m.created_at DESC, m.id DESC LIMIT 51`, [req.auth.uid, req.params.id, req.query.before || null]);
       const messages = result.rows.slice(0, 50);
       res.json({ messages, next_cursor: result.rows.length > 50 ? messages[49].id : null });

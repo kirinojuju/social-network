@@ -5,21 +5,23 @@ import './SearchResults.css'
 
 export default function SearchResults({ user, query, onOpenProfile }) {
   const term = query.trim()
-  const [results, setResults] = useState({ term: '', users: [], posts: [] })
-  const loading = results.term !== term
+  const [attempt, setAttempt] = useState(0)
+  const [results, setResults] = useState({ term: '', attempt: -1, users: [], posts: [], error: '' })
+  const loading = results.term !== term || results.attempt !== attempt
 
   useEffect(() => {
     const controller = new AbortController()
     search(user, term, { signal: controller.signal })
-      .then(found => setResults({ term, ...found }))
-      .catch(() => {
-        // Any failure is shown to the member as an empty result.
-        if (!controller.signal.aborted) setResults({ term, users: [], posts: [] })
+      .then(found => {
+        if (!controller.signal.aborted) setResults({ term, attempt, ...found, error: '' })
+      })
+      .catch(failure => {
+        if (!controller.signal.aborted) setResults({ term, attempt, users: [], posts: [], error: failure.message })
       })
     return () => controller.abort()
-  }, [user, term])
+  }, [user, term, attempt])
 
-  const empty = !loading && !results.users.length && !results.posts.length
+  const empty = !loading && !results.error && !results.users.length && !results.posts.length
 
   return (
     <main className="middle-page">
@@ -27,6 +29,10 @@ export default function SearchResults({ user, query, onOpenProfile }) {
         <h2>Search results for “{term}”</h2>
 
         {loading && <p role="status">Searching…</p>}
+        {!loading && results.error && <div role="alert">
+          <p className="auth-error">{results.error}</p>
+          <button type="button" className="tool-button" onClick={() => setAttempt(value => value + 1)}>Try again</button>
+        </div>}
         {empty && <p className="search-empty">No results found</p>}
 
         {!loading && results.users.length > 0 && (

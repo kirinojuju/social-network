@@ -27,7 +27,7 @@ async function main() {
     await fixture.connect();
     await fixture.query(`GRANT CONNECT ON DATABASE ${database} TO social_app`);
     await fixture.query('GRANT USAGE ON SCHEMA public TO social_app');
-    assert.equal(await migrate(fixture), 6);
+    assert.equal(await migrate(fixture), 9);
     assert.equal(await migrate(fixture), 0);
     pool = createPool({ ...process.env, PGDATABASE: database });
     await assertLimitedRole(pool);
@@ -35,6 +35,9 @@ async function main() {
       await fixture.query(`INSERT INTO public.users (firebase_uid, email, username, display_name)
         VALUES ($1, $2, $1, $1)`, [name, `${name}@example.invalid`]);
     }
+    const members = Object.fromEntries((await fixture.query(
+      'SELECT firebase_uid, id FROM public.users'
+    )).rows.map(row => [row.firebase_uid, row.id]));
     const start = async () => {
       server = createApp(pool, [], { verifyToken: async token => {
         if (!['alice', 'bob', 'carol', 'no-profile'].includes(token)) throw new Error('Invalid test token');
@@ -50,7 +53,8 @@ async function main() {
       server = null;
     };
     async function request(user, method, route = '', body, status = 200) {
-      const response = await fetch(root + route, { method, headers: {
+      const url = route.startsWith('/api/') ? new URL(route, root).href : root + route;
+      const response = await fetch(url, { method, headers: {
         ...(user ? { Authorization: `Bearer ${user}` } : {}), 'Content-Type': 'application/json',
       }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
       assert.equal(response.status, status, `${user} ${method} ${route}: ${(await response.clone().text()).slice(0, 250)}`);
@@ -76,6 +80,45 @@ async function main() {
     await request('bob', 'PATCH', `/${secret.id}/visibility`, { visibility: 'public' }, 404);
     await request('alice', 'POST', '', { content: 'Forged', author_id: 'bob' }, 400);
 
+    // Alpha acceptance: real SQL search, follows and two-way private chat.
+    const search = await request('bob', 'GET', '/api/search?q=Alice');
+    assert.equal(search.users[0].id, members.alice);
+    const aliceProfile = (await request('bob', 'GET', `/api/users/${members.alice}`)).user;
+    assert.equal(aliceProfile.id, members.alice);
+    assert.equal(aliceProfile.is_self, false);
+    assert.ok(!('email' in aliceProfile) && !('firebase_uid' in aliceProfile));
+    assert.ok(search.posts.some(post => post.id === shared.id));
+    assert.ok(!search.posts.some(post => post.id === secret.id));
+    assert.equal((await request('bob', 'PUT', `/api/users/${members.alice}/follow`)).follow.following, true);
+    assert.equal((await request('bob', 'GET', '/api/users/me/following')).users[0].id, members.alice);
+    assert.equal((await request('bob', 'DELETE', `/api/users/${members.alice}/follow`)).follow.following, false);
+
+    const chatWithBob = `/api/messages/with/${members.bob}`;
+    const chatWithAlice = `/api/messages/with/${members.alice}`;
+    const hello = (await request('alice', 'POST', chatWithBob, { content: 'Hello Bob' }, 201)).message;
+    const reply = (await request('bob', 'POST', chatWithAlice, { content: 'Hello Alice' }, 201)).message;
+    const photo = (await request('alice', 'POST', chatWithBob, { image }, 201)).message;
+    const received = (await request('bob', 'GET', chatWithAlice)).messages;
+    assert.equal(received.length, 3);
+    assert.equal(received.find(message => message.id === hello.id).from_me, false);
+    assert.equal(received.find(message => message.id === reply.id).from_me, true);
+    assert.equal((await request('carol', 'GET', chatWithAlice)).messages.length, 0);
+    assert.equal((await request('carol', 'GET', '/api/messages/conversations')).conversations.length, 0);
+    await request(null, 'GET', '/api/messages/conversations', undefined, 401);
+    await request('alice', 'POST', chatWithAlice, { content: 'Self' }, 404);
+    await request('alice', 'POST', chatWithBob, { content: 'Forged', sender_id: members.carol }, 400);
+    const chatPhoto = await fetch(new URL(`/api/messages/images/${photo.id}`, root), {
+      headers: { Authorization: 'Bearer bob' },
+    });
+    assert.equal(chatPhoto.status, 200);
+    assert.deepEqual(Buffer.from(await chatPhoto.arrayBuffer()), png);
+    await request('carol', 'GET', `/api/messages/images/${photo.id}`, undefined, 404);
+    assert.equal((await request('bob', 'GET', '/api/messages/conversations')).conversations[0].unread_count, 2);
+    await request('bob', 'PUT', `${chatWithAlice}/read`, undefined, 204);
+    assert.equal((await request('bob', 'GET', '/api/messages/conversations')).conversations[0].unread_count, 0);
+    const foreign = (await request('carol', 'POST', chatWithBob, { content: 'Separate conversation' }, 201)).message;
+    assert.equal((await request('alice', 'GET', `${chatWithBob}?before=${foreign.id}`)).messages.length, 0);
+
     for (const method of ['PUT', 'DELETE']) await request('bob', method, `/${secret.id}/like`, undefined, 404);
     await request('bob', 'POST', `/${secret.id}/comments`, { content: 'Forbidden' }, 404);
     await request('bob', 'GET', `/${secret.id}/comments`, undefined, 404);
@@ -100,6 +143,8 @@ async function main() {
     // Persistence across API restarts, not merely an in-memory response.
     await stop();
     root = await start();
+    assert.equal((await request('alice', 'GET', chatWithBob)).messages.length, 3);
+    assert.ok((await request('bob', 'GET', chatWithAlice)).messages.some(message => message.id === reply.id));
     const restored = (await request('alice', 'GET', '?scope=feed')).posts.find(p => p.id === shared.id);
     assert.equal(restored.like_count, 1);
     assert.equal(restored.comment_count, 1);
@@ -143,7 +188,7 @@ async function main() {
     await fixture.query('DELETE FROM public.posts WHERE id = $1', [shared.id]);
     assert.equal((await fixture.query('SELECT count(*)::int AS n FROM public.post_likes WHERE post_id = $1', [shared.id])).rows[0].n, 0);
     assert.equal((await fixture.query('SELECT count(*)::int AS n FROM public.post_comments WHERE post_id = $1', [shared.id])).rows[0].n, 0);
-    console.log('PASS: migrations, limited role, three-account feed/privacy, idempotent likes, comments/ownership, pagination, restart persistence, private legacy import, cascade cleanup.');
+    console.log('PASS: nine migrations, limited role, three-account feed/privacy, likes/comments, search visibility, follows, two-way chat/photos, participant privacy, read receipts, restart persistence, private legacy import, cascade cleanup.');
   } finally {
     if (server) { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
     if (pool) await pool.end();

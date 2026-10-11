@@ -30,14 +30,18 @@ function PersonRow({ user, person, detail, unread, time, onOpen }) {
 
 function MessagesPanel({ user, people, onOpenChat, onClose }) {
   const panelRef = useRef(null);
-  const [data, setData] = useState({ loaded: false, conversations: [], friends: [] });
+  const [data, setData] = useState({ loaded: false, conversations: [], friends: [], error: "" });
 
   async function load(signal) {
-    const [conversations, friends] = await Promise.all([
-      listConversations(user, { signal }).catch(() => []),
-      profileClient.listFollowing(user, { signal }).catch(() => []),
-    ]);
-    if (!signal?.aborted) setData({ loaded: true, conversations, friends });
+    try {
+      const [conversations, friends] = await Promise.all([
+        listConversations(user, { signal }),
+        profileClient.listFollowing(user, { signal }),
+      ]);
+      if (!signal?.aborted) setData({ loaded: true, conversations, friends, error: "" });
+    } catch (failure) {
+      if (!signal?.aborted) setData(previous => ({ ...previous, loaded: true, error: failure.message }));
+    }
   }
 
   useAutoRefresh(load, 10000, true, user.uid);
@@ -72,6 +76,10 @@ function MessagesPanel({ user, people, onOpenChat, onClose }) {
       </header>
 
       {!data.loaded && <p className="messages-status" role="status">Loading chats…</p>}
+      {data.error && <div role="alert" className="messages-status">
+        <p>{data.error}</p>
+        <button type="button" onClick={() => load()}>Try again</button>
+      </div>}
 
       {data.conversations.length > 0 && (
         <ul className="messages-list">
@@ -112,7 +120,7 @@ function MessagesPanel({ user, people, onOpenChat, onClose }) {
         </>
       )}
 
-      {data.loaded && !data.conversations.length && !friends.length && !suggestions.length && (
+      {data.loaded && !data.error && !data.conversations.length && !friends.length && !suggestions.length && (
         <p className="messages-status">No chats yet.</p>
       )}
     </section>
