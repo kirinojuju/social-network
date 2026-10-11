@@ -9,6 +9,7 @@ import MiddlePage from './component/MiddlePage'
 import AISummary from './component/AI_summary'
 import Chatbox from './component/Chatbox'
 import MessagesPanel from './component/MessagesPanel'
+import PostList from './posts/PostList'
 import Profile from './pages/Profile/Profile'
 import { getClientAuth, logout, watchUser } from './auth/firebase'
 import { profileClient } from './auth/profile'
@@ -30,6 +31,7 @@ export default function App() {
   const [summaryPost, setSummaryPost] = useState(null)
   const [chatTarget, setChatTarget] = useState(null)
   const [messagesOpen, setMessagesOpen] = useState(false)
+  const [composer, setComposer] = useState(null)
   const [auth] = useState(() => {
     try { return getClientAuth() } catch { return null }
   })
@@ -61,6 +63,7 @@ export default function App() {
       setSubmittedSearch('')
       setViewedProfileId(null)
       setMessagesOpen(false)
+      setComposer(null)
       setRecentSearches(nextUser ? loadRecentSearches(nextUser.uid) : [])
       if (!nextUser) {
         setPeople([])
@@ -135,6 +138,7 @@ export default function App() {
 
   const closeExplore = useCallback(() => setExploreOpen(false), [])
   const closeMessages = useCallback(() => setMessagesOpen(false), [])
+  const closeComposer = useCallback(() => setComposer(null), [])
 
   function openChat(person) {
     setChatTarget({ id: person.id, name: person.display_name || person.username })
@@ -166,9 +170,10 @@ export default function App() {
     setExploreOpen(false)
   }
 
-  function focusComposer() {
+  function openComposer(file = null) {
     setActiveView('home')
-    requestAnimationFrame(() => document.getElementById('post-content')?.focus())
+    setExploreOpen(false)
+    setComposer({ file })
   }
 
   if (loading) return <main className="app-container auth-page"><p role="status">Loading…</p></main>
@@ -198,7 +203,7 @@ export default function App() {
     <LeftSidebar
       activeView={activeView}
       onNavigate={setActiveView}
-      onCreatePost={focusComposer}
+      onCreatePost={() => openComposer()}
       onOpenAI={() => setSummaryPost('')}
       onOpenMessages={() => setMessagesOpen(open => !open)}
       onOpenExplore={() => setExploreOpen(true)}
@@ -207,6 +212,7 @@ export default function App() {
    <TopBar
   onOpenProfile={() => openProfile()}
   onOpenExplore={() => setExploreOpen(true)}
+  onCreatePost={() => openComposer()}
   searchQuery={searchQuery}
   onSearchChange={setSearchQuery}
   onSearchSubmit={runSearch}
@@ -227,15 +233,25 @@ export default function App() {
       profileId={viewedProfileId}
       onProfileChange={setProfile}
       onMessage={openChat}
+      onOpenProfile={openProfile}
       onSignOut={signOut}
       signOutBusy={busy}
     />
   ) : activeView === 'search' ? (
     <SearchResults user={user} query={submittedSearch} onOpenProfile={openProfile} />
+  ) : activeView === 'saved' ? (
+    <div className="saved-page">
+      <PostList user={user} scope="saved" title="Saved posts" onOpenProfile={openProfile}
+        emptyText="You haven't saved any posts yet. Tap Save on a post to keep it here." />
+    </div>
   ) : (
     <MiddlePage
       key={user.uid}
       user={user}
+      profile={profile}
+      composer={composer}
+      onOpenComposer={openComposer}
+      onCloseComposer={closeComposer}
       people={people}
       peopleLoading={peopleLoading}
       peopleError={peopleError}

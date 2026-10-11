@@ -1,5 +1,15 @@
-const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 const maxBytes = 2 * 1024 * 1024
+
+// The server checks the file's bytes, not its extension, so a WebP saved as ".png" must be labelled image/webp.
+export async function detectImageType(blob) {
+  const bytes = new Uint8Array(await blob.slice(0, 12).arrayBuffer())
+  const ascii = (start, end) => String.fromCharCode(...bytes.subarray(start, end))
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'image/jpeg'
+  if ([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every((byte, index) => bytes[index] === byte)) return 'image/png'
+  if (['GIF87a', 'GIF89a'].includes(ascii(0, 6))) return 'image/gif'
+  if (ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP') return 'image/webp'
+  return null
+}
 
 function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
@@ -43,11 +53,10 @@ export async function prepareAvatar(file) {
     size, size)
 }
 
-// Chat photos: sent unchanged when already small enough (keeps GIF animation), otherwise scaled to 1600 px.
-export async function prepareChatImage(file) {
-  if (allowedTypes.includes(file.type) && file.size <= maxBytes) {
-    return { mime_type: file.type, base64: await blobToBase64(file) }
-  }
+// Chat and post photos: sent unchanged when already small enough (keeps GIF animation), otherwise scaled to 1600 px.
+export async function preparePhoto(file) {
+  const type = await detectImageType(file)
+  if (type && file.size <= maxBytes) return { mime_type: type, base64: await blobToBase64(file) }
   const bitmap = await openImage(file)
   const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height))
   return encodeJpeg(bitmap, { x: 0, y: 0, width: bitmap.width, height: bitmap.height },

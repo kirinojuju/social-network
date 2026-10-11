@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { profileClient } from '../../auth/profile'
 
-// Loads a member's profile photo as an object URL; `version` forces a reload after changes.
-export function useAvatar(user, userId, version) {
+// Loads a member's profile or cover photo as an object URL; `version` forces a reload after changes.
+export function useAvatar(user, userId, version, kind = 'avatar') {
   const [avatar, setAvatar] = useState({ key: null, url: null })
   const key = userId ? `${userId}:${version}` : null
 
@@ -10,7 +10,7 @@ export function useAvatar(user, userId, version) {
     if (!userId) return
     const controller = new AbortController()
     let objectUrl = null
-    profileClient.loadAvatar(user, userId, { signal: controller.signal }).then(blob => {
+    profileClient.loadAvatar(user, userId, { signal: controller.signal, kind }).then(blob => {
       if (controller.signal.aborted) return
       objectUrl = blob ? URL.createObjectURL(blob) : null
       setAvatar({ key: `${userId}:${version}`, url: objectUrl })
@@ -21,7 +21,7 @@ export function useAvatar(user, userId, version) {
       controller.abort()
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [user, userId, version])
+  }, [user, userId, version, kind])
 
   return avatar.key === key ? avatar.url : null
 }

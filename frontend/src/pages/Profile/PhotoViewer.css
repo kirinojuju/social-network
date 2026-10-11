@@ -1,0 +1,51 @@
+.photo-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 40px;
+  background: rgba(10, 8, 20, 0.85);
+}
+
+.photo-viewer figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.photo-viewer-image {
+  max-width: min(1100px, 90vw);
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.photo-viewer figcaption {
+  max-width: 700px;
+  color: #ffffff;
+  text-align: center;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.photo-viewer-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  padding: 8px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.photo-viewer-close:hover {
+  background: rgba(255, 255, 255, 0.28);
+}

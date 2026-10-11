@@ -64,6 +64,7 @@ function LeftSidebar({
   Messages: onOpenMessages,
   UniAI: onOpenAI,
   'Create Post': onCreatePost,
+  Saved: () => onNavigate('saved'),
 };
 
   return (
@@ -105,7 +106,9 @@ function LeftSidebar({
           const Icon = item.icon;
 
           return (
-            <button type="button" className="sidebar-item" key={item.name} disabled>
+            <button type="button" className="sidebar-item" key={item.name}
+              disabled={!actions[item.name]} onClick={actions[item.name]}
+              aria-current={item.name.toLowerCase() === activeView ? 'page' : undefined}>
               <Icon className="sidebar-icon" />
               <span>{item.name}</span>
             </button>

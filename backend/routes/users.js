@@ -5,6 +5,8 @@ const { parseImage } = require('./posts');
 
 const fields = ['username', 'display_name', 'bio', 'avatar_url', 'faculty_id', 'major_id'];
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// Route name -> table. Table names are fixed here, never taken from the request.
+const profileImages = [['avatar', 'user_avatars'], ['cover', 'user_covers']];
 
 function validateProfile(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body) ||
@@ -108,28 +110,30 @@ function createUsersRouter(pool, verifyToken) {
       next(error);
     }
   });
-  router.put('/me/avatar', async (req, res, next) => {
-    const image = req.body && typeof req.body === 'object' && !Array.isArray(req.body) &&
-      Object.keys(req.body).every(key => key === 'image') ? parseImage(req.body.image) : null;
-    if (!image) return res.status(400).json({ error: 'Invalid image' });
-    try {
-      const result = await pool.query(`
-        INSERT INTO public.user_avatars (user_id, mime_type, image_data)
-        SELECT id, $2, $3 FROM public.users WHERE firebase_uid = $1
-        ON CONFLICT (user_id) DO UPDATE SET mime_type = EXCLUDED.mime_type,
-          image_data = EXCLUDED.image_data, updated_at = now()
-        RETURNING user_id, updated_at`, [req.auth.uid, image.mime_type, image.data]);
-      if (!result.rows.length) return res.status(409).json({ error: 'Complete your profile first' });
-      res.json({ avatar: result.rows[0] });
-    } catch (error) { next(error); }
-  });
-  router.delete('/me/avatar', async (req, res, next) => {
-    try {
-      await pool.query(`DELETE FROM public.user_avatars a USING public.users u
-        WHERE a.user_id = u.id AND u.firebase_uid = $1`, [req.auth.uid]);
-      res.status(204).end();
-    } catch (error) { next(error); }
-  });
+  for (const [kind, table] of profileImages) {
+    router.put(`/me/${kind}`, async (req, res, next) => {
+      const image = req.body && typeof req.body === 'object' && !Array.isArray(req.body) &&
+        Object.keys(req.body).every(key => key === 'image') ? parseImage(req.body.image) : null;
+      if (!image) return res.status(400).json({ error: 'Invalid image' });
+      try {
+        const result = await pool.query(`
+          INSERT INTO public.${table} (user_id, mime_type, image_data)
+          SELECT id, $2, $3 FROM public.users WHERE firebase_uid = $1
+          ON CONFLICT (user_id) DO UPDATE SET mime_type = EXCLUDED.mime_type,
+            image_data = EXCLUDED.image_data, updated_at = now()
+          RETURNING user_id, updated_at`, [req.auth.uid, image.mime_type, image.data]);
+        if (!result.rows.length) return res.status(409).json({ error: 'Complete your profile first' });
+        res.json({ [kind]: result.rows[0] });
+      } catch (error) { next(error); }
+    });
+    router.delete(`/me/${kind}`, async (req, res, next) => {
+      try {
+        await pool.query(`DELETE FROM public.${table} a USING public.users u
+          WHERE a.user_id = u.id AND u.firebase_uid = $1`, [req.auth.uid]);
+        res.status(204).end();
+      } catch (error) { next(error); }
+    });
+  }
   router.get('/me/following', async (req, res, next) => {
     try {
       const result = await pool.query(`SELECT u.id, u.username, u.display_name, u.bio, u.avatar_url
@@ -189,17 +193,19 @@ function createUsersRouter(pool, verifyToken) {
   router.put('/:id/follow', setFollow);
   router.delete('/:id/follow', setFollow);
 
-  router.get('/:id/avatar', async (req, res, next) => {
-    if (!uuid.test(req.params.id)) return res.status(404).json({ error: 'Photo not found' });
-    try {
-      const result = await pool.query(
-        'SELECT mime_type, image_data FROM public.user_avatars WHERE user_id = $1', [req.params.id]);
-      if (!result.rows.length) return res.status(404).json({ error: 'Photo not found' });
-      res.set('Content-Type', result.rows[0].mime_type);
-      res.set('X-Content-Type-Options', 'nosniff');
-      res.send(result.rows[0].image_data);
-    } catch (error) { next(error); }
-  });
+  for (const [kind, table] of profileImages) {
+    router.get(`/:id/${kind}`, async (req, res, next) => {
+      if (!uuid.test(req.params.id)) return res.status(404).json({ error: 'Photo not found' });
+      try {
+        const result = await pool.query(
+          `SELECT mime_type, image_data FROM public.${table} WHERE user_id = $1`, [req.params.id]);
+        if (!result.rows.length) return res.status(404).json({ error: 'Photo not found' });
+        res.set('Content-Type', result.rows[0].mime_type);
+        res.set('X-Content-Type-Options', 'nosniff');
+        res.send(result.rows[0].image_data);
+      } catch (error) { next(error); }
+    });
+  }
   return router;
 }
 

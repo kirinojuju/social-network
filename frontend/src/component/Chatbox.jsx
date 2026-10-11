@@ -5,7 +5,7 @@ import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
 import Avatar from "./Avatar";
 import MessageImage from "./MessageImage";
 import { listMessages, markConversationRead, sendMessage } from "../messages/client";
-import { prepareChatImage } from "../images/prepare";
+import { preparePhoto } from "../images/prepare";
 import { mergeNewestComments } from "../posts/merge-comments";
 import { useAutoRefresh } from "../live/useAutoRefresh";
 import "./Chatbox.css";
@@ -97,7 +97,7 @@ function Chatbox({ user, target, onClose, onOpenProfile }) {
     setSending(true);
     setError("");
     try {
-      const image = photo ? await prepareChatImage(photo.file) : null;
+      const image = photo ? await preparePhoto(photo.file) : null;
       const message = await sendMessage(user, target.id, { content: text, image });
       setMessages(items => [message, ...items]);
       setDraft("");

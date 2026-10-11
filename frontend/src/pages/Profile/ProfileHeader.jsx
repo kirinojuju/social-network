@@ -4,32 +4,36 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined";
 import { useRef, useState } from "react";
 import { profileClient } from "../../auth/profile";
-import { prepareAvatar } from "../../images/prepare";
+import { prepareAvatar, preparePhoto } from "../../images/prepare";
 import { useAvatar } from "./useAvatar";
 import { useFollow } from "./useFollow";
 import EditProfileDialog from "./EditProfileDialog";
 
 import "./ProfileHeader.css";
 
-function ProfileHeader({ isOwn, user, profile, onProfileChange, onMessage, onSignOut, signOutBusy }) {
+function ProfileHeader({ isOwn, user, profile, onProfileChange, onMessage, onSignOut, signOutBusy,
+  tabs, activeTab, onTabChange }) {
 
   const isPersonal = isOwn;
   const follow = useFollow(user, profile?.id);
 
   const photoInput = useRef(null);
+  const coverInput = useRef(null);
   const [photoVersion, setPhotoVersion] = useState(0);
+  const [coverVersion, setCoverVersion] = useState(0);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoError, setPhotoError] = useState("");
   const [editing, setEditing] = useState(false);
   const photoUrl = useAvatar(user, profile?.id, photoVersion);
+  const coverUrl = useAvatar(user, profile?.id, coverVersion, "cover");
 
-  async function updatePhoto(action) {
+  async function updatePhoto(action, setVersion = setPhotoVersion) {
     if (photoBusy) return;
     setPhotoBusy(true);
     setPhotoError("");
     try {
       await action();
-      setPhotoVersion(version => version + 1);
+      setVersion(version => version + 1);
     } catch (failure) {
       setPhotoError(failure.message);
     } finally {
@@ -43,6 +47,12 @@ function ProfileHeader({ isOwn, user, profile, onProfileChange, onMessage, onSig
     if (file) updatePhoto(async () => profileClient.saveAvatar(user, await prepareAvatar(file)));
   }
 
+  function chooseCover(event) {
+    const file = event.target.files[0];
+    event.target.value = "";
+    if (file) updatePhoto(async () => profileClient.saveAvatar(user, await preparePhoto(file), "cover"), setCoverVersion);
+  }
+
   return (
     <section className="profile-header">
 
@@ -52,15 +62,25 @@ function ProfileHeader({ isOwn, user, profile, onProfileChange, onMessage, onSig
 
       <div className="profile-cover">
 
-        <div className="cover-placeholder">
-          <span>△</span>
-        </div>
+        {coverUrl
+          ? <img className="profile-cover-image" src={coverUrl} alt="Cover photo" />
+          : <div className="cover-placeholder" />}
 
         {isPersonal && (
-          <button className="change-cover-button">
-            <CameraAltOutlinedIcon />
-            Change cover
-          </button>
+          <div className="cover-actions">
+            <input ref={coverInput} type="file" accept="image/*" hidden onChange={chooseCover} />
+            {coverUrl && (
+              <button type="button" className="change-cover-button" disabled={photoBusy}
+                onClick={() => updatePhoto(() => profileClient.removeAvatar(user, "cover"), setCoverVersion)}>
+                Remove
+              </button>
+            )}
+            <button type="button" className="change-cover-button" disabled={photoBusy}
+              onClick={() => coverInput.current?.click()}>
+              <CameraAltOutlinedIcon />
+              {coverUrl ? "Change cover" : "Add cover photo"}
+            </button>
+          </div>
         )}
 
       </div>
@@ -183,28 +203,13 @@ function ProfileHeader({ isOwn, user, profile, onProfileChange, onMessage, onSig
           PROFILE TABS
       ======================================== */}
 
-      <nav className="profile-tabs">
-
-        <button className="profile-tab active">
-          All
-        </button>
-
-        <button className="profile-tab">
-          About
-        </button>
-
-        <button className="profile-tab">
-          Connections
-        </button>
-
-        <button className="profile-tab">
-          Saved
-        </button>
-
-        <button className="profile-tab">
-          Media
-        </button>
-
+      <nav className="profile-tabs" aria-label="Profile sections">
+        {tabs.map(tab => (
+          <button type="button" key={tab} className={`profile-tab${tab === activeTab ? " active" : ""}`}
+            aria-current={tab === activeTab ? "page" : undefined} onClick={() => onTabChange(tab)}>
+            {tab}
+          </button>
+        ))}
       </nav>
 
       {editing && (

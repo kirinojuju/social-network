@@ -14,7 +14,9 @@ const postSelection = `SELECT p.id, p.content, p.visibility, p.created_at,
   (SELECT count(*)::int FROM public.post_likes l WHERE l.post_id = p.id) AS like_count,
   (SELECT count(*)::int FROM public.post_comments c WHERE c.post_id = p.id) AS comment_count,
   EXISTS (SELECT FROM public.post_likes l JOIN public.users viewer ON viewer.id = l.user_id
-    WHERE l.post_id = p.id AND viewer.firebase_uid = $1) AS liked
+    WHERE l.post_id = p.id AND viewer.firebase_uid = $1) AS liked,
+  EXISTS (SELECT FROM public.saved_posts s JOIN public.users viewer ON viewer.id = s.user_id
+    WHERE s.post_id = p.id AND viewer.firebase_uid = $1) AS saved
   FROM public.posts p JOIN public.users u ON u.id = p.author_id`;
 
 const visibleTarget = `SELECT p.id, viewer.id AS user_id FROM public.posts p
@@ -74,6 +76,25 @@ function createPostsRouter(pool, verifyToken) {
   });
 
   router.get('/', async (req, res, next) => {
+    if (req.query.scope === 'saved') {
+      try {
+        const result = await pool.query(`${postSelection}
+          JOIN public.saved_posts saved_by ON saved_by.post_id = p.id
+          JOIN public.users saver ON saver.id = saved_by.user_id
+          WHERE saver.firebase_uid = $1 AND (p.visibility = 'public' OR u.firebase_uid = $1)
+          ORDER BY saved_by.created_at DESC, p.id DESC LIMIT 50`, [req.auth.uid]);
+        return res.json({ posts: result.rows });
+      } catch (error) { return next(error); }
+    }
+    if (req.query.author !== undefined) {
+      if (typeof req.query.author !== 'string' || !uuid.test(req.query.author)) return res.json({ posts: [] });
+      try {
+        const result = await pool.query(`${postSelection}
+          WHERE u.id = $2 AND (p.visibility = 'public' OR u.firebase_uid = $1)
+          ORDER BY p.created_at DESC, p.id DESC LIMIT 50`, [req.auth.uid, req.query.author]);
+        return res.json({ posts: result.rows });
+      } catch (error) { return next(error); }
+    }
     try {
       const result = await pool.query(`${postSelection}
         WHERE u.firebase_uid = $1 OR ($2::boolean AND p.visibility = 'public')
@@ -100,7 +121,7 @@ function createPostsRouter(pool, verifyToken) {
           RETURNING id
         )
         SELECT p.*, (SELECT id FROM new_image) AS image_id, u.display_name AS author_name,
-          u.username AS author_username, true AS is_own, false AS liked,
+          u.username AS author_username, true AS is_own, false AS liked, false AS saved,
           0 AS like_count, 0 AS comment_count
         FROM new_post p JOIN public.users u ON u.id = p.author_id`,
       [req.auth.uid, post.content, post.visibility, imageId,
@@ -157,13 +178,14 @@ function createPostsRouter(pool, verifyToken) {
     } catch (error) { next(error); }
   });
 
-  async function like(req, res, next) {
+  // `table` is always one of the fixed names below, never request input.
+  const toggle = table => async (req, res, next) => {
     if (!uuid.test(req.params.id)) return res.status(404).json({ error: 'Post not found' });
     try {
       const mutation = req.method === 'PUT'
-        ? `INSERT INTO public.post_likes (post_id, user_id) SELECT id, user_id FROM target
+        ? `INSERT INTO public.${table} (post_id, user_id) SELECT id, user_id FROM target
            ON CONFLICT (post_id, user_id) DO NOTHING RETURNING post_id`
-        : `DELETE FROM public.post_likes l USING target t
+        : `DELETE FROM public.${table} l USING target t
            WHERE l.post_id = t.id AND l.user_id = t.user_id RETURNING l.post_id`;
       const result = await pool.query(`WITH target AS (${visibleTarget}), changed AS (${mutation})
         SELECT id FROM target`, [req.auth.uid, req.params.id]);
@@ -173,9 +195,11 @@ function createPostsRouter(pool, verifyToken) {
       if (!summary.rows.length) return res.status(404).json({ error: 'Post not found' });
       res.json({ post: summary.rows[0] });
     } catch (error) { next(error); }
-  }
-  router.put('/:id/like', like);
-  router.delete('/:id/like', like);
+  };
+  router.put('/:id/like', toggle('post_likes'));
+  router.delete('/:id/like', toggle('post_likes'));
+  router.put('/:id/save', toggle('saved_posts'));
+  router.delete('/:id/save', toggle('saved_posts'));
 
   router.get('/:id/comments', async (req, res, next) => {
     if (!uuid.test(req.params.id)) return res.status(404).json({ error: 'Post not found' });

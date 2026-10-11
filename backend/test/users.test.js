@@ -133,8 +133,9 @@ test('malformed JSON and oversized bodies return safe errors', async () => {
 
 const png = Buffer.from('89504e470d0a1a0a0000000d49484452', 'hex');
 
-test('profile photo upload validates the image and stores it only for the verified user', async () => {
-  const send = (root, method, body, headers = { Authorization: 'Bearer test-token' }) => fetch(`${root}/me/avatar`, {
+for (const [kind, table] of [['avatar', 'user_avatars'], ['cover', 'user_covers']]) {
+test(`${kind} upload validates the image and stores it only for the verified user`, async () => {
+  const send = (root, method, body, headers = { Authorization: 'Bearer test-token' }) => fetch(`${root}/me/${kind}`, {
     method, headers: { 'Content-Type': 'application/json', ...headers }, ...(body ? { body: JSON.stringify(body) } : {}),
   });
   await withServer(async (request, root) => {
@@ -152,6 +153,7 @@ test('profile photo upload validates the image and stores it only for the verifi
     assert.equal((await send(root, 'DELETE')).status, 204);
   }, async (sql, values) => {
     assert.equal(values[0], claims.uid);
+    assert.match(sql, new RegExp(`public\\.${table}\\b`));
     if (sql.includes('INSERT')) {
       assert.match(sql, /WHERE firebase_uid = \$1/);
       assert.equal(values[1], 'image/png');
@@ -161,12 +163,12 @@ test('profile photo upload validates the image and stores it only for the verifi
   });
 });
 
-test('profile photos are served as images and missing photos return 404', async () => {
+test(`${kind} images are served as images and missing ones return 404`, async () => {
   const id = '00000000-0000-4000-8000-000000000001';
   for (const rows of [[{ mime_type: 'image/png', image_data: png }], []]) {
     await withServer(async (request, root) => {
-      assert.equal((await fetch(`${root}/not-a-uuid/avatar`, { headers: { Authorization: 'Bearer t' } })).status, 404);
-      const res = await fetch(`${root}/${id}/avatar`, { headers: { Authorization: 'Bearer t' } });
+      assert.equal((await fetch(`${root}/not-a-uuid/${kind}`, { headers: { Authorization: 'Bearer t' } })).status, 404);
+      const res = await fetch(`${root}/${id}/${kind}`, { headers: { Authorization: 'Bearer t' } });
       assert.equal(res.status, rows.length ? 200 : 404);
       if (rows.length) {
         assert.equal(res.headers.get('content-type'), 'image/png');
@@ -174,11 +176,13 @@ test('profile photos are served as images and missing photos return 404', async 
         assert.ok(png.equals(Buffer.from(await res.arrayBuffer())));
       }
     }, async (sql, values) => {
+      assert.match(sql, new RegExp(`public\\.${table}\\b`));
       assert.deepEqual(values, [id]);
       return { rows };
     });
   }
 });
+}
 
 test('another member profile returns only public fields and 404 when missing', async () => {
   const id = '00000000-0000-4000-8000-000000000002';

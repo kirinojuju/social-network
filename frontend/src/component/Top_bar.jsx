@@ -5,7 +5,7 @@ import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined
 
 import './Top_bar.css'
 
-export default function TopBar({ onOpenProfile, onOpenExplore, searchQuery, onSearchChange, onSearchSubmit }) {
+export default function TopBar({ onOpenProfile, onOpenExplore, onCreatePost, searchQuery, onSearchChange, onSearchSubmit }) {
   return (
     <header className="top-bar">
 
@@ -36,7 +36,7 @@ export default function TopBar({ onOpenProfile, onOpenExplore, searchQuery, onSe
 
       <div className="top-bar-actions">
 
-        <button className="top-bar-button" type="button">
+        <button className="top-bar-button" type="button" aria-label="Create post" onClick={onCreatePost}>
           <EditOutlinedIcon />
         </button>
 

@@ -1,5 +1,8 @@
 import { useRef, useState } from 'react'
-import { createComment, deleteComment, listComments, setPostLike, setPostVisibility } from './client'
+import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined'
+import BookmarkIcon from '@mui/icons-material/Bookmark'
+import Avatar from '../component/Avatar'
+import { createComment, deleteComment, listComments, setPostLike, setPostSaved, setPostVisibility } from './client'
 import PostImage from './PostImage'
 import { useAutoRefresh } from '../live/useAutoRefresh'
 import { mergeNewestComments } from './merge-comments'
@@ -69,7 +72,7 @@ export default function PostCard({ post, user, onChange, onBusyChange, refreshin
 
   return <article className="sample-post" aria-label={`Post by ${post.author_name}`}>
     <div className="post-header">
-      <div className="avatar" aria-hidden="true">👤</div>
+      <span className="avatar" aria-hidden="true"><Avatar user={user} userId={post.author_id} className="avatar-fill" /></span>
       <div>
         <button type="button" className="author-link" onClick={() => onOpenProfile(post.is_own ? null : post.author_id)}>
           {post.author_name}
@@ -95,6 +98,11 @@ export default function PostCard({ post, user, onChange, onBusyChange, refreshin
       <button className="post-action-button" type="button" aria-expanded={open} disabled={busy || loading || refreshing}
         onClick={() => { setOpen(!open); if (!open) load() }}>
         Comments ({post.comment_count})
+      </button>
+      <button className={`post-action-button post-save-button${post.saved ? ' is-saved' : ''}`} type="button"
+        aria-pressed={Boolean(post.saved)} disabled={busy || loading || refreshing} onClick={() => mutate(async () =>
+          onChange(await setPostSaved(user, post.id, !post.saved)))}>
+        {post.saved ? <BookmarkIcon /> : <BookmarkBorderOutlinedIcon />} {post.saved ? 'Saved' : 'Save'}
       </button>
     </div>
     {open && <section className="post-comments" aria-label="Comments">
