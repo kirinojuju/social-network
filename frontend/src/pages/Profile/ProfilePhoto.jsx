@@ -19,11 +19,11 @@ function ProfilePhotos({ user, media, onOpenPhoto, onSeeAll }) {
 
       {shown.length > 0 && (
         <div className="photos-grid">
-          {shown.map(post => (
-            <button type="button" className="photo-tile" key={post.image_id}
-              aria-label={post.content ? `Open photo: ${post.content.slice(0, 60)}` : "Open photo"}
-              onClick={() => onOpenPhoto(post)}>
-              <PostImage user={user} id={post.image_id} className="photo-tile-image" alt="" />
+          {shown.map((photo, index) => (
+            <button type="button" className="photo-tile" key={photo.id}
+              aria-label={photo.caption ? `Open photo: ${photo.caption.slice(0, 60)}` : "Open photo"}
+              onClick={() => onOpenPhoto(index)}>
+              <PostImage user={user} id={photo.id} className="photo-tile-image" alt="" />
             </button>
           ))}
         </div>

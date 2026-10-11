@@ -1,48 +1,60 @@
 import { useEffect, useRef, useState } from 'react'
 import CloseIcon from '@mui/icons-material/Close'
+import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined'
 import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined'
 import Avatar from '../component/Avatar'
 import { preparePhoto } from '../images/prepare'
 import { createPost } from './client'
 import './CreatePostDialog.css'
 
-export default function CreatePostDialog({ user, profile, initialFile, onCreated, onClose }) {
+const maxPostPhotos = 10
+let nextPhotoKey = 0
+
+async function preparePhotos(files) {
+  const results = await Promise.allSettled([...files].map(preparePhoto))
+  return {
+    photos: results.filter(result => result.status === 'fulfilled')
+      .map(result => ({ ...result.value, key: ++nextPhotoKey })),
+    error: results.find(result => result.status === 'rejected')?.reason?.message || '',
+  }
+}
+
+export default function CreatePostDialog({ user, profile, initialFiles, onCreated, onClose }) {
   const [content, setContent] = useState('')
   const [visibility, setVisibility] = useState('public')
-  const [image, setImage] = useState(null)
-  const [preparing, setPreparing] = useState(Boolean(initialFile))
+  const [photos, setPhotos] = useState([])
+  const [preparing, setPreparing] = useState(initialFiles?.length ? 1 : 0)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const fileInput = useRef(null)
-  const pick = useRef(0)
 
-  async function choosePhoto(file) {
-    const attempt = ++pick.current
-    setPreparing(true)
+  async function choosePhotos(files) {
+    const room = maxPostPhotos - photos.length
+    if (room <= 0) return
     setError('')
+    setPreparing(count => count + 1)
     try {
-      const prepared = await preparePhoto(file)
-      if (attempt === pick.current) setImage(prepared)
-    } catch (failure) {
-      if (attempt === pick.current) setError(failure.message)
+      const result = await preparePhotos(files.slice(0, room))
+      setPhotos(current => [...current, ...result.photos].slice(0, maxPostPhotos))
+      setError(files.length > room ? `You can add up to ${maxPostPhotos} photos to a post.` : result.error)
     } finally {
-      if (attempt === pick.current) setPreparing(false)
+      setPreparing(count => count - 1)
     }
   }
 
   useEffect(() => {
-    if (!initialFile) return
+    if (!initialFiles?.length) return
     let active = true
-    const attempt = ++pick.current
-    const current = () => active && attempt === pick.current
-    preparePhoto(initialFile)
-      .then(prepared => { if (current()) setImage(prepared) })
-      .catch(failure => { if (current()) setError(failure.message) })
-      .finally(() => { if (current()) setPreparing(false) })
+    preparePhotos([...initialFiles].slice(0, maxPostPhotos)).then(result => {
+      if (!active) return
+      setPhotos(current => [...current, ...result.photos].slice(0, maxPostPhotos))
+      setError(initialFiles.length > maxPostPhotos ? `You can add up to ${maxPostPhotos} photos to a post.` : result.error)
+      setPreparing(count => count - 1)
+    })
     return () => { active = false }
-  }, [initialFile])
+  }, [initialFiles])
 
-  const isEmpty = !content.trim() && !image
+  const isEmpty = !content.trim() && !photos.length
 
   useEffect(() => {
     function handleKeyDown(event) {
@@ -58,7 +70,8 @@ export default function CreatePostDialog({ user, profile, initialFile, onCreated
     setBusy(true)
     setError('')
     try {
-      onCreated(await createPost(user, { content, visibility, image }))
+      const images = photos.map(({ mime_type, base64 }) => ({ mime_type, base64 }))
+      onCreated(await createPost(user, { content, visibility, images }))
     } catch (failure) {
       setError(failure.message)
       setBusy(false)
@@ -66,6 +79,7 @@ export default function CreatePostDialog({ user, profile, initialFile, onCreated
   }
 
   const firstName = (profile?.display_name || '').split(' ')[0]
+  const full = photos.length >= maxPostPhotos
 
   return (
     <div className="create-post-overlay" onMouseDown={event => {
@@ -93,39 +107,48 @@ export default function CreatePostDialog({ user, profile, initialFile, onCreated
             </div>
           </div>
 
-          <textarea className="create-post-text" value={content} maxLength={10000} rows={image ? 2 : 5} autoFocus
+          <textarea className="create-post-text" value={content} maxLength={10000} rows={photos.length ? 2 : 5} autoFocus
             disabled={busy} placeholder={firstName ? `What's on your mind, ${firstName}?` : "What's on your mind?"}
             onChange={event => setContent(event.target.value)} />
 
-          {(image || preparing) && (
-            <div className="create-post-preview">
-              {image && <img src={`data:${image.mime_type};base64,${image.base64}`} alt="Selected photo preview" />}
-              {preparing && <p role="status">Preparing photo…</p>}
-              {image && !preparing && (
-                <button type="button" className="create-post-preview-remove" aria-label="Remove photo" disabled={busy}
-                  onClick={() => setImage(null)}>
-                  <CloseIcon />
+          {(photos.length > 0 || preparing > 0) && (
+            <div className={`create-post-photos${photos.length === 1 ? ' single' : ''}`}>
+              {photos.map((photo, index) => (
+                <div className="create-post-photo" key={photo.key}>
+                  <img src={`data:${photo.mime_type};base64,${photo.base64}`} alt={`Selected photo ${index + 1}`} />
+                  <button type="button" className="create-post-photo-remove" aria-label={`Remove photo ${index + 1}`}
+                    disabled={busy} onClick={() => setPhotos(current => current.filter(item => item.key !== photo.key))}>
+                    <CloseIcon />
+                  </button>
+                </div>
+              ))}
+              {preparing > 0 && <p className="create-post-photo-status" role="status">Preparing photos…</p>}
+              {photos.length > 0 && !full && !preparing && (
+                <button type="button" className="create-post-photo-add" disabled={busy}
+                  onClick={() => fileInput.current?.click()}>
+                  <AddPhotoAlternateOutlinedIcon />
+                  <span>Add more</span>
                 </button>
               )}
             </div>
           )}
 
           <div className="create-post-add">
-            <span>Add to your post</span>
-            <input ref={fileInput} type="file" accept="image/*" hidden onChange={event => {
-              const file = event.target.files[0]
+            <span>{photos.length ? `${photos.length} / ${maxPostPhotos} photos` : 'Add to your post'}</span>
+            <input ref={fileInput} type="file" accept="image/*" multiple hidden onChange={event => {
+              const files = [...event.target.files]
               event.target.value = ''
-              if (file) choosePhoto(file)
+              if (files.length) choosePhotos(files)
             }} />
-            <button type="button" disabled={busy || preparing} onClick={() => fileInput.current?.click()}>
-              <ImageOutlinedIcon /> {image ? 'Change photo' : 'Photo'}
+            <button type="button" disabled={busy || preparing > 0 || full} onClick={() => fileInput.current?.click()}>
+              <ImageOutlinedIcon /> {photos.length ? 'Add photos' : 'Photos'}
             </button>
           </div>
 
           {error && <p className="auth-error" role="alert">{error}</p>}
         </div>
 
-        <button type="submit" className="create-post-submit" disabled={busy || preparing || isEmpty}>
+        <button type="submit" className="create-post-submit" disabled={busy || preparing > 0 || isEmpty}>
           {busy ? 'Posting…' : 'Post'}
         </button>
       </form>

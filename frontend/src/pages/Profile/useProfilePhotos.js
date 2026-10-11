@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { listPosts } from '../../posts/client'
+import { postImageIds } from '../../posts/images'
 
-// Posts with a photo from the member's latest posts that the viewer is allowed to see.
+// Every photo, newest post first, from the member's latest posts that the viewer is allowed to see.
 export function useProfilePhotos(user, profileId) {
   const [state, setState] = useState({ id: null, photos: [], error: '' })
 
@@ -10,7 +11,8 @@ export function useProfilePhotos(user, profileId) {
     let active = true
     listPosts(user, { author: profileId })
       .then(posts => {
-        if (active) setState({ id: profileId, photos: posts.filter(post => post.image_id), error: '' })
+        const photos = posts.flatMap(post => postImageIds(post).map(id => ({ id, caption: post.content })))
+        if (active) setState({ id: profileId, photos, error: '' })
       })
       .catch(() => {
         if (active) setState({ id: profileId, photos: [], error: 'Could not load photos. Try again later.' })

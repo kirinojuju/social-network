@@ -10,6 +10,9 @@ import AISummary from './component/AI_summary'
 import Chatbox from './component/Chatbox'
 import MessagesPanel from './component/MessagesPanel'
 import PostList from './posts/PostList'
+import NotificationsPanel from './component/NotificationsPanel'
+import { listNotifications } from './notifications/client'
+import { isUnread, latestSeenAt, loadSeenAt, saveSeenAt } from './notifications/seen'
 import Profile from './pages/Profile/Profile'
 import { getClientAuth, logout, watchUser } from './auth/firebase'
 import { profileClient } from './auth/profile'
@@ -32,6 +35,11 @@ export default function App() {
   const [chatTarget, setChatTarget] = useState(null)
   const [messagesOpen, setMessagesOpen] = useState(false)
   const [composer, setComposer] = useState(null)
+  const [avatarVersion, setAvatarVersion] = useState(0)
+  const [notifications, setNotifications] = useState({ loaded: false, items: [] })
+  const [notificationsSeenAt, setNotificationsSeenAt] = useState(null)
+  const [notificationsPanel, setNotificationsPanel] = useState(null)
+  const [notificationsOpenCount, setNotificationsOpenCount] = useState(0)
   const [auth] = useState(() => {
     try { return getClientAuth() } catch { return null }
   })
@@ -46,14 +54,12 @@ export default function App() {
   const [sessionVersion, setSessionVersion] = useState(0)
   const [people, setPeople] = useState([])
   const [peopleLoading, setPeopleLoading] = useState(false)
-  const [peopleError, setPeopleError] = useState('')
 
   useEffect(() => {
     if (!auth) return
     return watchUser(auth, nextUser => {
       setUser(nextUser)
       setPeopleLoading(Boolean(nextUser))
-      setPeopleError('')
       setProfile(null)
       setProfileState(nextUser ? 'loading' : 'idle')
       setProfileError('')
@@ -64,6 +70,9 @@ export default function App() {
       setViewedProfileId(null)
       setMessagesOpen(false)
       setComposer(null)
+      setNotifications({ loaded: false, items: [] })
+      setNotificationsSeenAt(nextUser ? loadSeenAt(nextUser.uid) : null)
+      setNotificationsPanel(null)
       setRecentSearches(nextUser ? loadRecentSearches(nextUser.uid) : [])
       if (!nextUser) {
         setPeople([])
@@ -96,31 +105,29 @@ export default function App() {
     let active = true
     profileClient.listPeople(user).then(items => {
       if (active) setPeople(items)
-    }).catch(() => {
-      if (active) setPeopleError('Could not load people. Try again.')
-    }).finally(() => {
+    }).catch(() => {}).finally(() => {
       if (active) setPeopleLoading(false)
     })
     return () => { active = false }
   }, [user, profileState])
 
-  async function refreshPeople() {
-    if (!user || peopleLoading) return
-    setPeopleLoading(true)
-    setPeopleError('')
-    try { setPeople(await profileClient.listPeople(user)) }
-    catch { setPeopleError('Could not load people. Try again.') }
-    finally { setPeopleLoading(false) }
-  }
-
   useAutoRefresh(async signal => {
     if (!user || peopleLoading) return
     const items = await profileClient.listPeople(user, { signal })
-    if (!signal.aborted) {
-      setPeople(items)
-      setPeopleError('')
-    }
+    if (!signal.aborted) setPeople(items)
   }, 30000, Boolean(user) && profileState === 'ready')
+
+  useAutoRefresh(async signal => {
+    if (!user) return
+    try {
+      const items = await listNotifications(user, { signal })
+      if (!signal.aborted) setNotifications({ loaded: true, items })
+    } catch (failure) {
+      if (!signal.aborted) setNotifications(current => ({ ...current, loaded: true }))
+      throw failure
+    }
+  }, notificationsPanel ? 10000 : 30000, Boolean(user) && profileState === 'ready',
+  user ? `${user.uid}:${notificationsOpenCount}` : null)
 
   async function signOut() {
     if (busy) return
@@ -139,6 +146,32 @@ export default function App() {
   const closeExplore = useCallback(() => setExploreOpen(false), [])
   const closeMessages = useCallback(() => setMessagesOpen(false), [])
   const closeComposer = useCallback(() => setComposer(null), [])
+
+  const markNotificationsSeen = useCallback(() => {
+    if (!user) return
+    const seenAt = latestSeenAt(notifications.items, notificationsSeenAt)
+    if (seenAt && seenAt !== notificationsSeenAt) {
+      setNotificationsSeenAt(seenAt)
+      saveSeenAt(user.uid, seenAt)
+    }
+  }, [user, notifications.items, notificationsSeenAt])
+
+  const closeNotifications = useCallback(() => {
+    markNotificationsSeen()
+    setNotificationsPanel(null)
+  }, [markNotificationsSeen])
+
+  function toggleNotifications() {
+    if (notificationsPanel) return closeNotifications()
+    setNotificationsPanel({ since: notificationsSeenAt })
+    setNotificationsOpenCount(count => count + 1)
+    setMessagesOpen(false)
+    setExploreOpen(false)
+    markNotificationsSeen()
+  }
+
+  const unreadNotifications = notificationsPanel ? 0
+    : notifications.items.filter(item => isUnread(item, notificationsSeenAt)).length
 
   function openChat(person) {
     setChatTarget({ id: person.id, name: person.display_name || person.username })
@@ -170,10 +203,10 @@ export default function App() {
     setExploreOpen(false)
   }
 
-  function openComposer(file = null) {
+  function openComposer(files = null) {
     setActiveView('home')
     setExploreOpen(false)
-    setComposer({ file })
+    setComposer({ files })
   }
 
   if (loading) return <main className="app-container auth-page"><p role="status">Loading…</p></main>
@@ -205,14 +238,23 @@ export default function App() {
       onNavigate={setActiveView}
       onCreatePost={() => openComposer()}
       onOpenAI={() => setSummaryPost('')}
-      onOpenMessages={() => setMessagesOpen(open => !open)}
+      onOpenMessages={() => {
+        if (notificationsPanel) closeNotifications()
+        setMessagesOpen(open => !open)
+      }}
       onOpenExplore={() => setExploreOpen(true)}
+      onOpenNotifications={toggleNotifications}
     />
 
    <TopBar
+  user={user}
+  profileId={profile?.id}
+  avatarVersion={avatarVersion}
   onOpenProfile={() => openProfile()}
   onOpenExplore={() => setExploreOpen(true)}
   onCreatePost={() => openComposer()}
+  unreadNotifications={unreadNotifications}
+  onToggleNotifications={toggleNotifications}
   searchQuery={searchQuery}
   onSearchChange={setSearchQuery}
   onSearchSubmit={runSearch}
@@ -232,6 +274,7 @@ export default function App() {
       profile={profile}
       profileId={viewedProfileId}
       onProfileChange={setProfile}
+      onAvatarChange={() => setAvatarVersion(version => version + 1)}
       onMessage={openChat}
       onOpenProfile={openProfile}
       onSignOut={signOut}
@@ -252,10 +295,6 @@ export default function App() {
       composer={composer}
       onOpenComposer={openComposer}
       onCloseComposer={closeComposer}
-      people={people}
-      peopleLoading={peopleLoading}
-      peopleError={peopleError}
-      onRefreshPeople={refreshPeople}
       onOpenProfile={openProfile}
     />
   )}
@@ -288,6 +327,20 @@ export default function App() {
         people={people}
         onOpenChat={openChat}
         onClose={closeMessages}
+      />
+    )}
+
+    {notificationsPanel && (
+      <NotificationsPanel
+        user={user}
+        notifications={notifications.items}
+        loaded={notifications.loaded}
+        since={notificationsPanel.since}
+        onOpenProfile={id => {
+          closeNotifications()
+          openProfile(id)
+        }}
+        onClose={closeNotifications}
       />
     )}
 

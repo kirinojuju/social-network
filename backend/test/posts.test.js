@@ -16,13 +16,19 @@ async function withServer(pool, run) {
 test('post validation accepts text or a small image and rejects unsafe input', () => {
   assert.equal(parsePost({ content: ' Hello ' }).content, 'Hello');
   const png = Buffer.from('89504e470d0a1a0a0000', 'hex').toString('base64');
-  assert.equal(parsePost({ content: '', image: { mime_type: 'image/png', base64: png } }).image.data.length, 10);
+  const photo = { mime_type: 'image/png', base64: png };
+  assert.equal(parsePost({ content: '', image: photo }).images[0].data.length, 10);
+  assert.equal(parsePost({ content: '', images: Array(10).fill(photo) }).images.length, 10);
+  assert.deepEqual(parsePost({ content: 'Hi', images: [] }).images, []);
   for (const body of [null, {}, { content: '  ' }, { content: 'x'.repeat(10001) },
     { content: 'hi', author_id: 'someone-else' }, { content: 'hi', visibility: 'everyone' },
     { content: '', image: { mime_type: 'image/svg+xml', base64: 'AQID' } },
     { content: '', image: { mime_type: 'image/png', base64: 'bad!' } },
     { content: '', image: { mime_type: 'image/png', base64: 'AQID' } },
-    { content: '', image: { mime_type: 'image/png', base64: Buffer.alloc(2097153).toString('base64') } }]) {
+    { content: '', image: { mime_type: 'image/png', base64: Buffer.alloc(2097153).toString('base64') } },
+    { content: '', images: Array(11).fill(photo) }, { content: '', images: [] }, { content: 'Hi', images: photo },
+    { content: '', images: [photo, { mime_type: 'image/svg+xml', base64: 'AQID' }] },
+    { content: '', image: photo, images: [photo] }]) {
     assert.equal(parsePost(body), null);
   }
 });
@@ -104,7 +110,7 @@ test('image size validation accepts exactly 2 MiB and rejects a larger image wit
     Buffer.from('89504e470d0a1a0a', 'hex').copy(data);
     const result = parsePost({ content: '', image: { mime_type: 'image/png', base64: data.toString('base64') } });
     assert.equal(Boolean(result), allowed);
-    if (allowed) assert.equal(result.image.data.length, size);
+    if (allowed) assert.equal(result.images[0].data.length, size);
   }
 });
 

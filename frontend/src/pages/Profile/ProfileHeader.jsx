@@ -11,7 +11,7 @@ import EditProfileDialog from "./EditProfileDialog";
 
 import "./ProfileHeader.css";
 
-function ProfileHeader({ isOwn, user, profile, onProfileChange, onMessage, onSignOut, signOutBusy,
+function ProfileHeader({ isOwn, user, profile, onProfileChange, onAvatarChange, onMessage, onSignOut, signOutBusy,
   tabs, activeTab, onTabChange }) {
 
   const isPersonal = isOwn;
@@ -34,6 +34,7 @@ function ProfileHeader({ isOwn, user, profile, onProfileChange, onMessage, onSig
     try {
       await action();
       setVersion(version => version + 1);
+      if (setVersion === setPhotoVersion) onAvatarChange?.();
     } catch (failure) {
       setPhotoError(failure.message);
     } finally {

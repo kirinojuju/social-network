@@ -112,7 +112,41 @@
   height: 25px;
 }
 
-.top-bar-profile svg {
+.top-bar-bell {
+  position: relative;
+}
+
+.top-bar-badge {
+  position: absolute;
+  top: -7px;
+  right: -9px;
+
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+
+  display: grid;
+  place-items: center;
+
+  border: 2px solid #ffffff;
+  border-radius: 9px;
+
+  background: #e0245e;
+  color: #ffffff;
+
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+
+  box-sizing: content-box;
+}
+
+.top-bar-profile .top-bar-avatar {
   width: 48px;
   height: 48px;
+}
+
+.top-bar-profile img.top-bar-avatar {
+  border: 1.5px solid #202020;
+  box-sizing: border-box;
 }

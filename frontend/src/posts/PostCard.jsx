@@ -3,7 +3,7 @@ import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlin
 import BookmarkIcon from '@mui/icons-material/Bookmark'
 import Avatar from '../component/Avatar'
 import { createComment, deleteComment, listComments, setPostLike, setPostSaved, setPostVisibility } from './client'
-import PostImage from './PostImage'
+import PostGallery from './PostGallery'
 import { useAutoRefresh } from '../live/useAutoRefresh'
 import { mergeNewestComments } from './merge-comments'
 
@@ -88,7 +88,7 @@ export default function PostCard({ post, user, onChange, onBusyChange, refreshin
       </select> : <span className="post-visibility">All members</span>}
     </div>
     {post.content && <p className="post-text">{post.content}</p>}
-    {post.image_id && <PostImage user={user} id={post.image_id} />}
+    <PostGallery user={user} post={post} />
     <div className="post-actions">
       <button className={`post-action-button${post.liked ? ' is-liked' : ''}`} type="button"
         aria-pressed={post.liked} disabled={busy || loading || refreshing} onClick={() => mutate(async () =>

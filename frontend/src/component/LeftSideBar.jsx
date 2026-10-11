@@ -7,8 +7,6 @@ import SentimentSatisfiedOutlinedIcon from "@mui/icons-material/SentimentSatisfi
 
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlined";
-import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
-
 import "./LeftSideBar.css";
 
 const mainMenu = [
@@ -44,10 +42,6 @@ const moreMenu = [
     name: "Saved",
     icon: BookmarkBorderOutlinedIcon,
   },
-  {
-    name: "Setting",
-    icon: SettingsOutlinedIcon,
-  },
 ];
 
 function LeftSidebar({
@@ -57,6 +51,7 @@ function LeftSidebar({
   onOpenAI,
   onOpenMessages,
   onOpenExplore,
+  onOpenNotifications,
 }) {
   const actions = {
   Home: () => onNavigate('home'),
@@ -65,6 +60,7 @@ function LeftSidebar({
   UniAI: onOpenAI,
   'Create Post': onCreatePost,
   Saved: () => onNavigate('saved'),
+  Notifications: onOpenNotifications,
 };
 
   return (
@@ -108,6 +104,7 @@ function LeftSidebar({
           return (
             <button type="button" className="sidebar-item" key={item.name}
               disabled={!actions[item.name]} onClick={actions[item.name]}
+              data-notifications-toggle={item.name === "Notifications" || undefined}
               aria-current={item.name.toLowerCase() === activeView ? 'page' : undefined}>
               <Icon className="sidebar-icon" />
               <span>{item.name}</span>

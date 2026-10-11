@@ -4,13 +4,17 @@ const { createAuthMiddleware } = require('../middleware/auth');
 
 const allowedImages = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const maxImageBytes = 2 * 1024 * 1024;
+const maxPostImages = 10;
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // All reads and mutations use the verified Firebase identity, never an author ID from the client.
 const postSelection = `SELECT p.id, p.content, p.visibility, p.created_at,
   u.id AS author_id, u.username AS author_username, u.display_name AS author_name,
   (u.firebase_uid = $1) AS is_own,
-  (SELECT m.id FROM public.media m WHERE m.post_id = p.id AND m.image_data IS NOT NULL LIMIT 1) AS image_id,
+  (SELECT m.id FROM public.media m WHERE m.post_id = p.id AND m.image_data IS NOT NULL
+    ORDER BY m.position, m.created_at, m.id LIMIT 1) AS image_id,
+  ARRAY(SELECT m.id::text FROM public.media m WHERE m.post_id = p.id AND m.image_data IS NOT NULL
+    ORDER BY m.position, m.created_at, m.id) AS image_ids,
   (SELECT count(*)::int FROM public.post_likes l WHERE l.post_id = p.id) AS like_count,
   (SELECT count(*)::int FROM public.post_comments c WHERE c.post_id = p.id) AS comment_count,
   EXISTS (SELECT FROM public.post_likes l JOIN public.users viewer ON viewer.id = l.user_id
@@ -54,17 +58,18 @@ function parseImage(image) {
 
 function parsePost(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body) ||
-      Object.keys(body).some(key => !['content', 'visibility', 'image'].includes(key))) return null;
+      Object.keys(body).some(key => !['content', 'visibility', 'image', 'images'].includes(key))) return null;
   if (typeof body.content !== 'string' || body.content.length > 10000 || body.content.includes('\0')) return null;
   const visibility = body.visibility ?? 'private';
   if (!['public', 'private'].includes(visibility)) return null;
-  let image = null;
-  if (body.image != null) {
-    image = parseImage(body.image);
-    if (!image) return null;
-  }
-  if (!body.content.trim() && !image) return null;
-  return { content: body.content.trim(), visibility, image };
+  // `image` is the older single-photo form; a post sends one form or the other.
+  if (body.image != null && body.images != null) return null;
+  const raw = body.images ?? (body.image != null ? [body.image] : []);
+  if (!Array.isArray(raw) || raw.length > maxPostImages) return null;
+  const images = raw.map(parseImage);
+  if (images.some(image => !image)) return null;
+  if (!body.content.trim() && !images.length) return null;
+  return { content: body.content.trim(), visibility, images };
 }
 
 function createPostsRouter(pool, verifyToken) {
@@ -106,27 +111,28 @@ function createPostsRouter(pool, verifyToken) {
   router.post('/', async (req, res, next) => {
     const post = parsePost(req.body);
     if (!post) return res.status(400).json({ error: 'Invalid post' });
-    const imageId = post.image ? randomUUID() : null;
     try {
       const result = await pool.query(`
         WITH new_post AS (
           INSERT INTO public.posts (author_id, content, visibility)
           SELECT id, $2, $3 FROM public.users WHERE firebase_uid = $1
           RETURNING id, author_id, content, visibility, created_at
-        ), new_image AS (
-          INSERT INTO public.media (id, post_id, owner_id, storage_path, media_type, mime_type, file_size, image_data)
-          SELECT $4::uuid, p.id, u.id, $5, 'image', $6, $7, $8
-          FROM new_post p JOIN public.users u ON u.firebase_uid = $1
-          WHERE $4::uuid IS NOT NULL
-          RETURNING id
+        ), new_images AS (
+          INSERT INTO public.media (id, post_id, owner_id, storage_path, media_type, mime_type, file_size,
+            image_data, position)
+          SELECT img.id, p.id, p.author_id, 'database/' || img.id::text, 'image', img.mime_type,
+            octet_length(img.data), img.data, (img.n - 1)::smallint
+          FROM new_post p
+          CROSS JOIN unnest($4::uuid[], $5::text[], $6::bytea[]) WITH ORDINALITY AS img(id, mime_type, data, n)
+          RETURNING id, position
         )
-        SELECT p.*, (SELECT id FROM new_image) AS image_id, u.display_name AS author_name,
-          u.username AS author_username, true AS is_own, false AS liked, false AS saved,
-          0 AS like_count, 0 AS comment_count
+        SELECT p.*, (SELECT id FROM new_images ORDER BY position LIMIT 1) AS image_id,
+          ARRAY(SELECT id::text FROM new_images ORDER BY position) AS image_ids,
+          u.display_name AS author_name, u.username AS author_username,
+          true AS is_own, false AS liked, false AS saved, 0 AS like_count, 0 AS comment_count
         FROM new_post p JOIN public.users u ON u.id = p.author_id`,
-      [req.auth.uid, post.content, post.visibility, imageId,
-        imageId ? `database/${imageId}` : null, post.image?.mime_type ?? null,
-        post.image?.data.length ?? null, post.image?.data ?? null]);
+      [req.auth.uid, post.content, post.visibility, post.images.map(() => randomUUID()),
+        post.images.map(image => image.mime_type), post.images.map(image => image.data)]);
       if (!result.rows.length) return res.status(409).json({ error: 'Complete your profile first' });
       res.status(201).json({ post: result.rows[0] });
     } catch (error) { next(error); }

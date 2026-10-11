@@ -10,11 +10,11 @@ function ProfileMedia({ user, media, onOpenPhoto }) {
       {!media.loading && !media.error && media.photos.length === 0 && <p className="profile-media-empty">No photos yet.</p>}
       {!media.loading && media.photos.length > 0 && (
         <div className="profile-media-grid">
-          {media.photos.map(post => (
-            <button type="button" key={post.image_id} className="profile-media-item"
-              aria-label={post.content ? `Open photo: ${post.content.slice(0, 60)}` : "Open photo"}
-              onClick={() => onOpenPhoto(post)}>
-              <PostImage user={user} id={post.image_id} className="profile-media-thumb" alt="" />
+          {media.photos.map((photo, index) => (
+            <button type="button" key={photo.id} className="profile-media-item"
+              aria-label={photo.caption ? `Open photo: ${photo.caption.slice(0, 60)}` : "Open photo"}
+              onClick={() => onOpenPhoto(index)}>
+              <PostImage user={user} id={photo.id} className="profile-media-thumb" alt="" />
             </button>
           ))}
         </div>

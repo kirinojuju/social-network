@@ -19,9 +19,9 @@ async function backendRequest(user, path, options = {}) {
   if (!response.ok) {
     if (response.status === 401) throw new Error('Your session expired. Sign out and sign in again.')
     if (response.status === 404) throw new Error('This post or comment is no longer available to you. Refresh the feed.')
-    if (response.status === 413) throw new Error('This photo is too large. Choose a smaller image.')
+    if (response.status === 413) throw new Error('These photos are too large together. Remove some and try again.')
     if (response.status === 400 && options.method === 'POST' && path === '') {
-      throw new Error('This photo could not be uploaded. Try a JPEG or PNG image.')
+      throw new Error('A photo could not be uploaded. Try JPEG or PNG images, up to 10 per post.')
     }
     if (response.status === 409) throw new Error('Complete your profile before posting.')
     throw new Error(`The post request failed (error ${response.status}). Please try again.`)

@@ -4,13 +4,14 @@ import ProfileFriends from "./ProfileFriend";
 import ProfilePhotos from "./ProfilePhoto";
 import PostList from "../../posts/PostList";
 import ProfileMedia from "./ProfileMedia";
-import PhotoViewer from "./PhotoViewer";
+import PhotoViewer from "../../posts/PhotoViewer";
 import { useProfilePhotos } from "./useProfilePhotos";
 import { profileClient } from "../../auth/profile";
 
 import "./Profile.css";
 
-function Profile({ user, profile: ownProfile, profileId, onProfileChange, onMessage, onOpenProfile, onSignOut, signOutBusy }) {
+function Profile({ user, profile: ownProfile, profileId, onProfileChange, onAvatarChange, onMessage, onOpenProfile,
+  onSignOut, signOutBusy }) {
   const isOwn = !profileId || profileId === ownProfile?.id;
   const [other, setOther] = useState({ id: null, profile: null });
 
@@ -24,8 +25,8 @@ function Profile({ user, profile: ownProfile, profileId, onProfileChange, onMess
   }, [user, profileId, isOwn]);
 
   const [selectedTab, setSelectedTab] = useState({ id: null, tab: "All" });
-  const [viewing, setViewing] = useState({ id: null, post: null });
-  const closeViewer = useCallback(() => setViewing({ id: null, post: null }), []);
+  const [viewing, setViewing] = useState({ id: null, index: null });
+  const closeViewer = useCallback(() => setViewing({ id: null, index: null }), []);
 
   const loaded = isOwn || other.id === profileId;
   const profile = isOwn ? ownProfile : loaded ? other.profile : null;
@@ -37,7 +38,7 @@ function Profile({ user, profile: ownProfile, profileId, onProfileChange, onMess
   // Saved posts are private, so the Saved tab exists only on your own profile.
   const tabs = isOwn ? ["All", "Saved", "Media"] : ["All", "Media"];
   const activeTab = selectedTab.id === profile.id && tabs.includes(selectedTab.tab) ? selectedTab.tab : "All";
-  const openPhoto = post => setViewing({ id: profile.id, post });
+  const openPhoto = index => setViewing({ id: profile.id, index });
 
   return (
     <div className="profile-page">
@@ -46,6 +47,7 @@ function Profile({ user, profile: ownProfile, profileId, onProfileChange, onMess
 
       {/* TOP PROFILE */}
       <ProfileHeader key={profile.id} isOwn={isOwn} user={user} profile={profile} onProfileChange={onProfileChange}
+        onAvatarChange={onAvatarChange}
         onMessage={onMessage} onSignOut={onSignOut} signOutBusy={signOutBusy}
         tabs={tabs} activeTab={activeTab} onTabChange={tab => setSelectedTab({ id: profile.id, tab })} />
 
@@ -77,8 +79,8 @@ function Profile({ user, profile: ownProfile, profileId, onProfileChange, onMess
 
       </div>
 
-      {viewing.post && viewing.id === profile.id && (
-        <PhotoViewer user={user} post={viewing.post} onClose={closeViewer} />
+      {viewing.index !== null && viewing.id === profile.id && media.photos.length > 0 && (
+        <PhotoViewer user={user} photos={media.photos} startIndex={viewing.index} onClose={closeViewer} />
       )}
 
     </div>
