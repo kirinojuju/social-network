@@ -113,23 +113,37 @@ export function createProfileClient({ baseUrl = defaultBaseUrl, fetchImpl = fetc
       const data = await response.json()
       return Array.isArray(data?.users) ? data.users : []
     },
+    async listFriends(user, id, { signal } = {}) {
+      const headers = await authHeaders(user)
+      let response
+      try {
+        response = await fetchImpl(`${root}/api/users/${encodeURIComponent(id)}/friends`,
+          { headers, signal, cache: 'no-store' })
+      } catch (failure) {
+        if (failure.name === 'AbortError') throw failure
+        throw new ProfileApiError('Cannot reach the profile server. Check that the backend is running.')
+      }
+      if (!response.ok) throw new ProfileApiError('Could not load friends.', response.status)
+      const data = await response.json()
+      return { friends: Array.isArray(data?.friends) ? data.friends : [], total: Number(data?.total) || 0 }
+    },
     async getFollow(user, id, { signal } = {}) {
       return followRequest(user, id, 'GET', signal)
     },
     async setFollow(user, id, following) {
       return followRequest(user, id, following ? 'PUT' : 'DELETE')
     },
-    async loadAvatar(user, id, { signal } = {}) {
+    async loadAvatar(user, id, { signal, kind = 'avatar' } = {}) {
       const headers = await authHeaders(user)
-      const response = await fetchImpl(`${root}/api/users/${encodeURIComponent(id)}/avatar`,
+      const response = await fetchImpl(`${root}/api/users/${encodeURIComponent(id)}/${kind}`,
         { headers, signal, cache: 'no-store' })
       return response.ok ? response.blob() : null
     },
-    async saveAvatar(user, image) {
-      await avatarRequest(user, 'PUT', { image })
+    async saveAvatar(user, image, kind = 'avatar') {
+      await avatarRequest(user, 'PUT', { image }, kind)
     },
-    async removeAvatar(user) {
-      await avatarRequest(user, 'DELETE')
+    async removeAvatar(user, kind = 'avatar') {
+      await avatarRequest(user, 'DELETE', undefined, kind)
     },
   }
 
@@ -151,11 +165,11 @@ export function createProfileClient({ baseUrl = defaultBaseUrl, fetchImpl = fetc
     return data.follow
   }
 
-  async function avatarRequest(user, method, body) {
+  async function avatarRequest(user, method, body, kind) {
     const headers = await authHeaders(user)
     let response
     try {
-      response = await fetchImpl(`${root}/api/users/me/avatar`, {
+      response = await fetchImpl(`${root}/api/users/me/${kind}`, {
         method,
         headers: { ...headers, ...(body ? { 'Content-Type': 'application/json' } : {}) },
         ...(body ? { body: JSON.stringify(body) } : {}),
@@ -164,7 +178,8 @@ export function createProfileClient({ baseUrl = defaultBaseUrl, fetchImpl = fetc
       throw new ProfileApiError('Cannot reach the profile server. Check that the backend is running.')
     }
     if (!response.ok) {
-      throw new ProfileApiError('Could not update your profile photo. Please try again.', response.status)
+      throw new ProfileApiError(`Could not update your ${kind === 'cover' ? 'cover' : 'profile'} photo. Please try again.`,
+        response.status)
     }
   }
 }

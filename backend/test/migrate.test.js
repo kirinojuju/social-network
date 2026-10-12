@@ -18,10 +18,11 @@ function database({ fail = false, history = [] } = {}) {
 
 test('migration runner applies ordered files, records checksums, and skips unchanged history', async () => {
   const client = database();
-  assert.equal(await migrate(client), 9);
+  assert.equal(await migrate(client), 12);
   assert.deepEqual(client.history.map(row => row.name),
     ['001_faculties_majors.sql', '002_users.sql', '003_posts.sql', '004_media.sql', '005_post_images.sql',
-      '006_post_interactions.sql', '007_user_avatars.sql', '008_follows.sql', '009_messages.sql']);
+      '006_post_interactions.sql', '007_user_avatars.sql', '008_follows.sql', '009_messages.sql',
+      '010_user_covers.sql', '011_saved_posts.sql', '012_media_position.sql']);
   assert.ok(client.history.every(row => /^[a-f0-9]{64}$/.test(row.checksum)));
   assert.equal(await migrate(client), 0);
 });

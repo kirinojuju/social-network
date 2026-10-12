@@ -1,4 +1,4 @@
-// Mirrors database/migrations/001 through 009. SQL migrations remain authoritative.
+// Mirrors database/migrations/001 through 012. SQL migrations remain authoritative.
 // Do not use Prisma Migrate or db push for this shared schema.
 generator client {
   provider        = "prisma-client-js"
@@ -40,11 +40,13 @@ model media {
   file_size    BigInt
   created_at   DateTime @default(now()) @db.Timestamptz(6)
   image_data   Bytes?
+  position     Int      @default(0) @db.SmallInt
   users        users    @relation(fields: [owner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   posts        posts    @relation(fields: [post_id, owner_id], references: [id, author_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([owner_id], map: "media_owner_idx")
   @@index([post_id], map: "media_post_idx")
+  @@index([post_id, position], map: "media_post_position_idx")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -59,6 +61,7 @@ model posts {
   media      media[]
   post_likes post_likes[]
   post_comments post_comments[]
+  saved_posts saved_posts[]
   users      users    @relation(fields: [author_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([id, author_id])
@@ -99,6 +102,26 @@ model user_avatars {
   image_data Bytes
   updated_at DateTime @default(now()) @db.Timestamptz(6)
   users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// SQL migration enforces the allowed image types and the 2 MB size limit.
+model user_covers {
+  user_id    String   @id @db.Uuid
+  mime_type  String
+  image_data Bytes
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model saved_posts {
+  user_id    String   @db.Uuid
+  post_id    String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  posts      posts    @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([user_id, post_id])
+  @@index([post_id], map: "saved_posts_post_idx")
 }
 
 /// SQL migration prevents members from following themselves.
@@ -157,6 +180,8 @@ model users {
   post_likes   post_likes[]
   post_comments post_comments[]
   user_avatars user_avatars?
+  user_covers  user_covers?
+  saved_posts  saved_posts[]
   following    follows[]  @relation("follower")
   followers    follows[]  @relation("followee")
   sent_messages     messages[] @relation("sent_messages")

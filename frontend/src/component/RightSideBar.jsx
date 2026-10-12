@@ -4,12 +4,6 @@ import { useAvatar } from "../pages/Profile/useAvatar";
 import { useFollow } from "../pages/Profile/useFollow";
 import "./RightSideBar.css";
 
-const recommendedGroups = [
-  { id: 1, name: "Group_Name", members: "2.3k members" },
-  { id: 2, name: "Group_Name", members: "2.3k members" },
-  { id: 3, name: "Group_Name", members: "2.3k members" },
-];
-
 function SuggestedPerson({ user, person, onOpenProfile }) {
   const photoUrl = useAvatar(user, person.id, 0);
   const follow = useFollow(user, person.id);
@@ -40,11 +34,7 @@ function SuggestedPerson({ user, person, onOpenProfile }) {
 
 function RightSideBar({ user, people = [], loading, onOpenProfile }) {
   const [showAllPeople, setShowAllPeople] = useState(false);
-  const [joined, setJoined] = useState([]);
   const visiblePeople = showAllPeople ? people : people.slice(0, 3);
-
-  const toggleJoined = (id) =>
-    setJoined(joined.includes(id) ? joined.filter((x) => x !== id) : [...joined, id]);
 
   return (
     <aside className="right-sidebar">
@@ -60,27 +50,6 @@ function RightSideBar({ user, people = [], loading, onOpenProfile }) {
             {showAllPeople ? "Show less" : "Show more..."}
           </button>
         )}
-      </section>
-
-      <section className="rs-section">
-        <h2 className="rs-title">Recommended</h2>
-        {recommendedGroups.map((g) => (
-          <div className="rs-item" key={g.id}>
-            <AccountCircleOutlinedIcon className="rs-avatar" />
-            <div className="rs-info">
-              <span className="rs-name">{g.name}</span>
-              <span className="rs-sub">{g.members}</span>
-            </div>
-            <button
-              type="button"
-              className={`rs-btn ${joined.includes(g.id) ? "active" : ""}`}
-              onClick={() => toggleJoined(g.id)}
-            >
-              {joined.includes(g.id) ? "Joined" : "Join"}
-            </button>
-          </div>
-        ))}
-        <button type="button" className="rs-more">Show more...</button>
       </section>
     </aside>
   );

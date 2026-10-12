@@ -1,0 +1,36 @@
+.post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.post-list h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #1a1a1a;
+}
+
+.post-list .sample-post {
+  margin-top: 0;
+  padding: 22px 26px;
+}
+
+.post-list-empty {
+  margin: 0;
+  padding: 28px;
+  border: 1px solid #e3e0ea;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #666174;
+  text-align: center;
+}
+
+.saved-page {
+  flex: 1;
+  min-height: 100vh;
+}
+
+.saved-page .post-list {
+  width: min(900px, calc(100% - 48px));
+  margin: 20px auto 80px;
+}

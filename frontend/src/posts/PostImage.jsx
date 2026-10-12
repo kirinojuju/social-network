@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { loadPostImage } from './client'
 
-export default function PostImage({ user, id }) {
+export default function PostImage({ user, id, className = 'post-image', alt = 'Post attachment' }) {
   const [url, setUrl] = useState(null)
   useEffect(() => {
     let active = true
@@ -13,5 +13,5 @@ export default function PostImage({ user, id }) {
     }).catch(() => {})
     return () => { active = false; if (objectUrl) URL.revokeObjectURL(objectUrl) }
   }, [user, id])
-  return url ? <img className="post-image" src={url} alt="Post attachment" /> : null
+  return url ? <img className={className} src={url} alt={alt} /> : null
 }

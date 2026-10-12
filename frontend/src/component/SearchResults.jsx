@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { search } from '../search/client'
+import Avatar from './Avatar'
 import './MiddlePage.css'
 import './SearchResults.css'
 
@@ -64,7 +65,9 @@ export default function SearchResults({ user, query, onOpenProfile }) {
             {results.posts.map(post => (
               <article className="sample-post" key={post.id} aria-label={`Post by ${post.author_name}`}>
                 <div className="post-header">
-                  <div className="avatar" aria-hidden="true">👤</div>
+                  <span className="avatar" aria-hidden="true">
+                    <Avatar user={user} userId={post.author_id} className="avatar-fill" />
+                  </span>
                   <div>
                     <button type="button" className="author-link"
                       onClick={() => onOpenProfile(post.is_own ? null : post.author_id)}>

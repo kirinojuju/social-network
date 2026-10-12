@@ -17,30 +17,37 @@
 ======================================== */
 
 .profile-cover {
-  height: 140px;
+  height: 200px;
   position: relative;
+  overflow: hidden;
   background: #eeeeee;
   border: 1px solid #cfcfcf;
   box-sizing: border-box;
 }
 
+.profile-cover-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .cover-placeholder {
   width: 100%;
   height: 100%;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  color: #aaaaaa;
-  font-size: 42px;
+  background: linear-gradient(135deg, #e7e2fa, #f6f4fc 55%, #dcd6f5);
 }
 
-.change-cover-button {
+.cover-actions {
   position: absolute;
   right: 18px;
   bottom: 16px;
 
+  display: flex;
+  gap: 8px;
+}
+
+.change-cover-button {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -48,13 +55,24 @@
   border: none;
   border-radius: 8px;
 
-  padding: 6px 12px;
+  padding: 7px 12px;
 
-  background: #aaaaaa;
-  color: white;
+  background: rgba(255, 255, 255, 0.92);
+  color: #29263a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
 
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
+}
+
+.change-cover-button:hover:not(:disabled) {
+  background: #ffffff;
+}
+
+.change-cover-button:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .change-cover-button svg {
