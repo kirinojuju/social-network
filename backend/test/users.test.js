@@ -131,6 +131,124 @@ test('malformed JSON and oversized bodies return safe errors', async () => {
 });
 
 
+const png = Buffer.from('89504e470d0a1a0a0000000d49484452', 'hex');
+
+for (const [kind, table] of [['avatar', 'user_avatars'], ['cover', 'user_covers']]) {
+test(`${kind} upload validates the image and stores it only for the verified user`, async () => {
+  const send = (root, method, body, headers = { Authorization: 'Bearer test-token' }) => fetch(`${root}/me/${kind}`, {
+    method, headers: { 'Content-Type': 'application/json', ...headers }, ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+  await withServer(async (request, root) => {
+    assert.equal((await send(root, 'PUT', { image: { mime_type: 'image/png', base64: png.toString('base64') } }, {})).status, 401);
+    for (const body of [{}, { image: null }, { image: { mime_type: 'image/svg+xml', base64: png.toString('base64') } },
+      { image: { mime_type: 'image/jpeg', base64: png.toString('base64') } },
+      { image: { mime_type: 'image/png', base64: png.toString('base64') }, user_id: 'victim' }]) {
+      assert.equal((await send(root, 'PUT', body)).status, 400);
+    }
+  }, () => assert.fail('invalid photo reached database'));
+
+  await withServer(async (request, root) => {
+    const res = await send(root, 'PUT', { image: { mime_type: 'image/png', base64: png.toString('base64') } });
+    assert.equal(res.status, 200);
+    assert.equal((await send(root, 'DELETE')).status, 204);
+  }, async (sql, values) => {
+    assert.equal(values[0], claims.uid);
+    assert.match(sql, new RegExp(`public\\.${table}\\b`));
+    if (sql.includes('INSERT')) {
+      assert.match(sql, /WHERE firebase_uid = \$1/);
+      assert.equal(values[1], 'image/png');
+      assert.ok(png.equals(values[2]));
+    } else assert.match(sql, /u\.firebase_uid = \$1/);
+    return { rows: [{ user_id: 'own-id', updated_at: 'now' }] };
+  });
+});
+
+test(`${kind} images are served as images and missing ones return 404`, async () => {
+  const id = '00000000-0000-4000-8000-000000000001';
+  for (const rows of [[{ mime_type: 'image/png', image_data: png }], []]) {
+    await withServer(async (request, root) => {
+      assert.equal((await fetch(`${root}/not-a-uuid/${kind}`, { headers: { Authorization: 'Bearer t' } })).status, 404);
+      const res = await fetch(`${root}/${id}/${kind}`, { headers: { Authorization: 'Bearer t' } });
+      assert.equal(res.status, rows.length ? 200 : 404);
+      if (rows.length) {
+        assert.equal(res.headers.get('content-type'), 'image/png');
+        assert.equal(res.headers.get('x-content-type-options'), 'nosniff');
+        assert.ok(png.equals(Buffer.from(await res.arrayBuffer())));
+      }
+    }, async (sql, values) => {
+      assert.match(sql, new RegExp(`public\\.${table}\\b`));
+      assert.deepEqual(values, [id]);
+      return { rows };
+    });
+  }
+});
+}
+
+test('another member profile returns only public fields and 404 when missing', async () => {
+  const id = '00000000-0000-4000-8000-000000000002';
+  for (const rows of [[{ id, username: 'other_user', display_name: 'Other', is_self: false }], []]) {
+    await withServer(async (request, root) => {
+      assert.equal((await fetch(`${root}/${id}`)).status, 401);
+      assert.equal((await request('/not-a-uuid')).status, 404);
+      const res = await request(`/${id}`);
+      assert.equal(res.status, rows.length ? 200 : 404);
+      if (rows.length) assert.deepEqual(await res.json(), { user: rows[0] });
+    }, async (sql, values) => {
+      const selected = sql.match(/SELECT\s+([\s\S]+?)\s+FROM/i)[1];
+      assert.doesNotMatch(selected, /\bemail\b|\*|(^|,)\s*firebase_uid\s*(,|$)/i);
+      assert.deepEqual(values, [claims.uid, id]);
+      return { rows };
+    });
+  }
+});
+
+test('follow and unfollow act as the verified user and reject following yourself', async () => {
+  const id = '00000000-0000-4000-8000-000000000003';
+  const summary = { following: true, followers: 1, following_count: 0 };
+  const send = (root, method) => fetch(`${root}/${id}/follow`, { method, headers: { Authorization: 'Bearer t' } });
+  for (const method of ['PUT', 'DELETE']) {
+    const mutations = [];
+    await withServer(async (request, root) => {
+      const res = await send(root, method);
+      assert.equal(res.status, 200);
+      assert.deepEqual(await res.json(), { follow: summary });
+    }, async (sql, values) => {
+      if (/is_self/.test(sql)) return { rows: [{ is_self: false, viewer_id: 'viewer-id' }] };
+      if (/INSERT|DELETE/.test(sql)) { mutations.push(sql); assert.deepEqual(values, ['viewer-id', id]); return { rows: [] }; }
+      assert.deepEqual(values, [claims.uid, id]);
+      return { rows: [summary] };
+    });
+    assert.equal(mutations.length, 1);
+    assert.match(mutations[0], method === 'PUT' ? /INSERT INTO public\.follows/ : /DELETE FROM public\.follows/);
+  }
+  await withServer(async (request, root) => {
+    const res = await send(root, 'PUT');
+    assert.equal(res.status, 400);
+  }, async (sql) => {
+    assert.doesNotMatch(sql, /INSERT|DELETE/);
+    return { rows: [{ is_self: true, viewer_id: 'viewer-id' }] };
+  });
+});
+
+test('friends are mutual follows of the requested profile', async () => {
+  const id = '00000000-0000-4000-8000-000000000003';
+  const friend = { id: '00000000-0000-4000-8000-000000000004', username: 'friend', display_name: 'Friend' };
+  await withServer(async request => {
+    assert.equal((await request(`/${id}/friends`, undefined, {})).status, 401);
+    assert.equal((await request('/not-a-uuid/friends')).status, 404);
+    const res = await request(`/${id}/friends`);
+    assert.equal(res.status, 200);
+    assert.deepEqual(await res.json(), { friends: [friend], total: 3 });
+  }, async (sql, values) => {
+    assert.match(sql, /incoming\.follower_id = outgoing\.followee_id AND incoming\.followee_id = outgoing\.follower_id/);
+    assert.deepEqual(values, [id]);
+    return { rows: [{ ...friend, total: 3 }] };
+  });
+  await withServer(async request => {
+    assert.deepEqual(await (await request(`/${id}/friends`)).json(), { friends: [], total: 0 });
+  });
+});
+
 test('people directory requires authentication and returns only public profile fields', async () => {
   const publicProfile = { id: 'other-user', username: 'other_user', display_name: 'Other User',
     bio: null, avatar_url: null, faculty_id: null, major_id: null };

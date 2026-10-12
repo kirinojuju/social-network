@@ -14,8 +14,15 @@
   box-sizing: border-box;
 }
 
+.profile-friends-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
 .profile-friends h2 {
-  margin: 0 0 18px;
+  margin: 0;
 
   font-size: 17px;
   font-weight: 600;
@@ -23,10 +30,28 @@
   color: #1a1a1a;
 }
 
+.profile-friends-count {
+  font-size: 13px;
+  color: #666174;
+}
+
+.profile-friends-note {
+  margin: 0;
+  color: #666174;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 
 /* ========================================
    FRIEND
 ======================================== */
+
+.friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
 
 .friend-item {
   display: flex;
@@ -35,12 +60,24 @@
 
   gap: 9px;
 
-  margin-bottom: 14px;
+  width: 100%;
+  padding: 6px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.friend-item:hover {
+  background: #f4f2fa;
 }
 
 .friend-avatar {
   width: 39px !important;
   height: 39px !important;
+  font-size: 39px !important;
 
   color: #222222;
 
@@ -69,10 +106,31 @@
   text-overflow: ellipsis;
 }
 
-.friend-faculty {
+.friend-username {
   margin-top: 2px;
 
   font-size: 11px;
 
-  color: #555555;
+  color: #666174;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+.profile-friends-all {
+  margin-top: 8px;
+  padding: 0 6px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: #5b50b5;
+  cursor: pointer;
+}
+
+.profile-friends-all:hover {
+  text-decoration: underline;
 }

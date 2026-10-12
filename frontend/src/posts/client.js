@@ -19,7 +19,12 @@ async function backendRequest(user, path, options = {}) {
   if (!response.ok) {
     if (response.status === 401) throw new Error('Your session expired. Sign out and sign in again.')
     if (response.status === 404) throw new Error('This post or comment is no longer available to you. Refresh the feed.')
-    throw new Error('The post request failed. Please try again.')
+    if (response.status === 413) throw new Error('These photos are too large together. Remove some and try again.')
+    if (response.status === 400 && options.method === 'POST' && path === '') {
+      throw new Error('A photo could not be uploaded. Try JPEG or PNG images, up to 10 per post.')
+    }
+    if (response.status === 409) throw new Error('Complete your profile before posting.')
+    throw new Error(`The post request failed (error ${response.status}). Please try again.`)
   }
   return response
 }
@@ -28,8 +33,11 @@ const json = async (user, path, method, body) => (await backendRequest(user, pat
   method, ...(body ? { body: JSON.stringify(body) } : {}),
 })).json()
 
-export const listPosts = async (user, { signal } = {}) =>
-  (await (await backendRequest(user, '?scope=feed', { signal })).json()).posts
+export const listPosts = async (user, { signal, author, scope = 'feed' } = {}) =>
+  (await (await backendRequest(user, author ? `?author=${encodeURIComponent(author)}` : `?scope=${scope}`,
+    { signal })).json()).posts
+export const setPostSaved = async (user, id, saved) =>
+  (await json(user, `/${encodeURIComponent(id)}/save`, saved ? 'PUT' : 'DELETE')).post
 export const createPost = async (user, values) => (await json(user, '', 'POST', values)).post
 export const setPostLike = async (user, id, liked) =>
   (await json(user, `/${encodeURIComponent(id)}/like`, liked ? 'PUT' : 'DELETE')).post

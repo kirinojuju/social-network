@@ -114,12 +114,10 @@ request system, notifications or automatic migration of all users is included.
 The new post card no longer includes the integration's Summarise preview
 button. Teammate-owned Chatbox, Explore, RightSideBar and profile layouts
 remain intact; the teammate's UniAI chat is now integrated as described in
-`docs/uniai-setup.md`. In particular, the Sidebar's `User_Name` /
-`Group_Name` examples and Chatbox's local message state are teammate scaffolds;
-they are not real follows, groups or saved chat conversations. The new Members
-section does not implement following or chat. A future chat API must persist
-messages, authorize conversation participants and deliver updates to the other
-participant; polling the feed does not provide those capabilities.
+`docs/uniai-setup.md`. Following (`database/migrations/008_follows.sql`) and
+direct messages (`009_messages.sql`) are now real and stored in PostgreSQL; the
+chat polls for new messages rather than pushing them. Groups are not part of the
+project. The profile page's Friends and Photos panels are still layout previews.
 
 ## Deployment order
 

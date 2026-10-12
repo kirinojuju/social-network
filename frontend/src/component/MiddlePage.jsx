@@ -1,31 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
-import PhotoCameraOutlinedIcon from '@mui/icons-material/PhotoCameraOutlined'
-import { createPost, listPosts } from '../posts/client'
+import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined'
+import { listPosts } from '../posts/client'
 import PostCard from '../posts/PostCard'
-import MemberDirectory from './MemberDirectory'
+import { applyPostUpdate } from '../posts/apply-update'
+import CreatePostDialog from '../posts/CreatePostDialog'
+import Avatar from './Avatar'
 import { useAutoRefresh } from '../live/useAutoRefresh'
 import './MiddlePage.css'
 
-const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-
-function readImage(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onerror = () => reject(new Error('Could not read this image.'))
-    reader.onload = () => resolve({ mime_type: file.type, base64: String(reader.result).split(',')[1] })
-    reader.readAsDataURL(file)
-  })
-}
-
-export default function MiddlePage({ user, people, peopleLoading, peopleError, onRefreshPeople }) {
+export default function MiddlePage({ user, profile, composer, onOpenComposer, onCloseComposer, onOpenProfile }) {
   const [posts, setPosts] = useState([])
-  const [content, setContent] = useState('')
-  const [file, setFile] = useState(null)
-  const [visibility, setVisibility] = useState('public')
-  const [revision, setRevision] = useState(0)
-  const [busy, setBusy] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
   const [feedError, setFeedError] = useState('')
   const fileInput = useRef(null)
   const feedVersion = useRef(0)
@@ -44,7 +29,7 @@ export default function MiddlePage({ user, people, peopleLoading, peopleError, o
   }, [user])
 
   useAutoRefresh(async signal => {
-    if (busy || loading || mutations.current.size) return
+    if (loading || mutations.current.size) return
     const version = feedVersion.current
     const items = await listPosts(user, { signal })
     if (!signal.aborted && version === feedVersion.current && !mutations.current.size) {
@@ -53,81 +38,46 @@ export default function MiddlePage({ user, people, peopleLoading, peopleError, o
     }
   }, 10000)
 
-  async function submit(event) {
-    event.preventDefault()
-    if (busy || (!content.trim() && !file)) return
-    setError('')
-    if (file && (!allowedTypes.includes(file.type) || file.size > 2 * 1024 * 1024)) {
-      setError('Choose a JPEG, PNG, WebP, or GIF image up to 2 MB.')
-      return
-    }
-    setBusy(true)
+  function addCreatedPost(post) {
     feedVersion.current++
-    try {
-      const image = file ? await readImage(file) : null
-      const post = await createPost(user, { content, visibility, image })
-      feedVersion.current++
-      setPosts(items => [post, ...items])
-      setContent('')
-      setFile(null)
-      if (fileInput.current) fileInput.current.value = ''
-    } catch (failure) {
-      setError(failure.message)
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  async function refresh() {
-    if (busy || loading || mutations.current.size) return
-    setLoading(true)
-    setFeedError('')
-
-    try {
-      setPosts(await listPosts(user))
-      setRevision(value => value + 1)
-    } catch (failure) { setFeedError(failure.message) }
-    finally { setLoading(false) }
+    setPosts(items => [post, ...items.filter(item => item.id !== post.id)])
+    onCloseComposer()
   }
 
   return (
     <main className="middle-page">
 
       <section className="feed-content">
-        <form className="create-post-card" onSubmit={submit}>
+        <section className="create-post-card" aria-label="Create a post">
           <div className="create-post-top">
-            <div className="avatar" aria-hidden="true">👤</div>
-            <textarea id="post-content" value={content} maxLength={10000} rows={3}
-              onChange={event => setContent(event.target.value)} placeholder="Create a post..." />
+            <Avatar user={user} userId={profile?.id} className="create-post-card-avatar" />
+            <button type="button" className="create-post-prompt" onClick={() => onOpenComposer()}>
+              {profile?.display_name ? `What's on your mind, ${profile.display_name.split(' ')[0]}?` : "What's on your mind?"}
+            </button>
           </div>
           <div className="post-divider" />
           <div className="post-tools">
-            <input ref={fileInput} type="file" id="post-image"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              onChange={event => setFile(event.target.files[0] || null)} />
-            <label className="tool-button" htmlFor="post-image"><PhotoCameraOutlinedIcon /> Photo</label>
-            <label className="audience-label">Audience
-              <select value={visibility} onChange={event => setVisibility(event.target.value)} disabled={busy}>
-                <option value="public">All members</option><option value="private">Only me</option>
-              </select>
-            </label>
-            {file && <span className="selected-file">{file.name}</span>}
-            <button className="post-button" disabled={busy || (!content.trim() && !file)} type="submit">
-              {busy ? 'Posting…' : 'Post'}
+            <input ref={fileInput} type="file" accept="image/*" multiple hidden onChange={event => {
+              const files = [...event.target.files]
+              event.target.value = ''
+              if (files.length) onOpenComposer(files)
+            }} />
+            <button type="button" className="tool-button" onClick={() => fileInput.current?.click()}>
+              <ImageOutlinedIcon /> Photos
             </button>
+            <button type="button" className="post-button" onClick={() => onOpenComposer()}>Create post</button>
           </div>
-          {error && <p className="auth-error" role="alert">{error}</p>}
-        </form>
-        <MemberDirectory people={people} loading={peopleLoading} error={peopleError} onRefresh={onRefreshPeople} />
+        </section>
+        {composer && (
+          <CreatePostDialog user={user} profile={profile} initialFiles={composer.files}
+            onCreated={addCreatedPost} onClose={onCloseComposer} />
+        )}
         <section aria-label="Community feed">
-          <div className="feed-heading"><h2>Community feed</h2>
-            <button className="tool-button" type="button" disabled={loading || busy} onClick={() => refresh()}>Refresh</button>
-          </div>
           {feedError && <p className="auth-error" role="alert">{feedError}</p>}
           {loading && <p role="status">Loading posts…</p>}
           {!loading && posts.length === 0 && <p>No posts yet.</p>}
           {posts.map(post => <PostCard post={post} user={user} key={`${user.uid}:${post.id}`}
-            refreshing={loading} refreshRevision={revision}
+            refreshing={loading} refreshRevision={0} onOpenProfile={onOpenProfile}
             onBusyChange={isBusy => {
               feedVersion.current++
               if (isBusy) mutations.current.add(post.id)
@@ -135,7 +85,7 @@ export default function MiddlePage({ user, people, peopleLoading, peopleError, o
             }}
             onChange={updated => {
               feedVersion.current++
-              setPosts(items => items.map(item => item.id === updated.id ? updated : item))
+              setPosts(items => applyPostUpdate(items, updated))
             }} />)}
         </section>
       </section>

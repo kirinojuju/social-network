@@ -1,9 +1,12 @@
 const { Router } = require('express');
 const { createHash } = require('node:crypto');
 const { createAuthMiddleware } = require('../middleware/auth');
+const { parseImage } = require('./posts');
 
 const fields = ['username', 'display_name', 'bio', 'avatar_url', 'faculty_id', 'major_id'];
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// Route name -> table. Table names are fixed here, never taken from the request.
+const profileImages = [['avatar', 'user_avatars'], ['cover', 'user_covers']];
 
 function validateProfile(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body) ||
@@ -107,6 +110,121 @@ function createUsersRouter(pool, verifyToken) {
       next(error);
     }
   });
+  for (const [kind, table] of profileImages) {
+    router.put(`/me/${kind}`, async (req, res, next) => {
+      const image = req.body && typeof req.body === 'object' && !Array.isArray(req.body) &&
+        Object.keys(req.body).every(key => key === 'image') ? parseImage(req.body.image) : null;
+      if (!image) return res.status(400).json({ error: 'Invalid image' });
+      try {
+        const result = await pool.query(`
+          INSERT INTO public.${table} (user_id, mime_type, image_data)
+          SELECT id, $2, $3 FROM public.users WHERE firebase_uid = $1
+          ON CONFLICT (user_id) DO UPDATE SET mime_type = EXCLUDED.mime_type,
+            image_data = EXCLUDED.image_data, updated_at = now()
+          RETURNING user_id, updated_at`, [req.auth.uid, image.mime_type, image.data]);
+        if (!result.rows.length) return res.status(409).json({ error: 'Complete your profile first' });
+        res.json({ [kind]: result.rows[0] });
+      } catch (error) { next(error); }
+    });
+    router.delete(`/me/${kind}`, async (req, res, next) => {
+      try {
+        await pool.query(`DELETE FROM public.${table} a USING public.users u
+          WHERE a.user_id = u.id AND u.firebase_uid = $1`, [req.auth.uid]);
+        res.status(204).end();
+      } catch (error) { next(error); }
+    });
+  }
+  router.get('/me/following', async (req, res, next) => {
+    try {
+      const result = await pool.query(`SELECT u.id, u.username, u.display_name, u.bio, u.avatar_url
+        FROM public.follows f JOIN public.users me ON me.id = f.follower_id
+        JOIN public.users u ON u.id = f.followee_id
+        WHERE me.firebase_uid = $1 ORDER BY f.created_at DESC LIMIT 100`, [req.auth.uid]);
+      res.json({ users: result.rows });
+    } catch (error) { next(error); }
+  });
+  router.get('/:id', async (req, res, next) => {
+    if (!uuid.test(req.params.id)) return res.status(404).json({ error: 'Profile not found' });
+    try {
+      const result = await pool.query(`SELECT id, username, display_name, bio, avatar_url, faculty_id, major_id,
+          (firebase_uid = $1) AS is_self
+        FROM public.users WHERE id = $2`, [req.auth.uid, req.params.id]);
+      if (!result.rows.length) return res.status(404).json({ error: 'Profile not found' });
+      res.json({ user: result.rows[0] });
+    } catch (error) { next(error); }
+  });
+
+  async function followSummary(viewerUid, id) {
+    const result = await pool.query(`SELECT
+        EXISTS (SELECT FROM public.follows f JOIN public.users viewer ON viewer.id = f.follower_id
+          WHERE viewer.firebase_uid = $1 AND f.followee_id = u.id) AS following,
+        (SELECT count(*)::int FROM public.follows WHERE followee_id = u.id) AS followers,
+        (SELECT count(*)::int FROM public.follows WHERE follower_id = u.id) AS following_count
+      FROM public.users u WHERE u.id = $2`, [viewerUid, id]);
+    return result.rows[0] ?? null;
+  }
+
+  router.get('/:id/follow', async (req, res, next) => {
+    if (!uuid.test(req.params.id)) return res.status(404).json({ error: 'Profile not found' });
+    try {
+      const follow = await followSummary(req.auth.uid, req.params.id);
+      if (!follow) return res.status(404).json({ error: 'Profile not found' });
+      res.json({ follow });
+    } catch (error) { next(error); }
+  });
+
+  async function setFollow(req, res, next) {
+    if (!uuid.test(req.params.id)) return res.status(404).json({ error: 'Profile not found' });
+    try {
+      const target = await pool.query(`SELECT (target.firebase_uid = $1) AS is_self,
+          (SELECT id FROM public.users WHERE firebase_uid = $1) AS viewer_id
+        FROM public.users target WHERE target.id = $2`, [req.auth.uid, req.params.id]);
+      if (!target.rows.length) return res.status(404).json({ error: 'Profile not found' });
+      if (target.rows[0].is_self) return res.status(400).json({ error: 'You cannot follow yourself' });
+      if (!target.rows[0].viewer_id) return res.status(409).json({ error: 'Complete your profile first' });
+      await pool.query(req.method === 'PUT'
+        ? `INSERT INTO public.follows (follower_id, followee_id) VALUES ($1, $2)
+           ON CONFLICT (follower_id, followee_id) DO NOTHING`
+        : 'DELETE FROM public.follows WHERE follower_id = $1 AND followee_id = $2',
+      [target.rows[0].viewer_id, req.params.id]);
+      res.json({ follow: await followSummary(req.auth.uid, req.params.id) });
+    } catch (error) { next(error); }
+  }
+  router.put('/:id/follow', setFollow);
+  router.delete('/:id/follow', setFollow);
+
+  // Friends are members who follow each other; newest friendship first.
+  router.get('/:id/friends', async (req, res, next) => {
+    if (!uuid.test(req.params.id)) return res.status(404).json({ error: 'Profile not found' });
+    try {
+      const result = await pool.query(`SELECT u.id, u.username, u.display_name, count(*) OVER ()::int AS total
+        FROM public.follows outgoing
+        JOIN public.follows incoming
+          ON incoming.follower_id = outgoing.followee_id AND incoming.followee_id = outgoing.follower_id
+        JOIN public.users u ON u.id = outgoing.followee_id
+        WHERE outgoing.follower_id = $1
+        ORDER BY greatest(outgoing.created_at, incoming.created_at) DESC, u.id
+        LIMIT 50`, [req.params.id]);
+      res.json({
+        friends: result.rows.map(({ total, ...friend }) => friend),
+        total: result.rows[0]?.total ?? 0,
+      });
+    } catch (error) { next(error); }
+  });
+
+  for (const [kind, table] of profileImages) {
+    router.get(`/:id/${kind}`, async (req, res, next) => {
+      if (!uuid.test(req.params.id)) return res.status(404).json({ error: 'Photo not found' });
+      try {
+        const result = await pool.query(
+          `SELECT mime_type, image_data FROM public.${table} WHERE user_id = $1`, [req.params.id]);
+        if (!result.rows.length) return res.status(404).json({ error: 'Photo not found' });
+        res.set('Content-Type', result.rows[0].mime_type);
+        res.set('X-Content-Type-Options', 'nosniff');
+        res.send(result.rows[0].image_data);
+      } catch (error) { next(error); }
+    });
+  }
   return router;
 }
 

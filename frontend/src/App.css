@@ -27,6 +27,10 @@
   background-color: #eeeeee;
 }
 
+.app-main.full-width {
+  margin-right: 0;
+}
+
 .app-status {
   width: min(100%, 600px);
 }

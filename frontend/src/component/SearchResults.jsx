@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { search } from '../search/client'
+import Avatar from './Avatar'
 import './MiddlePage.css'
 import './SearchResults.css'
 
-export default function SearchResults({ user, query }) {
+export default function SearchResults({ user, query, onOpenProfile }) {
   const term = query.trim()
   const [results, setResults] = useState({ term: '', users: [], posts: [] })
   const loading = results.term !== term
@@ -35,14 +36,17 @@ export default function SearchResults({ user, query }) {
             <ul className="member-list">
               {results.users.map(person => (
                 <li key={person.id}>
-                  <span className="member-initial" aria-hidden="true">{person.display_name?.slice(0, 1)}</span>
-                  <div>
-                    <strong>
-                      {person.display_name}
-                      {person.is_self && <em className="search-badge">You</em>}
-                    </strong>
-                    <span>@{person.username}</span>
-                  </div>
+                  <button type="button" className="member-link"
+                    onClick={() => onOpenProfile(person.is_self ? null : person.id)}>
+                    <span className="member-initial" aria-hidden="true">{person.display_name?.slice(0, 1)}</span>
+                    <div>
+                      <strong>
+                        {person.display_name}
+                        {person.is_self && <em className="search-badge">You</em>}
+                      </strong>
+                      <span>@{person.username}</span>
+                    </div>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -55,9 +59,14 @@ export default function SearchResults({ user, query }) {
             {results.posts.map(post => (
               <article className="sample-post" key={post.id} aria-label={`Post by ${post.author_name}`}>
                 <div className="post-header">
-                  <div className="avatar" aria-hidden="true">👤</div>
+                  <span className="avatar" aria-hidden="true">
+                    <Avatar user={user} userId={post.author_id} className="avatar-fill" />
+                  </span>
                   <div>
-                    <strong>{post.author_name}</strong>
+                    <button type="button" className="author-link"
+                      onClick={() => onOpenProfile(post.is_own ? null : post.author_id)}>
+                      {post.author_name}
+                    </button>
                     <p>@{post.author_username} · {new Date(post.created_at).toLocaleString()}</p>
                   </div>
                   <span className="post-visibility">{post.visibility === 'private' ? 'Only me' : 'All members'}</span>

@@ -41,6 +41,52 @@
   flex-shrink: 0;
 }
 
+.rs-person {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+
+  padding: 0;
+
+  border: none;
+  background: none;
+
+  font: inherit;
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.rs-person:hover .rs-name {
+  text-decoration: underline;
+}
+
+.rs-person:focus-visible {
+  outline: 2px solid #6b62b3;
+  outline-offset: 2px;
+}
+
+.rs-photo {
+  width: 32px;
+  height: 32px;
+
+  border-radius: 50%;
+
+  object-fit: cover;
+}
+
+.rs-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.rs-btn:disabled:hover {
+  background: transparent;
+  color: #6b62b3;
+}
+
 .rs-info {
   display: flex;
   flex-direction: column;
