@@ -27,7 +27,7 @@ async function main() {
     await fixture.connect();
     await fixture.query(`GRANT CONNECT ON DATABASE ${database} TO social_app`);
     await fixture.query('GRANT USAGE ON SCHEMA public TO social_app');
-    assert.equal(await migrate(fixture), 9);
+    assert.equal(await migrate(fixture), 12);
     assert.equal(await migrate(fixture), 0);
     pool = createPool({ ...process.env, PGDATABASE: database });
     await assertLimitedRole(pool);
@@ -149,6 +149,57 @@ async function main() {
     assert.equal(restored.like_count, 1);
     assert.equal(restored.comment_count, 1);
     assert.equal((await request('bob', 'GET', `/${shared.id}/comments`)).comments[0].id, comment.id);
+    // New develop features run through real SQL, including per-account saved lists.
+    const gallery = (await request('alice', 'POST', '', {
+      content: 'Two ordered photos', visibility: 'public', images: [image, image],
+    }, 201)).post;
+    assert.equal(gallery.image_ids.length, 2);
+    assert.equal(gallery.image_id, gallery.image_ids[0]);
+    const mediaRows = (await fixture.query(
+      'SELECT id, position FROM public.media WHERE post_id = $1 ORDER BY position', [gallery.id]
+    )).rows;
+    assert.deepEqual(mediaRows.map(row => row.id), gallery.image_ids);
+    assert.deepEqual(mediaRows.map(row => row.position), [0, 1]);
+    for (const id of gallery.image_ids) {
+      const response = await fetch(`${root}/${id}/image`, { headers: { Authorization: 'Bearer bob' } });
+      assert.equal(response.status, 200);
+      assert.deepEqual(Buffer.from(await response.arrayBuffer()), png);
+    }
+    assert.equal((await request('bob', 'PUT', `/${gallery.id}/save`)).post.saved, true);
+    assert.equal((await request('bob', 'GET', '?scope=saved')).posts[0].id, gallery.id);
+    assert.equal((await request('carol', 'GET', '?scope=saved')).posts.length, 0);
+    assert.ok((await request('bob', 'GET', `?author=${members.alice}`)).posts.every(post => post.visibility === 'public'));
+    await request('alice', 'PATCH', `/${gallery.id}/visibility`, { visibility: 'private' });
+    assert.equal((await request('bob', 'GET', '?scope=saved')).posts.length, 0);
+    await request('bob', 'PUT', `/${gallery.id}/save`, undefined, 404);
+    await request('bob', 'GET', `/${gallery.image_ids[1]}/image`, undefined, 404);
+    await request('alice', 'PATCH', `/${gallery.id}/visibility`, { visibility: 'public' });
+    await request('bob', 'DELETE', `/${gallery.id}/save`);
+    assert.equal((await request('bob', 'GET', '?scope=saved')).posts.length, 0);
+
+    await request('bob', 'PUT', `/api/users/${members.alice}/follow`);
+    await request('alice', 'PUT', `/api/users/${members.bob}/follow`);
+    assert.equal((await request('carol', 'GET', `/api/users/${members.alice}/friends`)).friends[0].id, members.bob);
+    const notices = (await request('alice', 'GET', '/api/notifications')).notifications;
+    assert.deepEqual(new Set(notices.map(notice => notice.type)), new Set(['comment', 'follow']));
+    assert.ok(notices.every(notice => notice.actor_id === members.bob));
+    assert.equal((await request('carol', 'GET', '/api/notifications')).notifications.length, 0);
+    await request(null, 'GET', '/api/notifications', undefined, 401);
+    await request('bob', 'PUT', `/${shared.id}/like`);
+    assert.ok((await request('alice', 'GET', '/api/notifications')).notifications.some(notice => notice.type === 'like'));
+    await request('bob', 'DELETE', `/${shared.id}/like`);
+
+    for (const kind of ['avatar', 'cover']) {
+      await request('alice', 'PUT', `/api/users/me/${kind}`, { image });
+      const response = await fetch(new URL(`/api/users/${members.alice}/${kind}`, root), {
+        headers: { Authorization: 'Bearer bob' },
+      });
+      assert.equal(response.status, 200);
+      assert.deepEqual(Buffer.from(await response.arrayBuffer()), png);
+      await request('bob', 'DELETE', `/api/users/me/${kind}`, undefined, 204);
+      await request('alice', 'DELETE', `/api/users/me/${kind}`, undefined, 204);
+      await request('bob', 'GET', `/api/users/${members.alice}/${kind}`, undefined, 404);
+    }
     await request('alice', 'PATCH', `/${shared.id}/visibility`, { visibility: 'private' });
     await request('bob', 'GET', `/${shared.id}/comments`, undefined, 404);
     await request('bob', 'PUT', `/${shared.id}/like`, undefined, 404);
@@ -188,7 +239,7 @@ async function main() {
     await fixture.query('DELETE FROM public.posts WHERE id = $1', [shared.id]);
     assert.equal((await fixture.query('SELECT count(*)::int AS n FROM public.post_likes WHERE post_id = $1', [shared.id])).rows[0].n, 0);
     assert.equal((await fixture.query('SELECT count(*)::int AS n FROM public.post_comments WHERE post_id = $1', [shared.id])).rows[0].n, 0);
-    console.log('PASS: nine migrations, limited role, three-account feed/privacy, likes/comments, search visibility, follows, two-way chat/photos, participant privacy, read receipts, restart persistence, private legacy import, cascade cleanup.');
+    console.log('PASS: twelve migrations, limited role, three-account feed/privacy, likes/comments, search visibility, follows/friends, two-way chat/photos, participant privacy, read receipts, restart persistence, ordered post photos, saved-post isolation, notifications, avatars/covers, private legacy import, cascade cleanup.');
   } finally {
     if (server) { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
     if (pool) await pool.end();
