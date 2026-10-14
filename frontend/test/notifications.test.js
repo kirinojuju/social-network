@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { isUnread, latestSeenAt, loadSeenAt, saveSeenAt } from '../src/notifications/seen.js'
+import { isUnread, latestSeenAt, loadSeenAt, saveSeenAt, unreadMessageCount } from '../src/notifications/seen.js'
 
 function memoryStorage() {
   const values = new Map()
@@ -9,6 +9,15 @@ function memoryStorage() {
     setItem: (key, value) => values.set(key, String(value)),
   }
 }
+
+test('viewing notifications does not mark messages read; badges count unread messages', () => {
+  const message = { type: 'message', unread_count: 2, created_at: '2026-10-11T09:00:00.000Z' }
+  const seenAt = '2026-10-11T10:00:00.000Z'
+  assert.equal(isUnread(message, seenAt), true)
+  assert.equal(isUnread({ ...message, unread_count: 0 }, null), false)
+  assert.equal(unreadMessageCount([message, { ...message, unread_count: 1 }, { type: 'like' }]), 3)
+  assert.equal(unreadMessageCount([]), 0)
+})
 
 test('seen time is stored per member and ignores invalid values', () => {
   const storage = memoryStorage()

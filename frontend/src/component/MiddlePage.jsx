@@ -79,6 +79,10 @@ export default function MiddlePage({ user, profile, composer, onOpenComposer, on
           {!loading && posts.length === 0 && <p>No posts yet.</p>}
           {posts.map(post => <PostCard post={post} user={user} key={`${user.uid}:${post.id}`}
             refreshing={loading} refreshRevision={0} onOpenProfile={onOpenProfile} onSummarize={onSummarize}
+            onDelete={id => {
+              feedVersion.current++
+              setPosts(items => items.filter(item => item.id !== id))
+            }}
             onBusyChange={isBusy => {
               feedVersion.current++
               if (isBusy) mutations.current.add(post.id)

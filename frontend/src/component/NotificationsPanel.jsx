@@ -13,9 +13,12 @@ const kinds = {
   like: { Icon: FavoriteIcon, className: "is-like" },
   comment: { Icon: ChatBubbleIcon, className: "is-comment" },
   follow: { Icon: PersonAddIcon, className: "is-follow" },
+  message: { Icon: ChatBubbleIcon, className: "is-comment" },
 };
 
 function describe(notification) {
+  if (notification.type === "message") return notification.unread_count > 1
+    ? `sent you ${notification.unread_count} messages.` : "sent you a message.";
   if (notification.type === "like") {
     return <>liked your post{notification.post_excerpt ? <>: “{notification.post_excerpt}”</> : " (photo)"}</>;
   }
@@ -23,7 +26,7 @@ function describe(notification) {
   return "started following you.";
 }
 
-function NotificationsPanel({ user, notifications, loaded, since, onOpenProfile, onClose }) {
+function NotificationsPanel({ user, notifications, loaded, since, onOpenProfile, onOpenChat, onClose }) {
   const panelRef = useRef(null);
 
   useEffect(() => {
@@ -54,7 +57,7 @@ function NotificationsPanel({ user, notifications, loaded, since, onOpenProfile,
       {!loaded && <p className="notifications-status" role="status">Loading notifications…</p>}
       {loaded && notifications.length === 0 && (
         <p className="notifications-status">
-          No notifications yet. Likes, comments and new followers will show up here.
+          No notifications yet. Messages, likes, comments and new followers will show up here.
         </p>
       )}
 
@@ -66,7 +69,9 @@ function NotificationsPanel({ user, notifications, loaded, since, onOpenProfile,
             return (
               <li key={notification.id}>
                 <button type="button" className={`notifications-row${unread ? " unread" : ""}`}
-                  onClick={() => onOpenProfile(notification.type === "follow" ? notification.actor_id : null)}>
+                  onClick={() => notification.type === "message"
+                    ? onOpenChat({ id: notification.actor_id, display_name: notification.actor_name })
+                    : onOpenProfile(notification.type === "follow" ? notification.actor_id : null)}>
                   <span className="notifications-avatar-wrap">
                     <Avatar user={user} userId={notification.actor_id} className="notifications-avatar" />
                     <span className={`notifications-kind ${className}`} aria-hidden="true"><Icon /></span>

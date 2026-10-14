@@ -52,6 +52,7 @@ function LeftSidebar({
   onOpenMessages,
   onOpenExplore,
   onOpenNotifications,
+  unreadMessages = 0,
 }) {
   const actions = {
   Home: () => onNavigate('home'),
@@ -80,9 +81,13 @@ function LeftSidebar({
             <button type="button" className="sidebar-item" key={item.name}
               disabled={!actions[item.name]} onClick={actions[item.name]}
               data-messages-toggle={item.name === "Messages" || undefined}
+              aria-label={item.name === "Messages" && unreadMessages > 0 ? `Messages, ${unreadMessages} unread` : undefined}
               aria-current={item.name.toLowerCase() === activeView ? 'page' : undefined}>
               <Icon className="sidebar-icon" />
               <span>{item.name}</span>
+              {item.name === "Messages" && unreadMessages > 0 && (
+                <span className="sidebar-message-badge" aria-hidden="true">{unreadMessages > 99 ? '99+' : unreadMessages}</span>
+              )}
             </button>
           );
         })}

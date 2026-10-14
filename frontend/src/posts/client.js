@@ -41,6 +41,9 @@ export const setPostSaved = async (user, id, saved) =>
 export const createPost = async (user, values) => (await json(user, '', 'POST', values)).post
 export const setPostLike = async (user, id, liked) =>
   (await json(user, `/${encodeURIComponent(id)}/like`, liked ? 'PUT' : 'DELETE')).post
+export const deletePost = async (user, id) => {
+  await backendRequest(user, `/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}
 export const setPostVisibility = async (user, id, visibility) =>
   (await json(user, `/${encodeURIComponent(id)}/visibility`, 'PATCH', { visibility })).post
 export const listComments = async (user, id, before = null, { signal } = {}) =>

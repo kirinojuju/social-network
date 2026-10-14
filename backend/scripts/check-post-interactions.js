@@ -27,7 +27,7 @@ async function main() {
     await fixture.connect();
     await fixture.query(`GRANT CONNECT ON DATABASE ${database} TO social_app`);
     await fixture.query('GRANT USAGE ON SCHEMA public TO social_app');
-    assert.equal(await migrate(fixture), 6);
+    assert.equal(await migrate(fixture), 13);
     assert.equal(await migrate(fixture), 0);
     pool = createPool({ ...process.env, PGDATABASE: database });
     await assertLimitedRole(pool);
@@ -35,6 +35,9 @@ async function main() {
       await fixture.query(`INSERT INTO public.users (firebase_uid, email, username, display_name)
         VALUES ($1, $2, $1, $1)`, [name, `${name}@example.invalid`]);
     }
+    const members = Object.fromEntries((await fixture.query(
+      'SELECT firebase_uid, id FROM public.users'
+    )).rows.map(row => [row.firebase_uid, row.id]));
     const start = async () => {
       server = createApp(pool, [], { verifyToken: async token => {
         if (!['alice', 'bob', 'carol', 'no-profile'].includes(token)) throw new Error('Invalid test token');
@@ -50,7 +53,8 @@ async function main() {
       server = null;
     };
     async function request(user, method, route = '', body, status = 200) {
-      const response = await fetch(root + route, { method, headers: {
+      const url = route.startsWith('/api/') ? new URL(route, root).href : root + route;
+      const response = await fetch(url, { method, headers: {
         ...(user ? { Authorization: `Bearer ${user}` } : {}), 'Content-Type': 'application/json',
       }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
       assert.equal(response.status, status, `${user} ${method} ${route}: ${(await response.clone().text()).slice(0, 250)}`);
@@ -76,6 +80,61 @@ async function main() {
     await request('bob', 'PATCH', `/${secret.id}/visibility`, { visibility: 'public' }, 404);
     await request('alice', 'POST', '', { content: 'Forged', author_id: 'bob' }, 400);
 
+    // Alpha acceptance: real SQL search, follows and two-way private chat.
+    const search = await request('bob', 'GET', '/api/search?q=Alice');
+    assert.equal(search.users[0].id, members.alice);
+    const aliceProfile = (await request('bob', 'GET', `/api/users/${members.alice}`)).user;
+    assert.equal(aliceProfile.id, members.alice);
+    assert.equal(aliceProfile.is_self, false);
+    assert.ok(!('email' in aliceProfile) && !('firebase_uid' in aliceProfile));
+    assert.ok(search.posts.some(post => post.id === shared.id));
+    assert.ok(!search.posts.some(post => post.id === secret.id));
+    assert.equal((await request('bob', 'PUT', `/api/users/${members.alice}/follow`)).follow.following, true);
+    assert.equal((await request('bob', 'GET', '/api/users/me/following')).users[0].id, members.alice);
+    assert.equal((await request('bob', 'DELETE', `/api/users/${members.alice}/follow`)).follow.following, false);
+
+    const chatWithBob = `/api/messages/with/${members.bob}`;
+    const chatWithAlice = `/api/messages/with/${members.alice}`;
+    const hello = (await request('alice', 'POST', chatWithBob, { content: 'Hello Bob' }, 201)).message;
+    const reply = (await request('bob', 'POST', chatWithAlice, { content: 'Hello Alice' }, 201)).message;
+    const photo = (await request('alice', 'POST', chatWithBob, { image }, 201)).message;
+    const bobMessageNotices = (await request('bob', 'GET', '/api/notifications')).notifications;
+    assert.equal(bobMessageNotices.length, 1);
+    assert.equal(bobMessageNotices[0].type, 'message');
+    assert.equal(bobMessageNotices[0].actor_id, members.alice);
+    assert.equal(bobMessageNotices[0].unread_count, 2);
+    assert.ok([hello.id, photo.id].includes(bobMessageNotices[0].message_id));
+    assert.ok(!('content' in bobMessageNotices[0]) && !('image_data' in bobMessageNotices[0]));
+    assert.equal((await request('carol', 'GET', '/api/notifications')).notifications.length, 0);
+    assert.equal((await request('alice', 'GET', '/api/notifications')).notifications[0].actor_id, members.bob);
+    const received = (await request('bob', 'GET', chatWithAlice)).messages;
+    assert.equal(received.length, 3);
+    assert.equal(received.find(message => message.id === hello.id).from_me, false);
+    assert.equal(received.find(message => message.id === reply.id).from_me, true);
+    assert.equal((await request('carol', 'GET', chatWithAlice)).messages.length, 0);
+    assert.equal((await request('carol', 'GET', '/api/messages/conversations')).conversations.length, 0);
+    await request(null, 'GET', '/api/messages/conversations', undefined, 401);
+    await request('alice', 'POST', chatWithAlice, { content: 'Self' }, 404);
+    await request('alice', 'POST', chatWithBob, { content: 'Forged', sender_id: members.carol }, 400);
+    const chatPhoto = await fetch(new URL(`/api/messages/images/${photo.id}`, root), {
+      headers: { Authorization: 'Bearer bob' },
+    });
+    assert.equal(chatPhoto.status, 200);
+    assert.deepEqual(Buffer.from(await chatPhoto.arrayBuffer()), png);
+    await request('carol', 'GET', `/api/messages/images/${photo.id}`, undefined, 404);
+    assert.equal((await request('bob', 'GET', '/api/messages/conversations')).conversations[0].unread_count, 2);
+    await request('bob', 'PUT', `${chatWithAlice}/read`, undefined, 204);
+    assert.equal((await request('bob', 'GET', '/api/messages/conversations')).conversations[0].unread_count, 0);
+    assert.equal((await request('bob', 'GET', '/api/notifications')).notifications.length, 0);
+    await request('alice', 'PUT', `${chatWithBob}/read`, undefined, 204);
+    assert.equal((await request('alice', 'GET', '/api/notifications')).notifications.length, 0);
+    const foreign = (await request('carol', 'POST', chatWithBob, { content: 'Separate conversation' }, 201)).message;
+    const separateNotice = (await request('bob', 'GET', '/api/notifications')).notifications[0];
+    assert.equal(separateNotice.actor_id, members.carol);
+    assert.equal(separateNotice.unread_count, 1);
+    assert.equal(separateNotice.message_id, foreign.id);
+    assert.equal((await request('alice', 'GET', `${chatWithBob}?before=${foreign.id}`)).messages.length, 0);
+
     for (const method of ['PUT', 'DELETE']) await request('bob', method, `/${secret.id}/like`, undefined, 404);
     await request('bob', 'POST', `/${secret.id}/comments`, { content: 'Forbidden' }, 404);
     await request('bob', 'GET', `/${secret.id}/comments`, undefined, 404);
@@ -100,10 +159,63 @@ async function main() {
     // Persistence across API restarts, not merely an in-memory response.
     await stop();
     root = await start();
+    assert.equal((await request('alice', 'GET', chatWithBob)).messages.length, 3);
+    assert.ok((await request('bob', 'GET', chatWithAlice)).messages.some(message => message.id === reply.id));
     const restored = (await request('alice', 'GET', '?scope=feed')).posts.find(p => p.id === shared.id);
     assert.equal(restored.like_count, 1);
     assert.equal(restored.comment_count, 1);
     assert.equal((await request('bob', 'GET', `/${shared.id}/comments`)).comments[0].id, comment.id);
+    // New develop features run through real SQL, including per-account saved lists.
+    const gallery = (await request('alice', 'POST', '', {
+      content: 'Two ordered photos', visibility: 'public', images: [image, image],
+    }, 201)).post;
+    assert.equal(gallery.image_ids.length, 2);
+    assert.equal(gallery.image_id, gallery.image_ids[0]);
+    const mediaRows = (await fixture.query(
+      'SELECT id, position FROM public.media WHERE post_id = $1 ORDER BY position', [gallery.id]
+    )).rows;
+    assert.deepEqual(mediaRows.map(row => row.id), gallery.image_ids);
+    assert.deepEqual(mediaRows.map(row => row.position), [0, 1]);
+    for (const id of gallery.image_ids) {
+      const response = await fetch(`${root}/${id}/image`, { headers: { Authorization: 'Bearer bob' } });
+      assert.equal(response.status, 200);
+      assert.deepEqual(Buffer.from(await response.arrayBuffer()), png);
+    }
+    assert.equal((await request('bob', 'PUT', `/${gallery.id}/save`)).post.saved, true);
+    assert.equal((await request('bob', 'GET', '?scope=saved')).posts[0].id, gallery.id);
+    assert.equal((await request('carol', 'GET', '?scope=saved')).posts.length, 0);
+    assert.ok((await request('bob', 'GET', `?author=${members.alice}`)).posts.every(post => post.visibility === 'public'));
+    await request('alice', 'PATCH', `/${gallery.id}/visibility`, { visibility: 'private' });
+    assert.equal((await request('bob', 'GET', '?scope=saved')).posts.length, 0);
+    await request('bob', 'PUT', `/${gallery.id}/save`, undefined, 404);
+    await request('bob', 'GET', `/${gallery.image_ids[1]}/image`, undefined, 404);
+    await request('alice', 'PATCH', `/${gallery.id}/visibility`, { visibility: 'public' });
+    await request('bob', 'DELETE', `/${gallery.id}/save`);
+    assert.equal((await request('bob', 'GET', '?scope=saved')).posts.length, 0);
+
+    await request('bob', 'PUT', `/api/users/${members.alice}/follow`);
+    await request('alice', 'PUT', `/api/users/${members.bob}/follow`);
+    assert.equal((await request('carol', 'GET', `/api/users/${members.alice}/friends`)).friends[0].id, members.bob);
+    const notices = (await request('alice', 'GET', '/api/notifications')).notifications;
+    assert.deepEqual(new Set(notices.map(notice => notice.type)), new Set(['comment', 'follow']));
+    assert.ok(notices.every(notice => notice.actor_id === members.bob));
+    assert.equal((await request('carol', 'GET', '/api/notifications')).notifications.length, 0);
+    await request(null, 'GET', '/api/notifications', undefined, 401);
+    await request('bob', 'PUT', `/${shared.id}/like`);
+    assert.ok((await request('alice', 'GET', '/api/notifications')).notifications.some(notice => notice.type === 'like'));
+    await request('bob', 'DELETE', `/${shared.id}/like`);
+
+    for (const kind of ['avatar', 'cover']) {
+      await request('alice', 'PUT', `/api/users/me/${kind}`, { image });
+      const response = await fetch(new URL(`/api/users/${members.alice}/${kind}`, root), {
+        headers: { Authorization: 'Bearer bob' },
+      });
+      assert.equal(response.status, 200);
+      assert.deepEqual(Buffer.from(await response.arrayBuffer()), png);
+      await request('bob', 'DELETE', `/api/users/me/${kind}`, undefined, 204);
+      await request('alice', 'DELETE', `/api/users/me/${kind}`, undefined, 204);
+      await request('bob', 'GET', `/api/users/${members.alice}/${kind}`, undefined, 404);
+    }
     await request('alice', 'PATCH', `/${shared.id}/visibility`, { visibility: 'private' });
     await request('bob', 'GET', `/${shared.id}/comments`, undefined, 404);
     await request('bob', 'PUT', `/${shared.id}/like`, undefined, 404);
@@ -138,12 +250,18 @@ async function main() {
     await assert.rejects(pool.query(`INSERT INTO public.post_comments (post_id, author_id, content)
       SELECT $1, id, '' FROM public.users WHERE firebase_uid = 'bob'`, [shared.id]), { code: '23514' });
     await assert.rejects(pool.query('UPDATE public.post_comments SET content = $1', ['changed']), { code: '42501' });
-    await assert.rejects(pool.query('DELETE FROM public.posts'), { code: '42501' });
-    // Deleting a fixture post cascades to its interactions without orphans.
-    await fixture.query('DELETE FROM public.posts WHERE id = $1', [shared.id]);
+    // The API permits only the verified author to delete; dependent rows cascade.
+    await request('bob', 'DELETE', `/${shared.id}`, undefined, 404);
+    await request('bob', 'PUT', `/${shared.id}/save`);
+    await request('alice', 'DELETE', `/${shared.id}`, undefined, 204);
+    await request('alice', 'DELETE', `/${shared.id}`, undefined, 404);
+    await request('bob', 'GET', `/${shared.image_id}/image`, undefined, 404);
+    assert.ok(!(await request('bob', 'GET', '?scope=feed')).posts.some(post => post.id === shared.id));
+    assert.equal((await fixture.query('SELECT count(*)::int AS n FROM public.media WHERE post_id = $1', [shared.id])).rows[0].n, 0);
+    assert.equal((await fixture.query('SELECT count(*)::int AS n FROM public.saved_posts WHERE post_id = $1', [shared.id])).rows[0].n, 0);
     assert.equal((await fixture.query('SELECT count(*)::int AS n FROM public.post_likes WHERE post_id = $1', [shared.id])).rows[0].n, 0);
     assert.equal((await fixture.query('SELECT count(*)::int AS n FROM public.post_comments WHERE post_id = $1', [shared.id])).rows[0].n, 0);
-    console.log('PASS: migrations, limited role, three-account feed/privacy, idempotent likes, comments/ownership, pagination, restart persistence, private legacy import, cascade cleanup.');
+    console.log('PASS: thirteen migrations, limited role, three-account feed/privacy, likes/comments, search visibility, follows/friends, two-way chat/photos, participant privacy, read receipts, recipient-only unread message notifications, restart persistence, ordered post photos, saved-post isolation, notifications, avatars/covers, private legacy import, author-only post deletion and cascade cleanup.');
   } finally {
     if (server) { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
     if (pool) await pool.end();

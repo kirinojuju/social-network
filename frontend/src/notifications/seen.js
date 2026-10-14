@@ -19,8 +19,12 @@ export function saveSeenAt(uid, value, storage = defaultStorage()) {
   }
 }
 
-export const isUnread = (notification, seenAt) =>
-  !seenAt || Date.parse(notification.created_at) > Date.parse(seenAt)
+export const isUnread = (notification, seenAt) => notification.type === 'message'
+  ? notification.unread_count > 0
+  : !seenAt || Date.parse(notification.created_at) > Date.parse(seenAt)
+
+export const unreadMessageCount = notifications => notifications.reduce((count, item) =>
+  count + (item.type === 'message' ? item.unread_count : 0), 0)
 
 // Newest time among the notifications, or the current value if nothing is newer.
 export function latestSeenAt(notifications, seenAt) {

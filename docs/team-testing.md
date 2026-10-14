@@ -8,7 +8,8 @@ they are not administrator credentials. The matching project ID is already in
 
 ## Start on your own computer
 
-1. Get the latest `codex/jr-team-integration` branch.
+1. Get the current team branch. For the Alpha 0.1 candidate, use
+   `codex/alpha-0-1` and follow [the Alpha test checklist](alpha-0.1.md).
 2. Copy `.env.example` to `.env` in the repository root, `backend`, and
    `frontend`. Keep any `.env` files you already have.
 3. Choose your own PostgreSQL passwords. Put the administrator password in the
@@ -25,8 +26,9 @@ they are not administrator credentials. The matching project ID is already in
 The team shares one Firebase Authentication and Firestore project. Each
 developer may continue using a separate local PostgreSQL database. For a
 single website and shared PostgreSQL database owned by the project owner, see
-[shared Neon testing](shared-neon-testing.md). Current post rules are private,
-so teammates do not see one another's posts yet.
+[shared Neon testing](shared-neon-testing.md). Current community posts and
+one-to-one messages are stored in PostgreSQL. All members posts are visible to
+signed-in members in the same database; Only me posts remain private.
 
 ## What belongs in Git
 
@@ -49,9 +51,8 @@ check `.env` first:
   `PGDATABASE`, `PGUSER`, `PGPASSWORD`, `PGSSLMODE`) — not a single
   `DATABASE_URL`. If you have a Neon connection string, split it into the
   pieces above (see `backend/.env.example`).
-- If your Postgres role is an elevated/owner role, set
-  `REQUIRE_LIMITED_DB_ROLE=false` locally, or ask for a non-owner
-  connection string.
+- If your Postgres role is an elevated/owner role, use the limited `social_app`
+  role for runtime and keep owner credentials in `MIGRATION_DATABASE_URL` only.
 - `FIREBASE_PROJECT_ID` must be set even without Admin credentials;
   `GOOGLE_APPLICATION_CREDENTIALS` can stay blank for basic token
   verification.

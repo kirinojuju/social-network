@@ -58,6 +58,28 @@ test('post endpoints require a token and bind reads and writes to verified UID',
   assert.equal(calls[2].values[1], imageId);
 });
 
+test('only the verified author can delete a post', async () => {
+  const postId = '00000000-0000-4000-8000-000000000002';
+  const calls = [];
+  let owned = true;
+  await withServer({ async query(sql, values) {
+    calls.push({ sql, values });
+    return { rows: owned ? [{ id: postId }] : [] };
+  } }, async root => {
+    assert.equal((await fetch(`${root}/${postId}`, { method: 'DELETE' })).status, 401);
+    const headers = { Authorization: 'Bearer valid' };
+    assert.equal((await fetch(`${root}/not-a-uuid`, { method: 'DELETE', headers })).status, 404);
+    assert.equal((await fetch(`${root}/${postId}`, { method: 'DELETE', headers })).status, 204);
+    owned = false;
+    assert.equal((await fetch(`${root}/${postId}`, { method: 'DELETE', headers })).status, 404);
+  });
+  assert.equal(calls.length, 2);
+  for (const call of calls) {
+    assert.deepEqual(call.values, ['owner-uid', postId]);
+    assert.match(call.sql, /DELETE FROM public\.posts p USING public\.users u\s+WHERE p\.id = \$2 AND p\.author_id = u\.id AND u\.firebase_uid = \$1/);
+  }
+});
+
 test('saving binds to the verified member, only for visible posts, and the saved list re-checks visibility', async () => {
   const postId = '00000000-0000-4000-8000-000000000002';
   const calls = [];

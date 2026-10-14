@@ -303,12 +303,29 @@
 .audience-label { display: flex; align-items: center; gap: 8px; }
 .audience-label select, .post-visibility { border: 1px solid #d8d4e1; border-radius: 8px; padding: 8px; font: inherit; }
 .post-visibility { flex-shrink: 0; margin-left: auto; font-size: 14px; }
-.post-header > div { flex: 1; min-width: 0; }
+.post-header > div:not(.post-menu) { flex: 1; min-width: 0; }
 .post-header p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .post-follow { flex-shrink: 0; white-space: nowrap; margin-left: auto; padding: 6px 14px; border: 1px solid #6f63c9; border-radius: 999px; background: #6f63c9; color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .post-follow:hover:not(:disabled) { background: #5b50b5; border-color: #5b50b5; }
 .post-follow:disabled { opacity: .6; cursor: wait; }
 .post-follow.is-following { background: #f0edfc; border-color: #f0edfc; color: #5b50b5; cursor: default; }
+.post-menu { position: relative; flex-shrink: 0; }
+.post-menu-toggle { display: flex; padding: 6px; border: none; border-radius: 50%; background: none; color: #4b4860; cursor: pointer; }
+.post-menu-toggle:hover:not(:disabled), .post-menu-toggle[aria-expanded="true"] { background: #f0eef5; }
+.post-menu-toggle:disabled { opacity: .6; cursor: wait; }
+.post-menu-list { position: absolute; top: calc(100% + 4px); right: 0; z-index: 20; min-width: 170px; padding: 6px; border-radius: 10px; background: #fff; box-shadow: 0 6px 24px rgba(0, 0, 0, .16); }
+.post-menu-list button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 10px; border: none; border-radius: 8px; background: none; font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
+.post-menu-delete { color: #b42318; }
+.post-menu-delete:hover { background: #fdeceb; }
+.post-menu-delete svg { font-size: 20px; }
+.post-delete-confirm { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: #fdeceb; }
+.post-delete-confirm p { margin: 0; font-size: 14px; color: #7a1d14; }
+.post-delete-confirm > div { display: flex; gap: 8px; margin-left: auto; }
+.post-delete-confirm button { padding: 7px 14px; border-radius: 8px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.post-delete-cancel { border: 1px solid #d8d4e1; background: #fff; color: #403b50; }
+.post-delete-yes { border: 1px solid #b42318; background: #b42318; color: #fff; }
+.post-delete-yes:hover:not(:disabled) { background: #912018; }
+.post-delete-confirm button:disabled { opacity: .6; cursor: wait; }
 .post-action-button.is-liked { color: #a72b65; background: #fff0f6; }
 .post-actions .summarise-button { margin-left: auto; }
 .post-action-button.post-save-button svg { font-size: 22px; }
