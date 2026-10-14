@@ -187,6 +187,17 @@ function createPostsRouter(pool, verifyToken) {
     } catch (error) { next(error); }
   });
 
+  router.delete('/:id', async (req, res, next) => {
+    if (!uuid.test(req.params.id)) return res.status(404).json({ error: 'Post not found' });
+    try {
+      const result = await pool.query(`DELETE FROM public.posts p USING public.users u
+        WHERE p.id = $2 AND p.author_id = u.id AND u.firebase_uid = $1 RETURNING p.id`,
+      [req.auth.uid, req.params.id]);
+      if (!result.rows.length) return res.status(404).json({ error: 'Post not found' });
+      res.status(204).end();
+    } catch (error) { next(error); }
+  });
+
   // `table` is always one of the fixed names below, never request input.
   const toggle = table => async (req, res, next) => {
     if (!uuid.test(req.params.id)) return res.status(404).json({ error: 'Post not found' });

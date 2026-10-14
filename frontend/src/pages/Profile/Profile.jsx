@@ -10,8 +10,8 @@ import { profileClient } from "../../auth/profile";
 
 import "./Profile.css";
 
-function Profile({ user, profile: ownProfile, profileId, onProfileChange, onAvatarChange, onMessage, onOpenProfile, onSummarize,
-  onSignOut, signOutBusy }) {
+function Profile({ user, profile: ownProfile, profileId, onProfileChange, onAvatarChange, onMessage, onOpenProfile,
+  onSummarize, onSignOut, signOutBusy }) {
   const isOwn = !profileId || profileId === ownProfile?.id;
   const [other, setOther] = useState({ id: null, profile: null });
 
@@ -28,10 +28,12 @@ function Profile({ user, profile: ownProfile, profileId, onProfileChange, onAvat
   const [viewing, setViewing] = useState({ id: null, index: null });
   const closeViewer = useCallback(() => setViewing({ id: null, index: null }), []);
   const [friendsVersion, setFriendsVersion] = useState(0);
+  const [photosVersion, setPhotosVersion] = useState(0);
+  const refreshPhotos = useCallback(() => setPhotosVersion(version => version + 1), []);
 
   const loaded = isOwn || other.id === profileId;
   const profile = isOwn ? ownProfile : loaded ? other.profile : null;
-  const media = useProfilePhotos(user, profile?.id);
+  const media = useProfilePhotos(user, profile?.id, photosVersion);
 
   if (!loaded) return <div className="profile-page"><p role="status">Loading profile…</p></div>;
   if (!profile) return <div className="profile-page"><p>This profile is not available.</p></div>;
@@ -57,10 +59,11 @@ function Profile({ user, profile: ownProfile, profileId, onProfileChange, onAvat
         <main className="profile-feed">
           {activeTab === "All" && (
             <PostList user={user} author={profile.id} title="Posts" emptyText="No posts yet."
-              onOpenProfile={onOpenProfile} onSummarize={onSummarize} />
+              onOpenProfile={onOpenProfile} onSummarize={onSummarize} onDeleted={refreshPhotos} />
           )}
           {activeTab === "Saved" && (
             <PostList user={user} scope="saved" title="Saved posts" onOpenProfile={onOpenProfile} onSummarize={onSummarize}
+              onDeleted={refreshPhotos}
               emptyText="You haven't saved any posts yet. Tap Save on a post to keep it here." />
           )}
           {activeTab === "Media" && <ProfileMedia user={user} media={media} onOpenPhoto={openPhoto} />}

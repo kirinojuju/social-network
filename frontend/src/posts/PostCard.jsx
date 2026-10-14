@@ -4,13 +4,17 @@ import BookmarkIcon from '@mui/icons-material/Bookmark'
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import Avatar from '../component/Avatar'
 import { profileClient } from '../auth/profile'
-import { createComment, deleteComment, listComments, setPostLike, setPostSaved, setPostVisibility } from './client'
+import { createComment, deleteComment, deletePost, listComments, setPostLike, setPostSaved, setPostVisibility }
+  from './client'
 import PostGallery from './PostGallery'
+import PostMenu from './PostMenu'
 import { useAutoRefresh } from '../live/useAutoRefresh'
 import { mergeNewestComments } from './merge-comments'
 
-export default function PostCard({ post, user, onChange, onBusyChange, refreshing, refreshRevision, onOpenProfile, onSummarize }) {
+export default function PostCard({ post, user, onChange, onBusyChange, refreshing, refreshRevision, onOpenProfile,
+  onSummarize, onDelete }) {
   const [busy, setBusy] = useState(false)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [comments, setComments] = useState([])
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -81,19 +85,37 @@ export default function PostCard({ post, user, onChange, onBusyChange, refreshin
         </button>
         <p>@{post.author_username} · {post.created_at ? new Date(post.created_at).toLocaleString() : 'Just now'}</p>
       </div>
-      {post.is_own ? <select className="post-visibility" aria-label="Who can see this post"
-        disabled={busy || refreshing} value={post.visibility} onChange={event => {
-          const visibility = event.target.value
-          mutate(async () => onChange({ ...post, ...await setPostVisibility(user, post.id, visibility) }))
-        }}>
-        <option value="public">All members</option><option value="private">Only me</option>
-      </select> : post.author_following ? <span className="post-follow is-following">Following</span>
+      {post.is_own ? <>
+        <select className="post-visibility" aria-label="Who can see this post"
+          disabled={busy || refreshing} value={post.visibility} onChange={event => {
+            const visibility = event.target.value
+            mutate(async () => onChange({ ...post, ...await setPostVisibility(user, post.id, visibility) }))
+          }}>
+          <option value="public">All members</option><option value="private">Only me</option>
+        </select>
+        {onDelete && <PostMenu disabled={busy || refreshing}
+          onDelete={() => { setError(''); setConfirmingDelete(true) }} />}
+      </> : post.author_following ? <span className="post-follow is-following">Following</span>
         : <button type="button" className="post-follow" disabled={busy || refreshing}
           aria-label={`Follow ${post.author_name}`} onClick={() => mutate(async () => {
             const summary = await profileClient.setFollow(user, post.author_id, true)
             onChange({ ...post, author_following: summary.following })
           })}>+ Follow</button>}
     </div>
+    {confirmingDelete && (
+      <div className="post-delete-confirm" role="alertdialog" aria-label="Delete post">
+        <p>Delete this post? Its photos, likes and comments will be removed for everyone.</p>
+        <div>
+          <button type="button" className="post-delete-cancel" disabled={busy}
+            onClick={() => setConfirmingDelete(false)}>Cancel</button>
+          <button type="button" className="post-delete-yes" disabled={busy || refreshing}
+            onClick={() => mutate(async () => {
+              await deletePost(user, post.id)
+              onDelete(post.id)
+            })}>{busy ? 'Deleting…' : 'Delete'}</button>
+        </div>
+      </div>
+    )}
     {post.content && <p className="post-text">{post.content}</p>}
     <PostGallery user={user} post={post} />
     <div className="post-actions">
@@ -112,8 +134,8 @@ export default function PostCard({ post, user, onChange, onBusyChange, refreshin
         {post.saved ? <BookmarkIcon /> : <BookmarkBorderOutlinedIcon />} {post.saved ? 'Saved' : 'Save'}
       </button>
       {onSummarize && post.content?.trim() && (
-        <button className="post-action-button" type="button" onClick={() => onSummarize(post.content)}>
-          <AutoAwesomeIcon /> Summarize post
+        <button className="summarise-button" type="button" onClick={() => onSummarize(post.content)}>
+          <AutoAwesomeIcon /> Summarise
         </button>
       )}
     </div>

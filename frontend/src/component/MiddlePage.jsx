@@ -8,7 +8,8 @@ import Avatar from './Avatar'
 import { useAutoRefresh } from '../live/useAutoRefresh'
 import './MiddlePage.css'
 
-export default function MiddlePage({ user, profile, composer, onOpenComposer, onCloseComposer, onOpenProfile, onSummarize }) {
+export default function MiddlePage({ user, profile, composer, onOpenComposer, onCloseComposer, onOpenProfile,
+  onSummarize }) {
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [feedError, setFeedError] = useState('')
@@ -78,6 +79,10 @@ export default function MiddlePage({ user, profile, composer, onOpenComposer, on
           {!loading && posts.length === 0 && <p>No posts yet.</p>}
           {posts.map(post => <PostCard post={post} user={user} key={`${user.uid}:${post.id}`}
             refreshing={loading} refreshRevision={0} onOpenProfile={onOpenProfile} onSummarize={onSummarize}
+            onDelete={id => {
+              feedVersion.current++
+              setPosts(items => items.filter(item => item.id !== id))
+            }}
             onBusyChange={isBusy => {
               feedVersion.current++
               if (isBusy) mutations.current.add(post.id)
