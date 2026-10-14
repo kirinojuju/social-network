@@ -12,7 +12,7 @@ import MessagesPanel from './component/MessagesPanel'
 import PostList from './posts/PostList'
 import NotificationsPanel from './component/NotificationsPanel'
 import { listNotifications } from './notifications/client'
-import { isUnread, latestSeenAt, loadSeenAt, saveSeenAt } from './notifications/seen'
+import { isUnread, latestSeenAt, loadSeenAt, saveSeenAt, unreadMessageCount } from './notifications/seen'
 import Profile from './pages/Profile/Profile'
 import { getClientAuth, logout, watchUser } from './auth/firebase'
 import { profileClient } from './auth/profile'
@@ -126,7 +126,7 @@ export default function App() {
       if (!signal.aborted) setNotifications(current => ({ ...current, loaded: true }))
       throw failure
     }
-  }, notificationsPanel ? 10000 : 30000, Boolean(user) && profileState === 'ready',
+  }, 5000, Boolean(user) && profileState === 'ready',
   user ? `${user.uid}:${notificationsOpenCount}` : null)
 
   async function signOut() {
@@ -172,10 +172,12 @@ export default function App() {
 
   const unreadNotifications = notificationsPanel ? 0
     : notifications.items.filter(item => isUnread(item, notificationsSeenAt)).length
+  const unreadMessages = unreadMessageCount(notifications.items)
 
   function openChat(person) {
     setChatTarget({ id: person.id, name: person.display_name || person.username })
     setMessagesOpen(false)
+    if (notificationsPanel) closeNotifications()
   }
 
   function updateRecentSearches(items) {
@@ -244,6 +246,7 @@ export default function App() {
       }}
       onOpenExplore={() => setExploreOpen(true)}
       onOpenNotifications={toggleNotifications}
+      unreadMessages={unreadMessages}
     />
 
    <TopBar
@@ -342,6 +345,7 @@ export default function App() {
           closeNotifications()
           openProfile(id)
         }}
+        onOpenChat={openChat}
         onClose={closeNotifications}
       />
     )}

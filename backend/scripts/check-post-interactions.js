@@ -27,7 +27,7 @@ async function main() {
     await fixture.connect();
     await fixture.query(`GRANT CONNECT ON DATABASE ${database} TO social_app`);
     await fixture.query('GRANT USAGE ON SCHEMA public TO social_app');
-    assert.equal(await migrate(fixture), 12);
+    assert.equal(await migrate(fixture), 13);
     assert.equal(await migrate(fixture), 0);
     pool = createPool({ ...process.env, PGDATABASE: database });
     await assertLimitedRole(pool);
@@ -98,6 +98,15 @@ async function main() {
     const hello = (await request('alice', 'POST', chatWithBob, { content: 'Hello Bob' }, 201)).message;
     const reply = (await request('bob', 'POST', chatWithAlice, { content: 'Hello Alice' }, 201)).message;
     const photo = (await request('alice', 'POST', chatWithBob, { image }, 201)).message;
+    const bobMessageNotices = (await request('bob', 'GET', '/api/notifications')).notifications;
+    assert.equal(bobMessageNotices.length, 1);
+    assert.equal(bobMessageNotices[0].type, 'message');
+    assert.equal(bobMessageNotices[0].actor_id, members.alice);
+    assert.equal(bobMessageNotices[0].unread_count, 2);
+    assert.ok([hello.id, photo.id].includes(bobMessageNotices[0].message_id));
+    assert.ok(!('content' in bobMessageNotices[0]) && !('image_data' in bobMessageNotices[0]));
+    assert.equal((await request('carol', 'GET', '/api/notifications')).notifications.length, 0);
+    assert.equal((await request('alice', 'GET', '/api/notifications')).notifications[0].actor_id, members.bob);
     const received = (await request('bob', 'GET', chatWithAlice)).messages;
     assert.equal(received.length, 3);
     assert.equal(received.find(message => message.id === hello.id).from_me, false);
@@ -116,7 +125,14 @@ async function main() {
     assert.equal((await request('bob', 'GET', '/api/messages/conversations')).conversations[0].unread_count, 2);
     await request('bob', 'PUT', `${chatWithAlice}/read`, undefined, 204);
     assert.equal((await request('bob', 'GET', '/api/messages/conversations')).conversations[0].unread_count, 0);
+    assert.equal((await request('bob', 'GET', '/api/notifications')).notifications.length, 0);
+    await request('alice', 'PUT', `${chatWithBob}/read`, undefined, 204);
+    assert.equal((await request('alice', 'GET', '/api/notifications')).notifications.length, 0);
     const foreign = (await request('carol', 'POST', chatWithBob, { content: 'Separate conversation' }, 201)).message;
+    const separateNotice = (await request('bob', 'GET', '/api/notifications')).notifications[0];
+    assert.equal(separateNotice.actor_id, members.carol);
+    assert.equal(separateNotice.unread_count, 1);
+    assert.equal(separateNotice.message_id, foreign.id);
     assert.equal((await request('alice', 'GET', `${chatWithBob}?before=${foreign.id}`)).messages.length, 0);
 
     for (const method of ['PUT', 'DELETE']) await request('bob', method, `/${secret.id}/like`, undefined, 404);
@@ -234,12 +250,18 @@ async function main() {
     await assert.rejects(pool.query(`INSERT INTO public.post_comments (post_id, author_id, content)
       SELECT $1, id, '' FROM public.users WHERE firebase_uid = 'bob'`, [shared.id]), { code: '23514' });
     await assert.rejects(pool.query('UPDATE public.post_comments SET content = $1', ['changed']), { code: '42501' });
-    await assert.rejects(pool.query('DELETE FROM public.posts'), { code: '42501' });
-    // Deleting a fixture post cascades to its interactions without orphans.
-    await fixture.query('DELETE FROM public.posts WHERE id = $1', [shared.id]);
+    // The API permits only the verified author to delete; dependent rows cascade.
+    await request('bob', 'DELETE', `/${shared.id}`, undefined, 404);
+    await request('bob', 'PUT', `/${shared.id}/save`);
+    await request('alice', 'DELETE', `/${shared.id}`, undefined, 204);
+    await request('alice', 'DELETE', `/${shared.id}`, undefined, 404);
+    await request('bob', 'GET', `/${shared.image_id}/image`, undefined, 404);
+    assert.ok(!(await request('bob', 'GET', '?scope=feed')).posts.some(post => post.id === shared.id));
+    assert.equal((await fixture.query('SELECT count(*)::int AS n FROM public.media WHERE post_id = $1', [shared.id])).rows[0].n, 0);
+    assert.equal((await fixture.query('SELECT count(*)::int AS n FROM public.saved_posts WHERE post_id = $1', [shared.id])).rows[0].n, 0);
     assert.equal((await fixture.query('SELECT count(*)::int AS n FROM public.post_likes WHERE post_id = $1', [shared.id])).rows[0].n, 0);
     assert.equal((await fixture.query('SELECT count(*)::int AS n FROM public.post_comments WHERE post_id = $1', [shared.id])).rows[0].n, 0);
-    console.log('PASS: twelve migrations, limited role, three-account feed/privacy, likes/comments, search visibility, follows/friends, two-way chat/photos, participant privacy, read receipts, restart persistence, ordered post photos, saved-post isolation, notifications, avatars/covers, private legacy import, cascade cleanup.');
+    console.log('PASS: thirteen migrations, limited role, three-account feed/privacy, likes/comments, search visibility, follows/friends, two-way chat/photos, participant privacy, read receipts, recipient-only unread message notifications, restart persistence, ordered post photos, saved-post isolation, notifications, avatars/covers, private legacy import, author-only post deletion and cascade cleanup.');
   } finally {
     if (server) { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
     if (pool) await pool.end();
