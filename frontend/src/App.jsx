@@ -277,6 +277,7 @@ export default function App() {
       onAvatarChange={() => setAvatarVersion(version => version + 1)}
       onMessage={openChat}
       onOpenProfile={openProfile}
+      onSummarize={setSummaryPost}
       onSignOut={signOut}
       signOutBusy={busy}
     />
@@ -284,7 +285,7 @@ export default function App() {
     <SearchResults user={user} query={submittedSearch} onOpenProfile={openProfile} />
   ) : activeView === 'saved' ? (
     <div className="saved-page">
-      <PostList user={user} scope="saved" title="Saved posts" onOpenProfile={openProfile}
+      <PostList user={user} scope="saved" title="Saved posts" onOpenProfile={openProfile} onSummarize={setSummaryPost}
         emptyText="You haven't saved any posts yet. Tap Save on a post to keep it here." />
     </div>
   ) : (
@@ -296,6 +297,7 @@ export default function App() {
       onOpenComposer={openComposer}
       onCloseComposer={closeComposer}
       onOpenProfile={openProfile}
+      onSummarize={setSummaryPost}
     />
   )}
 

@@ -302,14 +302,15 @@
 
 .audience-label { display: flex; align-items: center; gap: 8px; }
 .audience-label select, .post-visibility { border: 1px solid #d8d4e1; border-radius: 8px; padding: 8px; font: inherit; }
-.post-visibility { margin-left: auto; font-size: 14px; }
-.post-header { flex-wrap: wrap; }
-.post-follow { margin-left: auto; padding: 6px 14px; border: 1px solid #6f63c9; border-radius: 999px; background: #6f63c9; color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.post-visibility { flex-shrink: 0; margin-left: auto; font-size: 14px; }
+.post-header > div { flex: 1; min-width: 0; }
+.post-header p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.post-follow { flex-shrink: 0; white-space: nowrap; margin-left: auto; padding: 6px 14px; border: 1px solid #6f63c9; border-radius: 999px; background: #6f63c9; color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .post-follow:hover:not(:disabled) { background: #5b50b5; border-color: #5b50b5; }
 .post-follow:disabled { opacity: .6; cursor: wait; }
 .post-follow.is-following { background: #f0edfc; border-color: #f0edfc; color: #5b50b5; cursor: default; }
 .post-action-button.is-liked { color: #a72b65; background: #fff0f6; }
-.post-save-button { margin-left: auto; }
+.post-actions .summarise-button { margin-left: auto; }
 .post-action-button.post-save-button svg { font-size: 22px; }
 .post-action-button.is-saved { color: #5b50b5; background: #f0edfc; }
 .post-comments { margin-top: 16px; border-top: 1px solid #e7e4ec; padding-top: 16px; }
@@ -359,34 +360,27 @@
 }
 
 .summarise-button {
-  margin-left: auto;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 10px;
-  background: #6f63c9;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.summarise-button {
-  margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 
-  padding: 10px 18px;
+  padding: 8px 16px;
   border: none;
   border-radius: 10px;
 
   background: #6f63c9;
   color: white;
 
-  font-size: 16px;
+  font: inherit;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
 
   transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.summarise-button svg {
+  font-size: 18px;
 }
 
 .summarise-button:hover {
