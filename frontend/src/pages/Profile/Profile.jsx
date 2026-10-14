@@ -10,7 +10,7 @@ import { profileClient } from "../../auth/profile";
 
 import "./Profile.css";
 
-function Profile({ user, profile: ownProfile, profileId, onProfileChange, onAvatarChange, onMessage, onOpenProfile,
+function Profile({ user, profile: ownProfile, profileId, onProfileChange, onAvatarChange, onMessage, onOpenProfile, onSummarize,
   onSignOut, signOutBusy }) {
   const isOwn = !profileId || profileId === ownProfile?.id;
   const [other, setOther] = useState({ id: null, profile: null });
@@ -57,10 +57,10 @@ function Profile({ user, profile: ownProfile, profileId, onProfileChange, onAvat
         <main className="profile-feed">
           {activeTab === "All" && (
             <PostList user={user} author={profile.id} title="Posts" emptyText="No posts yet."
-              onOpenProfile={onOpenProfile} />
+              onOpenProfile={onOpenProfile} onSummarize={onSummarize} />
           )}
           {activeTab === "Saved" && (
-            <PostList user={user} scope="saved" title="Saved posts" onOpenProfile={onOpenProfile}
+            <PostList user={user} scope="saved" title="Saved posts" onOpenProfile={onOpenProfile} onSummarize={onSummarize}
               emptyText="You haven't saved any posts yet. Tap Save on a post to keep it here." />
           )}
           {activeTab === "Media" && <ProfileMedia user={user} media={media} onOpenPhoto={openPhoto} />}

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined'
 import BookmarkIcon from '@mui/icons-material/Bookmark'
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import Avatar from '../component/Avatar'
 import { profileClient } from '../auth/profile'
 import { createComment, deleteComment, listComments, setPostLike, setPostSaved, setPostVisibility } from './client'
@@ -8,7 +9,7 @@ import PostGallery from './PostGallery'
 import { useAutoRefresh } from '../live/useAutoRefresh'
 import { mergeNewestComments } from './merge-comments'
 
-export default function PostCard({ post, user, onChange, onBusyChange, refreshing, refreshRevision, onOpenProfile }) {
+export default function PostCard({ post, user, onChange, onBusyChange, refreshing, refreshRevision, onOpenProfile, onSummarize }) {
   const [busy, setBusy] = useState(false)
   const [comments, setComments] = useState([])
   const [open, setOpen] = useState(false)
@@ -110,6 +111,11 @@ export default function PostCard({ post, user, onChange, onBusyChange, refreshin
           onChange(await setPostSaved(user, post.id, !post.saved)))}>
         {post.saved ? <BookmarkIcon /> : <BookmarkBorderOutlinedIcon />} {post.saved ? 'Saved' : 'Save'}
       </button>
+      {onSummarize && post.content?.trim() && (
+        <button className="post-action-button" type="button" onClick={() => onSummarize(post.content)}>
+          <AutoAwesomeIcon /> Summarize post
+        </button>
+      )}
     </div>
     {open && <section className="post-comments" aria-label="Comments">
       {nextCursor && <button type="button" disabled={loading || busy || refreshing} onClick={() => load(true)}>Load older comments</button>}

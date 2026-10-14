@@ -6,7 +6,7 @@ import '../component/MiddlePage.css'
 import './PostList.css'
 
 // One member's posts (`author`) or the signed-in member's saved posts (`scope="saved"`).
-export default function PostList({ user, author, scope, title, emptyText, onOpenProfile }) {
+export default function PostList({ user, author, scope, title, emptyText, onOpenProfile, onSummarize }) {
   const source = author ? `author:${author}` : scope
   const [state, setState] = useState({ source: null, posts: [], error: '' })
 
@@ -28,7 +28,7 @@ export default function PostList({ user, author, scope, title, emptyText, onOpen
       {!loading && !state.error && state.posts.length === 0 && <p className="post-list-empty">{emptyText}</p>}
       {!loading && state.posts.map(post => (
         <PostCard key={post.id} post={post} user={user} refreshing={false} refreshRevision={0}
-          onOpenProfile={onOpenProfile} onBusyChange={() => {}}
+          onOpenProfile={onOpenProfile} onSummarize={onSummarize} onBusyChange={() => {}}
           onChange={updated => setState(current => ({ ...current, posts: applyPostUpdate(current.posts, updated) }))} />
       ))}
     </section>
