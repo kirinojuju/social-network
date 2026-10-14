@@ -14,6 +14,27 @@ const { verifyFirebaseToken } = require('./config/firebase');
 function createApp(pool, origins = [], { verifyToken = verifyFirebaseToken, staticDir, summarize = summarizeText, chat = chatWithAssistant } = {}) {
   const app = express();
   app.disable('x-powered-by');
+  app.use((req, res, next) => {
+    res.set('X-Content-Type-Options', 'nosniff');
+    res.set('X-Frame-Options', 'DENY');
+    res.set('Content-Security-Policy', "frame-ancestors 'none'");
+    res.set('Referrer-Policy', 'no-referrer');
+    // Keep deployment files and source maps out of the SPA fallback too.
+    let pathname;
+    try { pathname = decodeURIComponent(req.path); } catch {
+      return res.status(400).json({ error: 'Invalid path' });
+    }
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments.some(segment => segment.startsWith('.') ||
+        /^(?:secrets?|credentials?|node_modules)$/i.test(segment)) ||
+        /\.(?:map|pem|key|p12|pfx|sql)$/i.test(pathname)) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    if (req.path === '/api' || req.path.startsWith('/api/')) {
+      res.set('Cache-Control', 'private, no-store');
+    }
+    next();
+  });
   app.use(cors({ origin: origins }));
   app.use('/api/posts', express.json({ limit: '30mb' }));
   app.use('/api/messages', express.json({ limit: '4mb' }));

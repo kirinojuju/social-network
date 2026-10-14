@@ -10,3 +10,8 @@ dist/
 *serviceAccount*.json
 *service_account*.json
 *firebase-adminsdk*.json
+*.pem
+*.key
+*.p12
+*.pfx
+credentials/

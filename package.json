@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "check:secrets": "node scripts/check-secrets.cjs"
+  },
   "dependencies": {
     "firebase": "^12.19.0"
   }
