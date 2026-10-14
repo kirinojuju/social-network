@@ -1,4 +1,4 @@
-// Mirrors database/migrations/001 through 012. SQL migrations remain authoritative.
+// Mirrors database/migrations/001 through 013. SQL migrations remain authoritative.
 // Do not use Prisma Migrate or db push for this shared schema.
 generator client {
   provider        = "prisma-client-js"
