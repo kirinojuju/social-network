@@ -1,87 +1,67 @@
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import MailOutlinedIcon from "@mui/icons-material/MailOutlined";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import SentimentSatisfiedOutlinedIcon from "@mui/icons-material/SentimentSatisfiedOutlined";
-
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlined";
-import { siteName } from "../brand";
+import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
+import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
+import { logoUrl } from "../brand";
+import Avatar from "./Avatar";
+import BrandName from "./BrandName";
 import "./LeftSideBar.css";
 
-const mainMenu = [
-  {
-    name: "Home",  
-    icon: HomeOutlinedIcon,
-  },
-  {
-    name: "Explore",
-    icon: SearchOutlinedIcon,
-  },
-  {
-    name: "Messages",
-    icon: MailOutlinedIcon,
-  },
-  {
-    name: "UniAI",
-    icon: AutoAwesomeIcon,
-  },
-  {
-    name: "Create Post",
-    icon: EditOutlinedIcon,
-  },
-];
-
-
-const moreMenu = [
-  {
-    name: "Notifications",
-    icon: NotificationsNoneOutlinedIcon,
-  },
-  {
-    name: "Saved",
-    icon: BookmarkBorderOutlinedIcon,
-  },
+const menu = [
+  { id: "home", name: "Home", icon: HomeOutlinedIcon },
+  { id: "messages", name: "Messages", icon: MailOutlinedIcon },
+  { id: "uniai", name: "UniAI", icon: AutoAwesomeIcon },
+  { id: "notifications", name: "Notifications", icon: NotificationsNoneOutlinedIcon },
+  { id: "saved", name: "Saved", icon: BookmarkBorderOutlinedIcon },
+  { id: "profile", name: "My Profile", icon: PersonOutlineOutlinedIcon },
 ];
 
 function LeftSidebar({
+  user,
+  profile,
+  avatarVersion,
   activeView,
   onNavigate,
-  onCreatePost,
+  onLogoClick,
   onOpenAI,
   onOpenMessages,
-  onOpenExplore,
   onOpenNotifications,
+  onOpenProfile,
+  onSignOut,
+  signOutBusy,
 }) {
   const actions = {
-  Home: () => onNavigate('home'),
-  Explore: onOpenExplore,
-  Messages: onOpenMessages,
-  UniAI: onOpenAI,
-  'Create Post': onCreatePost,
-  Saved: () => onNavigate('saved'),
-  Notifications: onOpenNotifications,
-};
+    home: () => onNavigate("home"),
+    messages: onOpenMessages,
+    uniai: onOpenAI,
+    notifications: onOpenNotifications,
+    saved: () => onNavigate("saved"),
+    profile: onOpenProfile,
+  };
 
   return (
     <aside className="left-sidebar">
 
       {/* LOGO */}
-      <div className="sidebar-logo">
-        {siteName}
-      </div>
+      <button type="button" className="sidebar-logo" onClick={onLogoClick} title="Go to home and refresh">
+        <img src={logoUrl} alt="" className="sidebar-logo-icon" />
+        <BrandName />
+      </button>
 
-      {/* MAIN MENU */}
+      {/* MENU */}
       <nav className="sidebar-menu">
-        {mainMenu.map((item) => {
+        {menu.map((item) => {
           const Icon = item.icon;
 
           return (
-            <button type="button" className="sidebar-item" key={item.name}
-              disabled={!actions[item.name]} onClick={actions[item.name]}
-              data-messages-toggle={item.name === "Messages" || undefined}
-              aria-current={item.name.toLowerCase() === activeView ? 'page' : undefined}>
+            <button type="button" className="sidebar-item" key={item.id}
+              disabled={!actions[item.id]} onClick={actions[item.id]}
+              data-messages-toggle={item.id === "messages" || undefined}
+              data-notifications-toggle={item.id === "notifications" || undefined}
+              aria-current={item.id === activeView ? "page" : undefined}>
               <Icon className="sidebar-icon" />
               <span>{item.name}</span>
             </button>
@@ -89,53 +69,19 @@ function LeftSidebar({
         })}
       </nav>
 
-      {/* DIVIDER */}
-      <div className="sidebar-divider"></div>
-
-      {/* MORE */}
-      <div className="more-section">
-
-        <div className="more-title">
-          More
-        </div>
-
-        {moreMenu.map((item) => {
-          const Icon = item.icon;
-
-          return (
-            <button type="button" className="sidebar-item" key={item.name}
-              disabled={!actions[item.name]} onClick={actions[item.name]}
-              data-notifications-toggle={item.name === "Notifications" || undefined}
-              aria-current={item.name.toLowerCase() === activeView ? 'page' : undefined}>
-              <Icon className="sidebar-icon" />
-              <span>{item.name}</span>
-            </button>
-          );
-        })}
-
-      </div>
-
-      {/* AI CARD */}
-      <div className="ai-study-card">
-
-        <div className="ai-card-title">
-          Your AI Study Hub
-        </div>
-
-        <div className="ai-card-subtitle">
-          Ask Anything. Anytime
-        </div>
-
-        <div className="ai-card-bottom">
-            <div className="ai-smile">
-              <SentimentSatisfiedOutlinedIcon />
-            </div>
-
-          <button type="button" className="ai-chat-button" onClick={onOpenAI}>
-            Chat with UniAI
-          </button>
-        </div>
-
+      {/* ME */}
+      <div className="sidebar-me">
+        <button type="button" className="sidebar-me-profile" onClick={onOpenProfile}>
+          <Avatar user={user} userId={profile?.id} version={avatarVersion} className="sidebar-me-avatar" />
+          <span className="sidebar-me-text">
+            <span className="sidebar-me-name">{profile?.display_name || "Your profile"}</span>
+            {profile?.username && <span className="sidebar-me-username">@{profile.username}</span>}
+          </span>
+        </button>
+        <button type="button" className="sidebar-me-signout" aria-label="Sign out" title="Sign out"
+          disabled={signOutBusy} onClick={onSignOut}>
+          <LogoutOutlinedIcon />
+        </button>
       </div>
 
     </aside>

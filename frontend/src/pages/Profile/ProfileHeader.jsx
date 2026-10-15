@@ -1,6 +1,7 @@
 import CameraAltOutlinedIcon from "@mui/icons-material/CameraAltOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined";
 import { useRef, useState } from "react";
 import { profileClient } from "../../auth/profile";
@@ -165,6 +166,7 @@ function ProfileHeader({ isOwn, user, profile, onProfileChange, onAvatarChange, 
               </button>
 
               <button type="button" className="sign-out-button" disabled={signOutBusy} onClick={onSignOut}>
+                <LogoutOutlinedIcon />
                 Sign Out
               </button>
             </>

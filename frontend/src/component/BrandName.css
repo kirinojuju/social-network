@@ -1,0 +1,13 @@
+.brand-name {
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+}
+
+.brand-name-strong {
+  color: #4f37c4;
+}
+
+.brand-name-light {
+  color: #9583ec;
+}

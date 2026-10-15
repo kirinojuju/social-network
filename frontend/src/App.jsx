@@ -37,6 +37,7 @@ export default function App() {
   const [messagesOpen, setMessagesOpen] = useState(false)
   const [composer, setComposer] = useState(null)
   const [avatarVersion, setAvatarVersion] = useState(0)
+  const [homeVersion, setHomeVersion] = useState(0)
   const [notifications, setNotifications] = useState({ loaded: false, items: [] })
   const [notificationsSeenAt, setNotificationsSeenAt] = useState(null)
   const [notificationsPanel, setNotificationsPanel] = useState(null)
@@ -204,6 +205,14 @@ export default function App() {
     setExploreOpen(false)
   }
 
+  function goHome() {
+    setActiveView('home')
+    setViewedProfileId(null)
+    setExploreOpen(false)
+    setHomeVersion(version => version + 1)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   function openComposer(files = null) {
     setActiveView('home')
     setExploreOpen(false)
@@ -235,15 +244,20 @@ export default function App() {
   <div className="app">
 
     <LeftSidebar
-      activeView={activeView}
+      user={user}
+      profile={profile}
+      avatarVersion={avatarVersion}
+      activeView={activeView === 'profile' && viewedProfileId && viewedProfileId !== profile?.id ? null : activeView}
       onNavigate={setActiveView}
-      onCreatePost={() => openComposer()}
+      onLogoClick={goHome}
+      onOpenProfile={() => openProfile()}
+      onSignOut={signOut}
+      signOutBusy={busy}
       onOpenAI={() => setSummaryPost('')}
       onOpenMessages={() => {
         if (notificationsPanel) closeNotifications()
         setMessagesOpen(open => !open)
       }}
-      onOpenExplore={() => setExploreOpen(true)}
       onOpenNotifications={toggleNotifications}
     />
 
@@ -291,7 +305,7 @@ export default function App() {
     </div>
   ) : (
     <MiddlePage
-      key={user.uid}
+      key={`${user.uid}:${homeVersion}`}
       user={user}
       profile={profile}
       composer={composer}

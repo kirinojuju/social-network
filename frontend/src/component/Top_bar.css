@@ -12,8 +12,8 @@
   box-sizing: border-box;
 
   background-color: #ffffff;
-  border-bottom: 1px solid #dddddd;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid #e8e3f7;
+  box-shadow: 0 4px 16px rgba(79, 55, 196, 0.08);
 
   z-index: 900;
 }
@@ -31,10 +31,10 @@
   display: flex;
   align-items: center;
 
-  border: 1.5px solid #202020;
+  border: 1.5px solid #ddd6f8;
   border-radius: 25px;
 
-  background-color: #ffffff;
+  background-color: #f8f6ff;
 
   box-sizing: border-box;
 
@@ -47,7 +47,7 @@
 
   margin-left: 22px;
 
-  color: #111111;
+  color: #6c5ce0;
 
   flex-shrink: 0;
 }
@@ -86,7 +86,7 @@
   display: flex;
   align-items: center;
 
-  gap: 28px;
+  gap: 14px;
 
   margin-left: 30px;
 }
@@ -107,9 +107,25 @@
   cursor: pointer;
 }
 
+.top-bar-button {
+  width: 44px;
+  height: 44px;
+
+  border-radius: 50%;
+  background: #f3f0ff;
+  color: #4f37c4;
+
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.top-bar-button:hover {
+  background: #e6e0ff;
+  transform: translateY(-1px);
+}
+
 .top-bar-button svg {
-  width: 25px;
-  height: 25px;
+  width: 23px;
+  height: 23px;
 }
 
 .top-bar-bell {
@@ -118,8 +134,8 @@
 
 .top-bar-badge {
   position: absolute;
-  top: -7px;
-  right: -9px;
+  top: -4px;
+  right: -6px;
 
   min-width: 18px;
   height: 18px;
@@ -147,6 +163,6 @@
 }
 
 .top-bar-profile img.top-bar-avatar {
-  border: 1.5px solid #202020;
+  border: 2px solid #7a63e0;
   box-sizing: border-box;
 }

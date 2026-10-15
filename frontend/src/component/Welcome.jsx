@@ -4,6 +4,7 @@ import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined'
 import ChatBubbleOutlineOutlinedIcon from '@mui/icons-material/ChatBubbleOutlineOutlined'
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import { logoUrl, siteName, tagline } from '../brand'
+import BrandName from './BrandName'
 import './Welcome.css'
 
 const features = [
@@ -26,7 +27,7 @@ export default function Welcome({ onCreateAccount, onSignIn }) {
           )}
         </div>
 
-        <h1>Welcome to <span>{siteName}</span></h1>
+        <h1>Welcome to <BrandName /></h1>
         <p className="welcome-tagline">{tagline}</p>
         <p className="welcome-intro">
           The social network for university students. Share your student life, meet new friends
