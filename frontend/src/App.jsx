@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import AuthFormLogin from './component/AuthFormsLogin'
 import AuthFormSignUp from './component/AuthFormsSignUp'
+import Welcome from './component/Welcome'
 import LeftSidebar from './component/LeftSideBar'
 import RightSideBar from './component/RightSideBar'
 import Explore from './component/Explore'
@@ -24,7 +25,7 @@ import { useAutoRefresh } from './live/useAutoRefresh'
 import { addRecentSearch, loadRecentSearches, saveRecentSearches } from './search/recent'
 
 export default function App() {
-  const [page, setPage] = useState('login')
+  const [page, setPage] = useState('welcome')
   const [activeView, setActiveView] = useState('home')
   const [viewedProfileId, setViewedProfileId] = useState(null)
   const [exploreOpen, setExploreOpen] = useState(false)
@@ -369,8 +370,13 @@ export default function App() {
 )
   }
 
+  if (page === 'welcome') {
+    return <Welcome onCreateAccount={() => setPage('signup')} onSignIn={() => setPage('login')} />
+  }
+
   return (
     <main className="app-container auth-page">
+      <button type="button" className="auth-back" onClick={() => setPage('welcome')}>← Back</button>
       {page === 'login' ? <AuthFormLogin onSignUp={() => setPage('signup')} /> : (
         <AuthFormSignUp onSignIn={() => setPage('login')}
           onSignupStart={() => setSigningUp(true)}

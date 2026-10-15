@@ -7,6 +7,7 @@ import SentimentSatisfiedOutlinedIcon from "@mui/icons-material/SentimentSatisfi
 
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlined";
+import { siteName } from "../brand";
 import "./LeftSideBar.css";
 
 const mainMenu = [
@@ -68,7 +69,7 @@ function LeftSidebar({
 
       {/* LOGO */}
       <div className="sidebar-logo">
-        UniConnect
+        {siteName}
       </div>
 
       {/* MAIN MENU */}
