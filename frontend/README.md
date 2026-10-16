@@ -1,4 +1,4 @@
-﻿# CMU Connect frontend
+﻿# CMUnite frontend
 
 ## Run locally
 
