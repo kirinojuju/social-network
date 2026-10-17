@@ -6,6 +6,8 @@ one another, share posts, and have private conversations. This repository is an
 
 **Team test site:** [social-network-team-test.onrender.com](https://social-network-team-test.onrender.com/)
 
+<img src="frontend\src\assets\cmunite.png" alt="Alt text" width="500">
+
 The shared site is for testing. Render may take longer to answer its first request
 after a period of inactivity. The site runs a manually selected integration commit;
 the GitHub `main` and `develop` branches can be at different versions.
