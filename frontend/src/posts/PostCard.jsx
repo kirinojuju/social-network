@@ -1,6 +1,9 @@
 import { useRef, useState } from 'react'
-import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined'
-import BookmarkIcon from '@mui/icons-material/Bookmark'
+import BookmarkBorderRoundedIcon from '@mui/icons-material/BookmarkBorderRounded'
+import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded'
+import ChatBubbleOutlineRoundedIcon from '@mui/icons-material/ChatBubbleOutlineRounded'
+import FavoriteBorderRoundedIcon from '@mui/icons-material/FavoriteBorderRounded'
+import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded'
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import Avatar from '../component/Avatar'
 import { profileClient } from '../auth/profile'
@@ -120,18 +123,24 @@ export default function PostCard({ post, user, onChange, onBusyChange, refreshin
     <PostGallery user={user} post={post} />
     <div className="post-actions">
       <button className={`post-action-button${post.liked ? ' is-liked' : ''}`} type="button"
+        aria-label={`${post.liked ? 'Unlike' : 'Like'}, ${post.like_count} likes`} title={post.liked ? 'Unlike' : 'Like'}
         aria-pressed={post.liked} disabled={busy || loading || refreshing} onClick={() => mutate(async () =>
           onChange(await setPostLike(user, post.id, !post.liked)))}>
-        {post.liked ? '♥ Liked' : '♡ Like'} ({post.like_count})
+        {post.liked ? <FavoriteRoundedIcon /> : <FavoriteBorderRoundedIcon />}
+        <span className="post-action-count">{post.like_count}</span>
       </button>
-      <button className="post-action-button" type="button" aria-expanded={open} disabled={busy || loading || refreshing}
+      <button className={`post-action-button${open ? ' is-open' : ''}`} type="button"
+        aria-label={`Comments, ${post.comment_count}`} title="Comments"
+        aria-expanded={open} disabled={busy || loading || refreshing}
         onClick={() => { setOpen(!open); if (!open) load() }}>
-        Comments ({post.comment_count})
+        <ChatBubbleOutlineRoundedIcon />
+        <span className="post-action-count">{post.comment_count}</span>
       </button>
       <button className={`post-action-button post-save-button${post.saved ? ' is-saved' : ''}`} type="button"
+        aria-label={post.saved ? 'Saved' : 'Save'} title={post.saved ? 'Remove from saved' : 'Save'}
         aria-pressed={Boolean(post.saved)} disabled={busy || loading || refreshing} onClick={() => mutate(async () =>
           onChange(await setPostSaved(user, post.id, !post.saved)))}>
-        {post.saved ? <BookmarkIcon /> : <BookmarkBorderOutlinedIcon />} {post.saved ? 'Saved' : 'Save'}
+        {post.saved ? <BookmarkRoundedIcon /> : <BookmarkBorderRoundedIcon />}
       </button>
       {onSummarize && post.content?.trim() && (
         <button className="summarise-button" type="button" onClick={() => onSummarize(post.content)}>

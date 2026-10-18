@@ -1,6 +1,7 @@
 ﻿import { useState } from 'react'
 import { authActions, login } from '../auth/firebase'
 import { authError } from '../auth/validation'
+import { siteName } from '../brand'
 import './AuthStyle.css'
 
 export default function AuthFormLogin({ onSignUp }) {
@@ -50,7 +51,7 @@ export default function AuthFormLogin({ onSignUp }) {
             {reset ? 'Back to sign in' : 'Forgot password?'}
           </button>
           <div className="footer-text">
-            New to CMU Connect?{' '}
+            New to {siteName}?{' '}
             <button className="auth-link" type="button" onClick={onSignUp}>Create an account</button>
           </div>
         </fieldset>

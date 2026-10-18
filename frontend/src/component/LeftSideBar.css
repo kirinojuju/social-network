@@ -15,7 +15,9 @@
   display: flex;
   flex-direction: column;
 
-  border-right: 1px solid #d9d9d9;
+  border-right: 1px solid #e8e3f7;
+
+  overflow-y: auto;
 
   font-family: "Inter", Arial, sans-serif;
 
@@ -28,14 +30,38 @@
 ======================================== */
 
 .sidebar-logo {
-  padding: 24px 32px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 
+  margin: 10px 12px 6px;
+  padding: 12px 12px 10px;
+
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+
+  font-family: inherit;
   font-size: 25px;
-  font-weight: 900;
+  text-align: left;
 
-  color: #6868b5;
+  cursor: pointer;
+}
 
-  letter-spacing: -0.5px;
+.sidebar-logo:hover {
+  background: #f6f5fd;
+}
+
+.sidebar-logo:focus-visible {
+  outline: 2px solid #6b62b3;
+  outline-offset: 2px;
+}
+
+.sidebar-logo-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 10px;
 }
 
 
@@ -44,7 +70,7 @@
 ======================================== */
 
 .sidebar-menu {
-  padding: 0 18px;
+  padding: 8px 18px 0;
 }
 
 
@@ -53,21 +79,21 @@
 ======================================== */
 
 .sidebar-item {
-  height:35px;
+  height: 46px;
 
   display: flex;
   align-items: center;
 
-  gap: 15px;
+  gap: 16px;
 
-  padding: 0 12px;
+  padding: 0 14px;
 
-  margin-bottom: 2px;
+  margin-bottom: 6px;
 
-  border-radius: 6px;
+  border-radius: 10px;
 
-  font-size: 14px;
-  font-weight: 400;
+  font-size: 16px;
+  font-weight: 500;
 
   color: #202020;
 
@@ -81,7 +107,15 @@
   font-family: inherit;
 }
 
-.sidebar-item[aria-current="page"] { background: #f3f2fc; color: #6868b5; }
+.sidebar-item[aria-current="page"],
+.sidebar-item[aria-current="page"]:hover {
+  background: linear-gradient(135deg, #5b43d6 0%, #8f7cf0 100%);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 6px 16px rgba(91, 67, 214, 0.28);
+}
+.sidebar-item[aria-current="page"] .sidebar-icon,
+.sidebar-item[aria-current="page"]:hover .sidebar-icon { color: #ffffff; }
 .sidebar-item:disabled { opacity: 0.55; cursor: default; }
 
 
@@ -90,8 +124,8 @@
 ======================================== */
 
 .sidebar-icon {
-  width: 19px !important;
-  height: 19px !important;
+  width: 23px !important;
+  height: 23px !important;
 
   color: #202020;
 
@@ -115,168 +149,112 @@
 
 
 /* ========================================
-   DIVIDER
+   ME CARD
 ======================================== */
 
-.sidebar-divider {
-  height: 1px;
-
-  width: 100%;
-
-  background-color: #bdbdbd;
-
-  margin-top: 5px;
-}
-
-
-/* ========================================
-   MORE SECTION
-======================================== */
-
-.more-section {
-  padding: 15px 18px 0;
-}
-
-
-.more-title {
-  padding: 0 12px;
-
-  margin-bottom: 7px;
-
-  font-size: 15px;
-  font-weight: 400;
-
-  color: #202020;
-}
-
-
-/* ========================================
-   AI STUDY HUB CARD
-======================================== */
-
-.ai-study-card {
+.sidebar-me {
   margin-top: auto;
 
-  height: 147px;
-  min-height: 147px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 
-  padding: 20px 32px;
+  padding: 12px 14px;
 
-  background: linear-gradient(
-    135deg,
-    #7777c7 0%,
-    #aaa9ef 100%
-  );
-
-  color: white;
+  border-top: 1px solid #ececec;
 
   flex-shrink: 0;
 }
 
+.sidebar-me-profile {
+  flex: 1;
+  min-width: 0;
 
-/* ========================================
-   AI TITLE
-======================================== */
-
-.ai-card-title {
-  margin-bottom: 7px;
-
-  font-size: 16px;
-  font-weight: 600;
-
-  line-height: 1.2;
-}
-
-
-/* ========================================
-   AI SUBTITLE
-======================================== */
-
-.ai-card-subtitle {
-  margin-bottom: 14px;
-
-  font-size: 13px;
-  font-weight: 400;
-
-  color: rgba(255, 255, 255, 0.95);
-
-  line-height: 1.2;
-}
-
-
-/* ========================================
-   BOTTOM ROW
-======================================== */
-
-.ai-card-bottom {
   display: flex;
-
   align-items: center;
+  gap: 10px;
 
-  gap: 12px;
+  padding: 6px;
+
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
+.sidebar-me-profile:hover {
+  background: #f3f2fc;
+}
 
-/* ========================================
-   SMILE ICON
-======================================== */
+.sidebar-me-avatar {
+  width: 38px !important;
+  height: 38px !important;
+  flex-shrink: 0;
 
-.ai-smile {
-  width: 35px;
-  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+
+  color: #9a9a9a;
+}
+
+.sidebar-me-text {
+  min-width: 0;
 
   display: flex;
+  flex-direction: column;
+}
 
+.sidebar-me-name,
+.sidebar-me-username {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-me-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #202020;
+}
+
+.sidebar-me-username {
+  font-size: 12px;
+  color: #777;
+}
+
+.sidebar-me-signout {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+
+  display: flex;
   align-items: center;
   justify-content: center;
 
-  border: 3px solid white;
-
+  border: 0;
   border-radius: 50%;
+  background: transparent;
 
-  color: white;
-}
-
-
-.ai-smile svg {
-  width: 23px;
-  height: 23px;
-}
-
-
-/* ========================================
-   START CHAT BUTTON
-======================================== */
-
-.ai-chat-button {
-  height: 30px;
-
-  padding: 0 12px;
-
-  border: none;
-
-  border-radius: 6px;
-
-  background-color: white;
-
-  color: #6868b5;
-
-  font-family: "Inter", Arial, sans-serif;
-
-  font-size: 12px;
-
-  font-weight: 600;
-
+  color: #777;
   cursor: pointer;
-
-  transition: all 0.2s ease;
 }
 
+.sidebar-me-signout:hover:not(:disabled) {
+  background: #fdecec;
+  color: #c0392b;
+}
 
-.ai-chat-button:hover {
-  background-color: #f5f5f5;
+.sidebar-me-signout:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
 
-  transform: translateY(-1px);
+.sidebar-me-signout svg {
+  width: 20px;
+  height: 20px;
 }
 .sidebar-message-badge {
   margin-left: auto;

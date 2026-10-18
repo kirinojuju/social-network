@@ -20,8 +20,8 @@
   height: 200px;
   position: relative;
   overflow: hidden;
-  background: #eeeeee;
-  border: 1px solid #cfcfcf;
+  background: linear-gradient(135deg, #5b43d6 0%, #9583ec 100%);
+  border: 1px solid #e8e3f7;
   box-sizing: border-box;
 }
 
@@ -241,34 +241,43 @@
    EDIT PROFILE
 ======================================== */
 
-.edit-profile-button {
+.edit-profile-button,
+.sign-out-button {
+  height: 40px;
+
   display: flex;
-
   align-items: center;
+  gap: 7px;
 
-  gap: 5px;
+  padding: 0 18px;
 
-  padding: 9px 15px;
+  border-radius: 10px;
 
-  border: none;
-  border-radius: 8px;
-
-  background: #6c6bb2;
-  color: white;
-
-  font-size: 12px;
+  font-family: inherit;
+  font-size: 14px;
   font-weight: 600;
 
   cursor: pointer;
+
+  transition: filter 0.15s ease, background 0.15s ease, transform 0.15s ease;
 }
 
-.edit-profile-button:hover {
-  background: #5d5ca5;
+.edit-profile-button svg,
+.sign-out-button svg {
+  width: 18px;
+  height: 18px;
 }
 
-.edit-profile-button svg {
-  width: 16px;
-  height: 16px;
+.edit-profile-button {
+  border: 1.5px solid transparent;
+  background: linear-gradient(135deg, #5b43d6 0%, #8f7cf0 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(91, 67, 214, 0.22);
+}
+
+.edit-profile-button:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
 }
 
 
@@ -371,61 +380,75 @@
 ======================================== */
 
 .profile-tabs {
-  height: 56px;
-
   display: flex;
   align-items: stretch;
-  justify-content: space-around;
 
-  border-top: 1px solid #cccccc;
+  border-top: 1px solid #e3e3e3;
 }
 
 .profile-tab {
   position: relative;
 
-  min-width: 100px;
+  flex: 1;
+  height: 54px;
 
   border: none;
   background: transparent;
 
-  font-size: 14px;
-  color: #222222;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: #555555;
 
   cursor: pointer;
+
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.profile-tab:hover:not(.active) {
+  background: #f8f7fd;
+  color: #6c6bb2;
 }
 
 .profile-tab.active {
-  font-weight: 600;
+  color: #6c6bb2;
+  font-weight: 700;
 }
 
 .profile-tab.active::after {
   content: "";
 
   position: absolute;
-
-  left: 20%;
-  right: 20%;
-
+  left: 0;
+  right: 0;
   bottom: 0;
 
-  height: 3px;
+  height: 4px;
 
   background: #6c6bb2;
+  border-radius: 4px 4px 0 0;
+}
 
-  border-radius: 3px 3px 0 0;
+.profile-tab:focus-visible {
+  outline: 2px solid #6c6bb2;
+  outline-offset: -2px;
 }
 
 .sign-out-button {
-  padding: 8px 16px;
-  border: 1px solid #d0d0d0;
-  border-radius: 999px;
-  background: #fff;
-  color: #6b6b6b;
-  cursor: pointer;
+  border: 1.5px solid #7a63e0;
+  background: #ffffff;
+  color: #5b43d6;
 }
 
-.sign-out-button:hover {
-  background: #f5f5f5;
+.sign-out-button:hover:not(:disabled) {
+  background: #f3f0ff;
+  transform: translateY(-1px);
+}
+
+.edit-profile-button:disabled,
+.sign-out-button:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 /* ========================================

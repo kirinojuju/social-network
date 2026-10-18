@@ -11,7 +11,7 @@
 
 .app {
   min-height: 100vh;
-  background-color: #eeeeee;
+  background-color: #f3f0fb;
 }
 
 .app-main {
@@ -24,7 +24,7 @@
 
   box-sizing: border-box;
 
-  background-color: #eeeeee;
+  background-color: #f3f0fb;
 }
 
 .app-main.full-width {
@@ -83,8 +83,7 @@
     height: auto;
   }
 
-  .sidebar-menu,
-  .more-section {
+  .sidebar-menu {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
@@ -94,7 +93,7 @@
     width: auto;
   }
 
-  .ai-study-card {
+  .sidebar-me {
     display: none;
   }
 

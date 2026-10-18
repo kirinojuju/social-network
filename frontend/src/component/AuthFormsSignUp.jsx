@@ -1,6 +1,7 @@
 ﻿import { useState } from 'react'
 import { authActions } from '../auth/firebase'
 import { authError, validateSignup } from '../auth/validation'
+import { siteName } from '../brand'
 import './AuthStyle.css'
 
 export default function AuthFormSignUp({ onSignIn, onSignupStart, onSignupComplete }) {
@@ -29,7 +30,7 @@ export default function AuthFormSignUp({ onSignIn, onSignupStart, onSignupComple
 
   return (
     <div className="card signup-card" id="signup">
-      <h2>Welcome to CMU Connect</h2>
+      <h2>Welcome to {siteName}</h2>
       <form onSubmit={submit} aria-busy={busy}>
         <fieldset className="auth-fields" disabled={busy}>
           <div className="form-row">
@@ -51,7 +52,7 @@ export default function AuthFormSignUp({ onSignIn, onSignupStart, onSignupComple
               <input name="confirmPassword" type="password" placeholder="Confirm Password" aria-label="Confirm Password" autoComplete="new-password" minLength={6} required />
             </div>
           </div>
-          <p className="footer-text">Use at least 6 characters. Your account will be ready immediately.</p>
+          <p className="footer-text auth-hint">Use at least 6 characters. Your account will be ready immediately.</p>
           {error && <p className="auth-error" role="alert">{error}</p>}
           <button className="btn btn-signup" type="submit">{busy ? 'Creating account…' : 'Create Account'}</button>
           <div className="footer-text">

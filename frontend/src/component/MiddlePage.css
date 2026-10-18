@@ -12,13 +12,14 @@
 .create-post-card,
 .sample-post {
   background: #fff;
-  border: 1px solid #e3e0ea;
+  border: 1px solid #e8e3f7;
   border-radius: 22px;
-  box-shadow: 0 4px 16px rgba(46, 40, 70, 0.07);
+  box-shadow: 0 6px 20px rgba(79, 55, 196, 0.07);
 }
 
 .create-post-card {
   padding: 24px 28px;
+  background: linear-gradient(135deg, #ffffff 55%, #f1ecff 100%);
 }
 
 .create-post-top {
@@ -116,9 +117,14 @@
 .post-tools .post-button {
   padding: 10px 27px;
   border-radius: 12px;
-  background: #6f63c9;
+  background: linear-gradient(135deg, #5b43d6 0%, #8f7cf0 100%);
   color: #fff;
   font-weight: 700;
+  box-shadow: 0 6px 14px rgba(91, 67, 214, 0.25);
+}
+
+.post-tools .post-button:hover {
+  filter: brightness(1.06);
 }
 
 /* ===== Stories ===== */
@@ -177,7 +183,7 @@
 
 /* ===== Example post ===== */
 .sample-post {
-  margin-top: 34px;
+  margin-top: 16px;
   padding: 26px 30px;
 }
 
@@ -297,6 +303,7 @@
   gap: 12px;
   margin-top: 18px;
   padding-top: 14px;
+  border-top: 1px solid #efebfa;
   flex-wrap: wrap;
 }
 
@@ -326,10 +333,10 @@
 .post-delete-yes { border: 1px solid #b42318; background: #b42318; color: #fff; }
 .post-delete-yes:hover:not(:disabled) { background: #912018; }
 .post-delete-confirm button:disabled { opacity: .6; cursor: wait; }
-.post-action-button.is-liked { color: #a72b65; background: #fff0f6; }
 .post-actions .summarise-button { margin-left: auto; }
-.post-action-button.post-save-button svg { font-size: 22px; }
-.post-action-button.is-saved { color: #5b50b5; background: #f0edfc; }
+.post-action-button.is-liked,
+.post-action-button.is-saved,
+.post-action-button.is-open { color: #5b43d6; }
 .post-comments { margin-top: 16px; border-top: 1px solid #e7e4ec; padding-top: 16px; }
 .post-comment { display: flex; gap: 12px; justify-content: space-between; margin: 12px 0; padding: 12px; border-radius: 12px; background: #f6f4fc; }
 .post-comment > div { min-width: 0; }
@@ -354,26 +361,32 @@
 .post-action-button {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 
-  padding: 9px 13px;
+  padding: 8px 12px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: transparent;
   color: #403b50;
 
+  font: inherit;
   font-size: 16px;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
 }
 
 .post-action-button svg {
-  font-size: 25px;
+  font-size: 30px;
+}
+
+.post-action-count {
+  min-width: 1ch;
+  font-weight: 600;
 }
 
 .post-action-button:hover {
-  background: #dff2ff; /* ฟ้าอ่อน */
-  color: #2774a8;
+  background: #f0edfc;
+  color: #5b43d6;
 }
 
 .summarise-button {
@@ -385,15 +398,16 @@
   border: none;
   border-radius: 10px;
 
-  background: #6f63c9;
+  background: linear-gradient(135deg, #5b43d6 0%, #8f7cf0 100%);
   color: white;
+  box-shadow: 0 4px 12px rgba(91, 67, 214, 0.22);
 
   font: inherit;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
 
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: filter 0.2s ease, transform 0.2s ease;
 }
 
 .summarise-button svg {
@@ -401,7 +415,7 @@
 }
 
 .summarise-button:hover {
-  background: #5b50b5;
+  filter: brightness(1.06);
   transform: translateY(-1px);
 }
 

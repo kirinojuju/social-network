@@ -9,6 +9,7 @@
   padding: 30px 16px;
 
   background: #ffffff;
+  border-left: 1px solid #e8e3f7;
 
   overflow-y: auto;
 
@@ -22,10 +23,24 @@
 }
 
 .rs-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
   font-size: 15px;
-  font-weight: 600;
-  margin: 0 0 14px;
-  color: #1a1a1a;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: #2a2350;
+}
+
+.rs-title::before {
+  content: "";
+
+  width: 4px;
+  height: 18px;
+
+  border-radius: 4px;
+  background: linear-gradient(180deg, #5b43d6, #9583ec);
 }
 
 .rs-item {
@@ -83,8 +98,7 @@
 }
 
 .rs-btn:disabled:hover {
-  background: transparent;
-  color: #6b62b3;
+  filter: none;
 }
 
 .rs-info {
@@ -110,19 +124,23 @@
 
 .rs-btn {
   font-size: 11px;
-  padding: 3px 12px;
-  border: 1px solid #6b62b3;
+  font-weight: 600;
+  padding: 5px 13px;
+  border: none;
   border-radius: 999px;
-  background: transparent;
-  color: #6b62b3;
+  background: linear-gradient(135deg, #5b43d6 0%, #8f7cf0 100%);
+  color: #fff;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: filter 0.15s, background 0.15s, color 0.15s;
 }
 
-.rs-btn:hover,
+.rs-btn:hover {
+  filter: brightness(1.08);
+}
+
 .rs-btn.active {
-  background: #6b62b3;
-  color: #fff;
+  background: #f0edfc;
+  color: #5b50b5;
 }
 
 .rs-btn:focus-visible,

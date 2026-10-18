@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import ProfileHeader from "./ProfileHeader";
 import ProfileFriends from "./ProfileFriend";
-import ProfilePhotos from "./ProfilePhoto";
 import PostList from "../../posts/PostList";
 import ProfileMedia from "./ProfileMedia";
 import PhotoViewer from "../../posts/PhotoViewer";
@@ -58,7 +57,7 @@ function Profile({ user, profile: ownProfile, profileId, onProfileChange, onAvat
         {/* LEFT SIDE */}
         <main className="profile-feed">
           {activeTab === "All" && (
-            <PostList user={user} author={profile.id} title="Posts" emptyText="No posts yet."
+            <PostList user={user} author={profile.id} emptyText="No posts yet."
               onOpenProfile={onOpenProfile} onSummarize={onSummarize} onDeleted={refreshPhotos} />
           )}
           {activeTab === "Saved" && (
@@ -74,9 +73,6 @@ function Profile({ user, profile: ownProfile, profileId, onProfileChange, onAvat
 
           <ProfileFriends user={user} profileId={profile.id} isOwn={isOwn} version={friendsVersion}
             onOpenProfile={id => onOpenProfile(id === ownProfile?.id ? null : id)} />
-
-          <ProfilePhotos user={user} media={media} onOpenPhoto={openPhoto}
-            onSeeAll={() => setSelectedTab({ id: profile.id, tab: "Media" })} />
 
         </aside>
 

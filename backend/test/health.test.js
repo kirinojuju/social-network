@@ -65,3 +65,32 @@ test('serves the built frontend and keeps unknown API paths as JSON 404', async 
     await fs.rm(staticDir, { recursive: true, force: true });
   }
 });
+
+test('private deployment files and maps cannot be served, even when accidentally present in the frontend build', async () => {
+  const staticDir = await fs.mkdtemp(path.join(os.tmpdir(), 'social-private-files-'));
+  await fs.writeFile(path.join(staticDir, 'index.html'), '<title>Safe SPA</title>');
+  for (const file of ['.env', 'bundle.js.map', 'private.pem', 'setup.sql']) {
+    await fs.writeFile(path.join(staticDir, file), 'private-test-marker');
+  }
+  const server = createApp({}, [], { staticDir }).listen(0, '127.0.0.1');
+  await new Promise(resolve => server.once('listening', resolve));
+  const root = `http://127.0.0.1:${server.address().port}`;
+  try {
+    for (const route of ['/.env', '/%2eenv', '/.git/config', '/secrets/config.json',
+      '/bundle.js.map', '/private.pem', '/setup.sql']) {
+      const response = await fetch(root + route, { headers: { Accept: 'text/html' } });
+      assert.equal(response.status, 404, route);
+      assert.equal((await response.text()).includes('private-test-marker'), false);
+    }
+    const response = await fetch(root + '/explore', { headers: { Accept: 'text/html' } });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('referrer-policy'), 'no-referrer');
+    assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
+    assert.equal(response.headers.get('x-frame-options'), 'DENY');
+    assert.match(await response.text(), /Safe SPA/);
+  } finally {
+    server.closeAllConnections();
+    await new Promise(resolve => server.close(resolve));
+    await fs.rm(staticDir, { recursive: true, force: true });
+  }
+});

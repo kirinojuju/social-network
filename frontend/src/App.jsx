@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import AuthFormLogin from './component/AuthFormsLogin'
 import AuthFormSignUp from './component/AuthFormsSignUp'
+import Welcome from './component/Welcome'
 import LeftSidebar from './component/LeftSideBar'
 import RightSideBar from './component/RightSideBar'
 import Explore from './component/Explore'
@@ -24,7 +25,7 @@ import { useAutoRefresh } from './live/useAutoRefresh'
 import { addRecentSearch, loadRecentSearches, saveRecentSearches } from './search/recent'
 
 export default function App() {
-  const [page, setPage] = useState('login')
+  const [page, setPage] = useState('welcome')
   const [activeView, setActiveView] = useState('home')
   const [viewedProfileId, setViewedProfileId] = useState(null)
   const [exploreOpen, setExploreOpen] = useState(false)
@@ -36,6 +37,7 @@ export default function App() {
   const [messagesOpen, setMessagesOpen] = useState(false)
   const [composer, setComposer] = useState(null)
   const [avatarVersion, setAvatarVersion] = useState(0)
+  const [homeVersion, setHomeVersion] = useState(0)
   const [notifications, setNotifications] = useState({ loaded: false, items: [] })
   const [notificationsSeenAt, setNotificationsSeenAt] = useState(null)
   const [notificationsPanel, setNotificationsPanel] = useState(null)
@@ -205,6 +207,14 @@ export default function App() {
     setExploreOpen(false)
   }
 
+  function goHome() {
+    setActiveView('home')
+    setViewedProfileId(null)
+    setExploreOpen(false)
+    setHomeVersion(version => version + 1)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   function openComposer(files = null) {
     setActiveView('home')
     setExploreOpen(false)
@@ -236,15 +246,20 @@ export default function App() {
   <div className="app">
 
     <LeftSidebar
-      activeView={activeView}
+      user={user}
+      profile={profile}
+      avatarVersion={avatarVersion}
+      activeView={activeView === 'profile' && viewedProfileId && viewedProfileId !== profile?.id ? null : activeView}
       onNavigate={setActiveView}
-      onCreatePost={() => openComposer()}
+      onLogoClick={goHome}
+      onOpenProfile={() => openProfile()}
+      onSignOut={signOut}
+      signOutBusy={busy}
       onOpenAI={() => setSummaryPost('')}
       onOpenMessages={() => {
         if (notificationsPanel) closeNotifications()
         setMessagesOpen(open => !open)
       }}
-      onOpenExplore={() => setExploreOpen(true)}
       onOpenNotifications={toggleNotifications}
       unreadMessages={unreadMessages}
     />
@@ -293,7 +308,7 @@ export default function App() {
     </div>
   ) : (
     <MiddlePage
-      key={user.uid}
+      key={`${user.uid}:${homeVersion}`}
       user={user}
       profile={profile}
       composer={composer}
@@ -309,6 +324,7 @@ export default function App() {
 {/* Search popup */}
 {exploreOpen && (
   <Explore
+    user={user}
     query={searchQuery}
     recentSearches={recentSearches}
     onSelectSearch={runSearch}
@@ -373,20 +389,31 @@ export default function App() {
 )
   }
 
+  if (page === 'welcome') {
+    return <Welcome onCreateAccount={() => setPage('signup')} onSignIn={() => setPage('login')} />
+  }
+
   return (
     <main className="app-container auth-page">
-      {page === 'login' ? <AuthFormLogin onSignUp={() => setPage('signup')} /> : (
-        <AuthFormSignUp onSignIn={() => setPage('login')}
-          onSignupStart={() => setSigningUp(true)}
-          onSignupComplete={(_, createdUser) => {
-            if (createdUser) {
-              setUser(createdUser)
-              setProfileState('loading')
-              setProfileError('')
-            }
-            setSigningUp(false)
-          }} />
-      )}
+      <div className={`auth-stack${page === 'signup' ? ' auth-stack-wide' : ''}`}>
+        <button type="button" className="auth-back" onClick={() => setPage('welcome')}>← Back</button>
+        {page === 'login' ? (
+          <AuthFormLogin onSignUp={() => setPage('signup')} />
+        ) : (
+          <AuthFormSignUp
+            onSignIn={() => setPage('login')}
+            onSignupStart={() => setSigningUp(true)}
+            onSignupComplete={(_, createdUser) => {
+              if (createdUser) {
+                setUser(createdUser)
+                setProfileState('loading')
+                setProfileError('')
+              }
+              setSigningUp(false)
+            }}
+          />
+        )}
+      </div>
     </main>
   )
 }

@@ -21,8 +21,8 @@ export default function PostList({ user, author, scope, title, emptyText, onOpen
   const loading = state.source !== source
 
   return (
-    <section className="post-list" aria-label={title}>
-      <h2>{title}</h2>
+    <section className="post-list" aria-label={title || 'Posts'}>
+      {title ? <h2>{title}</h2> : null}
       {loading && <p role="status">Loading posts…</p>}
       {!loading && state.error && <p className="auth-error" role="alert">{state.error}</p>}
       {!loading && !state.error && state.posts.length === 0 && <p className="post-list-empty">{emptyText}</p>}
