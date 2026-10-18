@@ -156,25 +156,6 @@
   color: #666174;
 }
 
-.auth-back {
-  align-self: center;
-  width: min(450px, 100%);
-  margin-bottom: -40px;
-  padding: 0;
-  border: none;
-  background: none;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  color: #5b50b5;
-  text-align: left;
-  cursor: pointer;
-}
-
-.auth-back:hover {
-  text-decoration: underline;
-}
-
 @media (max-width: 900px) {
   .welcome-page {
     grid-template-columns: 1fr;

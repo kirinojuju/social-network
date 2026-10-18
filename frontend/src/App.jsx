@@ -324,6 +324,7 @@ export default function App() {
 {/* Search popup */}
 {exploreOpen && (
   <Explore
+    user={user}
     query={searchQuery}
     recentSearches={recentSearches}
     onSelectSearch={runSearch}
@@ -394,19 +395,25 @@ export default function App() {
 
   return (
     <main className="app-container auth-page">
-      <button type="button" className="auth-back" onClick={() => setPage('welcome')}>← Back</button>
-      {page === 'login' ? <AuthFormLogin onSignUp={() => setPage('signup')} /> : (
-        <AuthFormSignUp onSignIn={() => setPage('login')}
-          onSignupStart={() => setSigningUp(true)}
-          onSignupComplete={(_, createdUser) => {
-            if (createdUser) {
-              setUser(createdUser)
-              setProfileState('loading')
-              setProfileError('')
-            }
-            setSigningUp(false)
-          }} />
-      )}
+      <div className={`auth-stack${page === 'signup' ? ' auth-stack-wide' : ''}`}>
+        <button type="button" className="auth-back" onClick={() => setPage('welcome')}>← Back</button>
+        {page === 'login' ? (
+          <AuthFormLogin onSignUp={() => setPage('signup')} />
+        ) : (
+          <AuthFormSignUp
+            onSignIn={() => setPage('login')}
+            onSignupStart={() => setSigningUp(true)}
+            onSignupComplete={(_, createdUser) => {
+              if (createdUser) {
+                setUser(createdUser)
+                setProfileState('loading')
+                setProfileError('')
+              }
+              setSigningUp(false)
+            }}
+          />
+        )}
+      </div>
     </main>
   )
 }

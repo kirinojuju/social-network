@@ -1,22 +1,36 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import CloseIcon from "@mui/icons-material/Close";
+import { listTrending } from "../search/client";
 
 import "./Explore.css";
 
-const trendingTopics = [
-  "#CMUTrekking",
-  "#Midterms_schedule",
-  "#CMUEvents",
-];
-
-function Explore({ query, recentSearches, onSelectSearch, onRemoveSearch, onClose }) {
+function Explore({ user, query, recentSearches, onSelectSearch, onRemoveSearch, onClose }) {
   const exploreRef = useRef(null);
   const term = query.trim();
   const matchingRecent = recentSearches.filter(item =>
     item.toLowerCase().includes(term.toLowerCase())
   );
+  const [trending, setTrending] = useState({ status: "loading", topics: [], error: "" });
+
+  useEffect(() => {
+    if (!user || term) return;
+    let active = true;
+    const controller = new AbortController();
+    listTrending(user, { signal: controller.signal })
+      .then(topics => {
+        if (active) setTrending({ status: "ready", topics, error: "" });
+      })
+      .catch(failure => {
+        if (!active || failure.name === "AbortError") return;
+        setTrending({ status: "error", topics: [], error: failure.message });
+      });
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [user, term]);
 
   // Close Explore when clicking outside the popup or the search bar that controls it
   useEffect(() => {
@@ -117,24 +131,36 @@ function Explore({ query, recentSearches, onSelectSearch, onRemoveSearch, onClos
 
               <h2>Trending</h2>
 
-              <div className="trending-grid">
+              {trending.status === "loading" && (
+                <p className="search-status" role="status">Loading trending topics…</p>
+              )}
+              {trending.status === "error" && (
+                <p className="search-status" role="alert">{trending.error}</p>
+              )}
+              {trending.status === "ready" && trending.topics.length === 0 && (
+                <p className="search-status">
+                  No trending topics yet. Use #hashtags in your posts to start trends.
+                </p>
+              )}
 
-                <div className="trending-column">
-
-                  {trendingTopics.map(topic => (
-                    <button
-                      type="button"
-                      className="trending-item"
-                      key={topic}
-                      onClick={() => onSelectSearch(topic)}
-                    >
-                      {topic}
-                    </button>
+              {trending.status === "ready" && trending.topics.length > 0 && (
+                <div className="trending-grid">
+                  {[trending.topics.slice(0, 3), trending.topics.slice(3, 6)].map((column, index) => (
+                    <div className="trending-column" key={index}>
+                      {column.map(topic => (
+                        <button
+                          type="button"
+                          className="trending-item"
+                          key={topic.tag}
+                          onClick={() => onSelectSearch(topic.tag)}
+                        >
+                          {topic.tag}
+                        </button>
+                      ))}
+                    </div>
                   ))}
-
                 </div>
-
-              </div>
+              )}
 
             </div>
           )}

@@ -18,6 +18,34 @@ function createSearchRouter(pool, verifyToken) {
     next();
   });
 
+  // Top hashtags from posts the viewer can see in the last 7 days.
+  router.get('/trending', async (req, res, next) => {
+    try {
+      const result = await pool.query(`WITH recent AS (
+          SELECT p.content
+          FROM public.posts p
+          JOIN public.users u ON u.id = p.author_id
+          WHERE (u.firebase_uid = $1 OR p.visibility = 'public')
+            AND p.created_at > now() - interval '7 days'
+            AND p.content LIKE '%#%'
+          ORDER BY p.created_at DESC
+          LIMIT 500
+        ),
+        tags AS (
+          SELECT lower((regexp_matches(content, '#([A-Za-z0-9_]{2,40})', 'g'))[1]) AS tag
+          FROM recent
+        )
+        SELECT tag, count(*)::int AS count
+        FROM tags
+        GROUP BY tag
+        ORDER BY count DESC, tag
+        LIMIT 6`, [req.auth.uid]);
+      res.json({
+        topics: result.rows.map(row => ({ tag: `#${row.tag}`, count: row.count })),
+      });
+    } catch (error) { next(error); }
+  });
+
   router.get('/', async (req, res, next) => {
     const term = parseQuery(req.query.q);
     if (!term) return res.status(400).json({ error: 'Invalid search' });

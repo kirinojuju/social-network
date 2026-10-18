@@ -106,13 +106,15 @@ configuration is client-side configuration, not an Admin credential. See
 
 ## Team roles
 
+Roles below match what each person actually built in the repository (from commit history), not the original planned labels.
+
 | Name | Role |
 | --- | --- |
-| Sally | Back-End (Logic & Features) |
-| JR | Infra (Database & Security) |
-| OT | Front-End |
-| Beach | Back-End (AI Features, API) |
-| Min Swan | Full-Stack |
+| Junior (JR) | Backend foundation: PostgreSQL/Neon, migrations, Firebase auth, Express APIs (profiles, posts, likes, comments, chat, notifications), security, team integration and deployment |
+| Beach | UniAI: OpenRouter integration, post summarise API/UI, AI chat API/UI |
+| Min Swan | Frontend shell: left/right sidebars, auth screens, search popup, chat box, routing and app layout |
+| OT | Frontend feed: home middle page, post/media layout, comment popup UI |
+| Sally | Product features and UI: profile/friends, messages panel, notifications, search/Explore, multi-photo posts, post delete, welcome page and CMUnite branding |
 
 ## Development workflow
 

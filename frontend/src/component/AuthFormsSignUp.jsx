@@ -52,7 +52,7 @@ export default function AuthFormSignUp({ onSignIn, onSignupStart, onSignupComple
               <input name="confirmPassword" type="password" placeholder="Confirm Password" aria-label="Confirm Password" autoComplete="new-password" minLength={6} required />
             </div>
           </div>
-          <p className="footer-text">Use at least 6 characters. Your account will be ready immediately.</p>
+          <p className="footer-text auth-hint">Use at least 6 characters. Your account will be ready immediately.</p>
           {error && <p className="auth-error" role="alert">{error}</p>}
           <button className="btn btn-signup" type="submit">{busy ? 'Creating account…' : 'Create Account'}</button>
           <div className="footer-text">
