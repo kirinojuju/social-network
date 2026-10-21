@@ -9,8 +9,10 @@ Messages remains a separate feature.
 
 In the ignored `backend/.env`, set `OPENROUTER_API_KEY` to a newly issued key.
 Do not paste credentials into chat, commit them, or put them in `VITE_*`.
-Restart the backend after changing environment variables. Optionally set
-`OPENROUTER_MODEL`; the default is `openrouter/free`.
+Restart the backend after changing environment variables. The default model is
+`minimax/minimax-m3.1-flash:free`; set `OPENROUTER_MODEL` to change it. If the
+default fails, the backend tries `OPENROUTER_FALLBACK_MODELS` in order (see
+`backend/.env.example`).
 
 When publishing, set the same server environment variables on Render.
 AI requests use `/api/ai` on the same origin in production and the local
@@ -25,7 +27,11 @@ post APIs. A missing AI key does not prevent those services starting.
 - `POST /api/ai/summarize` accepts `{ "text": "..." }`.
 - The browser displays the session's messages but sends only the latest 19
   messages, within the server's 20-message limit.
-- Provider calls time out after 30 seconds and do not retry automatically.
+- Each model gets 15 seconds (`OPENROUTER_TIMEOUT_MS`). On a rate limit or daily
+  quota, server error, timeout, removed model or empty answer, the backend tries
+  the next model (up to 3 per request) and skips the failed one for a minute. A
+  rejected API key (401/403) stops immediately. Failures log the model name and
+  status only, never user text.
 - Failed sends preserve the user's draft for retry. Provider details and keys
   are not returned to clients; AI responses have `private, no-store` caching.
 - Chat history exists only in the popup session, not PostgreSQL or Firestore.
